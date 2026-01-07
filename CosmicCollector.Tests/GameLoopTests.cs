@@ -93,6 +93,7 @@ public sealed class GameLoopTests
     var state = new GameState();
     var queue = new CommandQueue();
     var bus = new EventBus();
+    state.DisorientationRemainingSec = 1.0;
     state.IsDisoriented = true;
 
     var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });

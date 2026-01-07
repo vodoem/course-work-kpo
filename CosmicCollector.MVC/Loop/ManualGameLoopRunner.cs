@@ -81,7 +81,13 @@ public sealed class ManualGameLoopRunner
 
   private void ApplyMoveCommand(int parDirection)
   {
-    var direction = _gameState.IsDisoriented ? -parDirection : parDirection;
-    _gameState.DroneInternal.Velocity = new Vector2(direction * DroneSpeed, _gameState.DroneInternal.Velocity.Y);
+    var snapshot = _gameState.GetSnapshot();
+    var direction = NormalizeDirection(snapshot.parDrone.parIsDisoriented, parDirection);
+    _gameState.SetDroneVelocity(new Vector2(direction * DroneSpeed, snapshot.parDrone.parVelocity.Y));
+  }
+
+  private static int NormalizeDirection(bool parIsDisoriented, int parDirection)
+  {
+    return parIsDisoriented ? -parDirection : parDirection;
   }
 }

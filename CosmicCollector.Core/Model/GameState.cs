@@ -491,19 +491,55 @@ public sealed class GameState
   /// <summary>
   /// Признак дезориентации дрона.
   /// </summary>
-  internal bool IsDisoriented
+  /// <summary>
+  /// Признак дезориентации дрона.
+  /// </summary>
+  public bool IsDisoriented
   {
-    get => _isDisoriented;
-    set => _isDisoriented = value;
+    get
+    {
+      lock (_lockObject)
+      {
+        return _isDisoriented;
+      }
+    }
+    internal set
+    {
+      _isDisoriented = value;
+    }
   }
 
   /// <summary>
   /// Оставшееся время дезориентации в секундах.
   /// </summary>
-  internal double DisorientationRemainingSec
+  /// <summary>
+  /// Оставшееся время дезориентации в секундах.
+  /// </summary>
+  public double DisorientationRemainingSec
   {
-    get => _disorientationRemainingSec;
-    set => _disorientationRemainingSec = value;
+    get
+    {
+      lock (_lockObject)
+      {
+        return _disorientationRemainingSec;
+      }
+    }
+    internal set
+    {
+      _disorientationRemainingSec = value;
+    }
+  }
+
+  /// <summary>
+  /// Устанавливает скорость дрона.
+  /// </summary>
+  /// <param name="parVelocity">Новая скорость.</param>
+  public void SetDroneVelocity(Vector2 parVelocity)
+  {
+    lock (_lockObject)
+    {
+      _drone.Velocity = parVelocity;
+    }
   }
 
   private void StartResumeCountdownLocked()
