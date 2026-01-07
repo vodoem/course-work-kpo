@@ -25,6 +25,7 @@ public sealed class GameState
   private double _timeStabilizerRemainingSec;
   private double _magnetRemainingSec;
   private double _levelTimeRemainingSec;
+  private bool _hasLevelTimer;
   private bool _collectedBlue;
   private bool _collectedGreen;
   private bool _collectedRed;
@@ -122,6 +123,21 @@ public sealed class GameState
       lock (_lockObject)
       {
         _levelTimeRemainingSec = value;
+        _hasLevelTimer = true;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Признак наличия таймера уровня.
+  /// </summary>
+  internal bool HasLevelTimer
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _hasLevelTimer;
       }
     }
   }

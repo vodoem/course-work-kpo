@@ -63,7 +63,6 @@ public sealed class GameWorldUpdateService
         return;
       }
 
-      parGameState.LevelTimeRemainingSec = Math.Max(0, parGameState.LevelTimeRemainingSec - parDt);
       UpdateBonusTimers(parGameState, parDt);
 
       var speedMultiplier = 1.0 + (0.015 * (parLevel - 1));
@@ -79,7 +78,14 @@ public sealed class GameWorldUpdateService
         isTimeStabilizerActive,
         isMagnetActive);
       ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
-      HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive);
+      var timeStabilizerCollected = false;
+      HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive, ref timeStabilizerCollected);
+
+      if (parGameState.HasLevelTimer && !timeStabilizerCollected)
+      {
+        parGameState.LevelTimeRemainingSec = Math.Max(0, parGameState.LevelTimeRemainingSec - parDt);
+      }
+
       CheckEndConditions(parGameState, parEventPublisher);
     }
   }
@@ -178,7 +184,8 @@ public sealed class GameWorldUpdateService
   private void HandleCollisions(
     GameState parGameState,
     IEventPublisher parEventPublisher,
-    bool parIsAcceleratorActive)
+    bool parIsAcceleratorActive,
+    ref bool refTimeStabilizerCollected)
   {
     var drone = parGameState.DroneInternal;
     var crystalsToRemove = new List<Crystal>();
@@ -226,7 +233,7 @@ public sealed class GameWorldUpdateService
         continue;
       }
 
-      ActivateBonus(parGameState, bonus);
+      ActivateBonus(parGameState, bonus, ref refTimeStabilizerCollected);
       parEventPublisher.Publish(new BonusActivated(bonus.Type.ToString(), bonus.DurationSec));
       parEventPublisher.Publish(new ObjectDespawned(bonus.Id, "Collected"));
       bonusesToRemove.Add(bonus);
@@ -250,7 +257,7 @@ public sealed class GameWorldUpdateService
 
   private void CheckEndConditions(GameState parGameState, IEventPublisher parEventPublisher)
   {
-    if (parGameState.LevelTimeRemainingSec <= 0)
+    if (parGameState.HasLevelTimer && parGameState.LevelTimeRemainingSec <= 0)
     {
       parGameState.MarkGameOver();
       parEventPublisher.Publish(new GameOver("TimeExpired"));
@@ -282,7 +289,10 @@ public sealed class GameWorldUpdateService
     };
   }
 
-  private void ActivateBonus(GameState parGameState, Bonus parBonus)
+  private void ActivateBonus(
+    GameState parGameState,
+    Bonus parBonus,
+    ref bool refTimeStabilizerCollected)
   {
     switch (parBonus.Type)
     {
@@ -296,6 +306,7 @@ public sealed class GameWorldUpdateService
           parGameState.TimeStabilizerRemainingSec,
           parBonus.DurationSec);
         parGameState.LevelTimeRemainingSec += TimeStabilizerBonusSeconds;
+        refTimeStabilizerCollected = true;
         break;
       case BonusType.Magnet:
         parGameState.MagnetRemainingSec = Math.Max(
