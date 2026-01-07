@@ -10,13 +10,15 @@ public interface IEventBus
   /// <summary>
   /// Публикует доменное событие для всех подписчиков.
   /// </summary>
+  /// <typeparam name="TEvent">Тип публикуемого события.</typeparam>
   /// <param name="parEvent">Экземпляр события для публикации.</param>
-  void Publish(IGameEvent parEvent);
+  void Publish<TEvent>(TEvent parEvent) where TEvent : IGameEvent;
 
   /// <summary>
   /// Подписывает на события указанного типа.
   /// </summary>
   /// <typeparam name="TEvent">Тип события для подписки.</typeparam>
   /// <param name="parHandler">Обработчик, который будет вызван.</param>
-  void Subscribe<TEvent>(Action<TEvent> parHandler) where TEvent : IGameEvent;
+  /// <returns>Объект для отмены подписки.</returns>
+  IDisposable Subscribe<TEvent>(Action<TEvent> parHandler) where TEvent : IGameEvent;
 }
