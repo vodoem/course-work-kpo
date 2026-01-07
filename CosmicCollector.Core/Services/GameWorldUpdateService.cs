@@ -166,8 +166,6 @@ public sealed class GameWorldUpdateService
     IEventPublisher parEventPublisher)
   {
     var drone = parGameState.DroneInternal;
-    var inRadius = false;
-    var disorientationTriggered = false;
 
     foreach (var blackHole in parGameState.BlackHolesInternal)
     {
@@ -181,18 +179,11 @@ public sealed class GameWorldUpdateService
         continue;
       }
 
-      inRadius = true;
       var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
       drone.Velocity = drone.Velocity.Add(acceleration.Multiply(parDt));
-      if (!parGameState.WasInBlackHoleRadius && !disorientationTriggered)
-      {
-        ActivateDisorientation(parGameState, DisorientationDurationSec);
-        disorientationTriggered = true;
-      }
+      ActivateDisorientation(parGameState, DisorientationDurationSec);
       parEventPublisher.Publish(new DamageTaken("BlackHole", 0));
     }
-
-    parGameState.WasInBlackHoleRadius = inRadius;
   }
 
   private void HandleCollisions(
@@ -446,7 +437,7 @@ public sealed class GameWorldUpdateService
 
     var remaining = parGameState.DisorientationRemainingSec - parDt;
 
-    if (remaining <= 0)
+    if (remaining <= 1e-9)
     {
       parGameState.DisorientationRemainingSec = 0;
       parGameState.IsDisoriented = false;
