@@ -1,0 +1,36 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CosmicCollector.Core", "CosmicCollector.Core/CosmicCollector.Core.csproj", "{829C4E49-AA20-47A0-9D09-3E23A05B189C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CosmicCollector.MVC", "CosmicCollector.MVC/CosmicCollector.MVC.csproj", "{9F249EEB-9C04-4DBD-8821-5848C38F4786}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CosmicCollector.Persistence", "CosmicCollector.Persistence/CosmicCollector.Persistence.csproj", "{3FB076B5-DC7C-41D8-A8D0-BDA066FE53F5}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CosmicCollector.Tests", "CosmicCollector.Tests/CosmicCollector.Tests.csproj", "{8FB8DC5C-5167-4BA4-B1B7-6BD712D9AA04}"
+EndProject
+Global
+  GlobalSection(SolutionConfigurationPlatforms) = preSolution
+    Debug|Any CPU = Debug|Any CPU
+    Release|Any CPU = Release|Any CPU
+  EndGlobalSection
+  GlobalSection(ProjectConfigurationPlatforms) = postSolution
+    {829C4E49-AA20-47A0-9D09-3E23A05B189C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {829C4E49-AA20-47A0-9D09-3E23A05B189C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {829C4E49-AA20-47A0-9D09-3E23A05B189C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {829C4E49-AA20-47A0-9D09-3E23A05B189C}.Release|Any CPU.Build.0 = Release|Any CPU
+    {9F249EEB-9C04-4DBD-8821-5848C38F4786}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {9F249EEB-9C04-4DBD-8821-5848C38F4786}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {9F249EEB-9C04-4DBD-8821-5848C38F4786}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {9F249EEB-9C04-4DBD-8821-5848C38F4786}.Release|Any CPU.Build.0 = Release|Any CPU
+    {3FB076B5-DC7C-41D8-A8D0-BDA066FE53F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {3FB076B5-DC7C-41D8-A8D0-BDA066FE53F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {3FB076B5-DC7C-41D8-A8D0-BDA066FE53F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {3FB076B5-DC7C-41D8-A8D0-BDA066FE53F5}.Release|Any CPU.Build.0 = Release|Any CPU
+    {8FB8DC5C-5167-4BA4-B1B7-6BD712D9AA04}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+    {8FB8DC5C-5167-4BA4-B1B7-6BD712D9AA04}.Debug|Any CPU.Build.0 = Debug|Any CPU
+    {8FB8DC5C-5167-4BA4-B1B7-6BD712D9AA04}.Release|Any CPU.ActiveCfg = Release|Any CPU
+    {8FB8DC5C-5167-4BA4-B1B7-6BD712D9AA04}.Release|Any CPU.Build.0 = Release|Any CPU
+  EndGlobalSection
+EndGlobal
