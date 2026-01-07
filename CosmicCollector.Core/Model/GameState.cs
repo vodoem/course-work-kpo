@@ -23,8 +23,6 @@ public sealed class GameState
   private double _acceleratorRemainingSec;
   private double _timeStabilizerRemainingSec;
   private double _magnetRemainingSec;
-  // TODO: Реализовать обратный отсчёт 3..1 на снятие паузы через тики.
-  private int _countdownValue;
   private double _levelTimeRemainingSec;
 
   /// <summary>
