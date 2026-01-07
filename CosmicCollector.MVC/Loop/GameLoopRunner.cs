@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Model;
 using CosmicCollector.MVC.Commands;
@@ -12,6 +13,7 @@ namespace CosmicCollector.MVC.Loop;
 public sealed class GameLoopRunner : IGameLoopRunner
 {
   private const double StepSeconds = 1.0 / 60.0;
+  private const double DroneSpeed = 10.0;
   private readonly GameState _gameState;
   private readonly CommandQueue _commandQueue;
   private readonly IEventBus _eventBus;
@@ -118,8 +120,26 @@ public sealed class GameLoopRunner : IGameLoopRunner
       {
         var isPaused = _gameState.TogglePause();
         _eventBus.Publish(new PauseToggled(isPaused));
+        continue;
+      }
+
+      if (command is MoveLeftCommand)
+      {
+        ApplyMoveCommand(-1);
+        continue;
+      }
+
+      if (command is MoveRightCommand)
+      {
+        ApplyMoveCommand(1);
       }
     }
+  }
+
+  private void ApplyMoveCommand(int parDirection)
+  {
+    var direction = _gameState.IsDisoriented ? -parDirection : parDirection;
+    _gameState.DroneInternal.Velocity = new Vector2(direction * DroneSpeed, _gameState.DroneInternal.Velocity.Y);
   }
 
   private bool IsRunning()

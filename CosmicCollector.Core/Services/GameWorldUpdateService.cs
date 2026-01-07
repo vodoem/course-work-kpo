@@ -21,6 +21,7 @@ public sealed class GameWorldUpdateService
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
   private const double TimeStabilizerBonusSeconds = 5.0;
+  private const double DisorientationDurationSec = 3.0;
 
   private readonly IRandomProvider _randomProvider;
 
@@ -65,6 +66,7 @@ public sealed class GameWorldUpdateService
       }
 
       UpdateBonusTimers(parGameState, parDt);
+      UpdateDisorientation(parGameState, parDt);
 
       var speedMultiplier = 1.0 + (0.015 * (parLevel - 1));
       var isAcceleratorActive = parGameState.AcceleratorRemainingSec > 0;
@@ -179,6 +181,7 @@ public sealed class GameWorldUpdateService
 
       var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
       drone.Velocity = drone.Velocity.Add(acceleration.Multiply(parDt));
+      ActivateDisorientation(parGameState, DisorientationDurationSec);
       parEventPublisher.Publish(new DamageTaken("BlackHole", 0));
     }
   }
@@ -409,6 +412,36 @@ public sealed class GameWorldUpdateService
           parGameState.MagnetRemainingSec,
           parBonus.DurationSec);
         break;
+    }
+  }
+
+  private void ActivateDisorientation(GameState parGameState, double parDurationSec)
+  {
+    if (parDurationSec <= 0)
+    {
+      return;
+    }
+
+    parGameState.IsDisoriented = true;
+    parGameState.DisorientationRemainingSec = Math.Max(
+      parGameState.DisorientationRemainingSec,
+      parDurationSec);
+  }
+
+  private void UpdateDisorientation(GameState parGameState, double parDt)
+  {
+    if (!parGameState.IsDisoriented)
+    {
+      return;
+    }
+
+    parGameState.DisorientationRemainingSec = Math.Max(
+      0,
+      parGameState.DisorientationRemainingSec - parDt);
+
+    if (parGameState.DisorientationRemainingSec <= 0)
+    {
+      parGameState.IsDisoriented = false;
     }
   }
 

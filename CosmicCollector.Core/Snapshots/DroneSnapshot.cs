@@ -11,10 +11,14 @@ namespace CosmicCollector.Core.Snapshots;
 /// <param name="parBounds">Габариты.</param>
 /// <param name="parEnergy">Энергия.</param>
 /// <param name="parScore">Очки.</param>
+/// <param name="parIsDisoriented">Признак дезориентации.</param>
+/// <param name="parDisorientationRemainingSec">Оставшееся время дезориентации.</param>
 public sealed record DroneSnapshot(
   Guid parId,
   Vector2 parPosition,
   Vector2 parVelocity,
   Aabb parBounds,
   int parEnergy,
-  int parScore);
+  int parScore,
+  bool parIsDisoriented,
+  double parDisorientationRemainingSec);

@@ -83,4 +83,23 @@ public sealed class GameLoopTests
     Xunit.Assert.Single(toggledValues);
     Xunit.Assert.True(toggledValues[0]);
   }
+
+  /// <summary>
+  /// Проверяет инверсию команд движения при дезориентации.
+  /// </summary>
+  [Xunit.Fact]
+  public void ProcessCommands_InvertsMoveWhenDisoriented()
+  {
+    var state = new GameState();
+    var queue = new CommandQueue();
+    var bus = new EventBus();
+    state.IsDisoriented = true;
+
+    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+
+    queue.Enqueue(new MoveLeftCommand());
+    runner.TickOnce();
+
+    Xunit.Assert.True(state.Drone.Velocity.X > 0);
+  }
 }

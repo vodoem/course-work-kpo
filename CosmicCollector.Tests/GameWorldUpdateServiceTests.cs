@@ -721,6 +721,65 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.False(state.IsPaused);
   }
 
+  /// <summary>
+  /// Проверяет включение дезориентации при попадании в радиус чёрной дыры.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_BlackHoleEnablesDisorientation()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(10, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.True(state.IsDisoriented);
+    Xunit.Assert.InRange(state.DisorientationRemainingSec, 2.9, 3.0);
+  }
+
+  /// <summary>
+  /// Проверяет окончание дезориентации после заданного времени.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_DisorientationExpiresAfterDuration()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(10, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    state.Drone.Position = new Vector2(1000, 0);
+
+    for (var i = 0; i < 180; i++)
+    {
+      service.Update(state, 1.0 / 60.0, 1, bus);
+    }
+
+    Xunit.Assert.False(state.IsDisoriented);
+    Xunit.Assert.Equal(0, state.DisorientationRemainingSec);
+  }
+
   private static GameState CreateStateWithDrone()
   {
     var drone = new Drone(

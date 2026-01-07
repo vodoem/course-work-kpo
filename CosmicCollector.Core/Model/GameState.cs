@@ -35,6 +35,8 @@ public sealed class GameState
   private bool _isResumeCountdownActive;
   private int _resumeCountdownValue;
   private double _resumeCountdownAccumulatedSec;
+  private bool _isDisoriented;
+  private double _disorientationRemainingSec;
 
   /// <summary>
   /// Инициализирует состояние игры со стандартным дроном.
@@ -304,7 +306,9 @@ public sealed class GameState
         _drone.Velocity,
         _drone.Bounds,
         _drone.Energy,
-        _score);
+        _score,
+        _isDisoriented,
+        _disorientationRemainingSec);
 
       var crystals = _crystals
         .Select(crystal => new Snapshots.CrystalSnapshot(
@@ -482,6 +486,24 @@ public sealed class GameState
   internal void MarkGameOver()
   {
     _isGameOver = true;
+  }
+
+  /// <summary>
+  /// Признак дезориентации дрона.
+  /// </summary>
+  internal bool IsDisoriented
+  {
+    get => _isDisoriented;
+    set => _isDisoriented = value;
+  }
+
+  /// <summary>
+  /// Оставшееся время дезориентации в секундах.
+  /// </summary>
+  internal double DisorientationRemainingSec
+  {
+    get => _disorientationRemainingSec;
+    set => _disorientationRemainingSec = value;
   }
 
   private void StartResumeCountdownLocked()
