@@ -23,8 +23,4 @@ public interface IGameController
   /// <param name="parCommand">Команда для постановки в очередь.</param>
   void EnqueueCommand(IGameCommand parCommand);
 
-  /// <summary>
-  /// Переключает состояние паузы.
-  /// </summary>
-  void TogglePause();
 }
