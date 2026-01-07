@@ -178,6 +178,65 @@ public sealed class SpawnSystemTests
     Xunit.Assert.Equal(BonusType.TimeStabilizer, snapshot.parBonuses[0].parType);
   }
 
+  /// <summary>
+  /// Проверяет, что чёрная дыра спавнится выше верхней границы.
+  /// </summary>
+  [Xunit.Fact]
+  public void Spawn_BlackHole_CreatesObjectAboveTopBoundary()
+  {
+    var random = new FakeRandomProvider(50);
+    var config = CreateConfig(blackHoleIntervalTicks: 1);
+    var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
+    var system = new SpawnSystem(random, config);
+
+    system.TrySpawn(state, 1, 1);
+
+    var snapshot = state.GetSnapshot();
+    Xunit.Assert.Single(snapshot.parBlackHoles);
+    var expectedY = 0 - ((config.BlackHoleBounds.Height / 2.0) + config.SpawnGap);
+    Xunit.Assert.Equal(expectedY, snapshot.parBlackHoles[0].parPosition.Y, 6);
+  }
+
+  /// <summary>
+  /// Проверяет лимиты и интервалы спавна чёрных дыр.
+  /// </summary>
+  [Xunit.Fact]
+  public void Spawn_BlackHole_RespectsLimitsAndIntervals()
+  {
+    var random = new FakeRandomProvider(new[] { 20, 30 });
+    var config = CreateConfig(blackHoleIntervalTicks: 2, maxActiveBlackHoles: 1);
+    var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
+    var system = new SpawnSystem(random, config);
+
+    system.TrySpawn(state, 1, 1);
+    Xunit.Assert.Empty(state.GetSnapshot().parBlackHoles);
+
+    system.TrySpawn(state, 1, 2);
+    Xunit.Assert.Single(state.GetSnapshot().parBlackHoles);
+
+    system.TrySpawn(state, 1, 4);
+    Xunit.Assert.Single(state.GetSnapshot().parBlackHoles);
+  }
+
+  /// <summary>
+  /// Проверяет нулевую скорость чёрной дыры.
+  /// </summary>
+  [Xunit.Fact]
+  public void Spawn_BlackHole_HasZeroVelocity()
+  {
+    var random = new FakeRandomProvider(20);
+    var config = CreateConfig(blackHoleIntervalTicks: 1, blackHoleBaseSpeed: 0);
+    var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
+    var system = new SpawnSystem(random, config);
+
+    system.TrySpawn(state, 1, 1);
+
+    var snapshot = state.GetSnapshot();
+    Xunit.Assert.Single(snapshot.parBlackHoles);
+    Xunit.Assert.Equal(0, snapshot.parBlackHoles[0].parVelocity.X);
+    Xunit.Assert.Equal(0, snapshot.parBlackHoles[0].parVelocity.Y);
+  }
+
   private static GameState CreateGameState(WorldBounds parBounds)
   {
     var drone = new Drone(
@@ -194,9 +253,11 @@ public sealed class SpawnSystemTests
     int crystalIntervalTicks,
     int asteroidIntervalTicks = 0,
     int bonusIntervalTicks = 0,
+    int blackHoleIntervalTicks = 0,
     int maxActiveCrystals = 3,
     int maxActiveAsteroids = 3,
     int maxActiveBonuses = 3,
+    int maxActiveBlackHoles = 3,
     int intervalDecreasePerLevel = 0,
     int maxActiveIncreasePerLevel = 0,
     double spawnMargin = 1,
@@ -205,6 +266,9 @@ public sealed class SpawnSystemTests
     double crystalBaseSpeed = 4.0,
     double asteroidBaseSpeed = 6.0,
     double bonusBaseSpeed = 3.0,
+    double blackHoleBaseSpeed = 0,
+    double blackHoleRadius = 220,
+    double blackHoleCoreRadius = 40,
     double bonusDurationSec = 5.0,
     double asteroidSpeedMultiplier = 1.3,
     IReadOnlyList<WeightedOption<CrystalType>>? crystalWeights = null,
@@ -215,9 +279,11 @@ public sealed class SpawnSystemTests
       maxActiveCrystals,
       maxActiveAsteroids,
       maxActiveBonuses,
+      maxActiveBlackHoles,
       crystalIntervalTicks,
       asteroidIntervalTicks,
       bonusIntervalTicks,
+      blackHoleIntervalTicks,
       intervalDecreasePerLevel,
       maxActiveIncreasePerLevel,
       spawnMargin,
@@ -226,9 +292,13 @@ public sealed class SpawnSystemTests
       new Aabb(10, 10),
       new Aabb(12, 12),
       new Aabb(8, 8),
+      new Aabb(14, 14),
       crystalBaseSpeed,
       asteroidBaseSpeed,
       bonusBaseSpeed,
+      blackHoleBaseSpeed,
+      blackHoleRadius,
+      blackHoleCoreRadius,
       bonusDurationSec,
       asteroidSpeedMultiplier,
       crystalWeights ?? new List<WeightedOption<CrystalType>> { new(CrystalType.Blue, 1) },

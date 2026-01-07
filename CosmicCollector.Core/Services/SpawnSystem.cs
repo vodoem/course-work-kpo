@@ -43,6 +43,7 @@ public sealed class SpawnSystem
     TrySpawnCrystal(parGameState, parLevel, parTickCount, results);
     TrySpawnAsteroid(parGameState, parLevel, parTickCount, results);
     TrySpawnBonus(parGameState, parLevel, parTickCount, results);
+    TrySpawnBlackHole(parGameState, parLevel, parTickCount, results);
 
     return results;
   }
@@ -141,6 +142,41 @@ public sealed class SpawnSystem
       _config.BonusDurationSec);
     parGameState.BonusesInternal.Add(bonus);
     parResults.Add(new SpawnedObject(nameof(Bonus), bonus.Id));
+  }
+
+  private void TrySpawnBlackHole(
+    GameState parGameState,
+    int parLevel,
+    long parTickCount,
+    ICollection<SpawnedObject> parResults)
+  {
+    if (!IsTickForSpawn(parTickCount, _config.BlackHoleIntervalTicks, parLevel))
+    {
+      return;
+    }
+
+    var maxActive = GetScaledMaxActive(_config.MaxActiveBlackHoles, parLevel);
+
+    if (parGameState.BlackHolesInternal.Count >= maxActive)
+    {
+      return;
+    }
+
+    if (!TryFindSpawnPosition(parGameState, _config.BlackHoleBounds, out var position))
+    {
+      return;
+    }
+
+    var velocity = new Vector2(0, GetScaledSpeed(_config.BlackHoleBaseSpeed, parLevel));
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      position,
+      velocity,
+      _config.BlackHoleBounds,
+      _config.BlackHoleRadius,
+      _config.BlackHoleCoreRadius);
+    parGameState.BlackHolesInternal.Add(blackHole);
+    parResults.Add(new SpawnedObject(nameof(BlackHole), blackHole.Id));
   }
 
   private bool IsTickForSpawn(long parTickCount, int parBaseInterval, int parLevel)

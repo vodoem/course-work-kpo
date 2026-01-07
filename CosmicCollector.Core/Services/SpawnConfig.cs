@@ -23,17 +23,23 @@ public sealed class SpawnConfig
       0,
       0,
       0,
+      0,
       1,
       1,
       1,
       new Aabb(10, 10),
       new Aabb(10, 10),
       new Aabb(10, 10),
+      new Aabb(10, 10),
+      0,
+      0,
       0,
       0,
       0,
       1,
       1,
+      0,
+      0,
       new List<WeightedOption<CrystalType>>(),
       new List<WeightedOption<BonusType>>());
 
@@ -45,9 +51,11 @@ public sealed class SpawnConfig
     int parMaxActiveCrystals,
     int parMaxActiveAsteroids,
     int parMaxActiveBonuses,
+    int parMaxActiveBlackHoles,
     int parCrystalIntervalTicks,
     int parAsteroidIntervalTicks,
     int parBonusIntervalTicks,
+    int parBlackHoleIntervalTicks,
     int parIntervalDecreasePerLevel,
     int parMaxActiveIncreasePerLevel,
     double parSpawnMargin,
@@ -56,9 +64,13 @@ public sealed class SpawnConfig
     Aabb parCrystalBounds,
     Aabb parAsteroidBounds,
     Aabb parBonusBounds,
+    Aabb parBlackHoleBounds,
     double parCrystalBaseSpeed,
     double parAsteroidBaseSpeed,
     double parBonusBaseSpeed,
+    double parBlackHoleBaseSpeed,
+    double parBlackHoleRadius,
+    double parBlackHoleCoreRadius,
     double parBonusDurationSec,
     double parAsteroidSpeedMultiplier,
     IReadOnlyList<WeightedOption<CrystalType>> parCrystalTypeWeights,
@@ -68,9 +80,11 @@ public sealed class SpawnConfig
     MaxActiveCrystals = parMaxActiveCrystals;
     MaxActiveAsteroids = parMaxActiveAsteroids;
     MaxActiveBonuses = parMaxActiveBonuses;
+    MaxActiveBlackHoles = parMaxActiveBlackHoles;
     CrystalIntervalTicks = parCrystalIntervalTicks;
     AsteroidIntervalTicks = parAsteroidIntervalTicks;
     BonusIntervalTicks = parBonusIntervalTicks;
+    BlackHoleIntervalTicks = parBlackHoleIntervalTicks;
     IntervalDecreasePerLevel = parIntervalDecreasePerLevel;
     MaxActiveIncreasePerLevel = parMaxActiveIncreasePerLevel;
     SpawnMargin = parSpawnMargin;
@@ -79,9 +93,13 @@ public sealed class SpawnConfig
     CrystalBounds = parCrystalBounds;
     AsteroidBounds = parAsteroidBounds;
     BonusBounds = parBonusBounds;
+    BlackHoleBounds = parBlackHoleBounds;
     CrystalBaseSpeed = parCrystalBaseSpeed;
     AsteroidBaseSpeed = parAsteroidBaseSpeed;
     BonusBaseSpeed = parBonusBaseSpeed;
+    BlackHoleBaseSpeed = parBlackHoleBaseSpeed;
+    BlackHoleRadius = parBlackHoleRadius;
+    BlackHoleCoreRadius = parBlackHoleCoreRadius;
     BonusDurationSec = parBonusDurationSec;
     AsteroidSpeedMultiplier = parAsteroidSpeedMultiplier;
     CrystalTypeWeights = parCrystalTypeWeights;
@@ -109,6 +127,11 @@ public sealed class SpawnConfig
   public int MaxActiveBonuses { get; }
 
   /// <summary>
+  /// Максимум активных чёрных дыр.
+  /// </summary>
+  public int MaxActiveBlackHoles { get; }
+
+  /// <summary>
   /// Интервал спавна кристаллов в тиках.
   /// </summary>
   public int CrystalIntervalTicks { get; }
@@ -122,6 +145,11 @@ public sealed class SpawnConfig
   /// Интервал спавна бонусов в тиках.
   /// </summary>
   public int BonusIntervalTicks { get; }
+
+  /// <summary>
+  /// Интервал спавна чёрных дыр в тиках.
+  /// </summary>
+  public int BlackHoleIntervalTicks { get; }
 
   /// <summary>
   /// Уменьшение интервала на уровень.
@@ -164,6 +192,11 @@ public sealed class SpawnConfig
   public Aabb BonusBounds { get; }
 
   /// <summary>
+  /// Габариты чёрной дыры.
+  /// </summary>
+  public Aabb BlackHoleBounds { get; }
+
+  /// <summary>
   /// Базовая скорость кристаллов.
   /// </summary>
   public double CrystalBaseSpeed { get; }
@@ -177,6 +210,21 @@ public sealed class SpawnConfig
   /// Базовая скорость бонусов.
   /// </summary>
   public double BonusBaseSpeed { get; }
+
+  /// <summary>
+  /// Базовая скорость чёрных дыр.
+  /// </summary>
+  public double BlackHoleBaseSpeed { get; }
+
+  /// <summary>
+  /// Радиус влияния чёрной дыры.
+  /// </summary>
+  public double BlackHoleRadius { get; }
+
+  /// <summary>
+  /// Радиус ядра чёрной дыры.
+  /// </summary>
+  public double BlackHoleCoreRadius { get; }
 
   /// <summary>
   /// Длительность бонуса в секундах.
