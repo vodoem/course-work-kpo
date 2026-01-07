@@ -180,6 +180,313 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.Equal(1, damageEvents);
   }
 
+  /// <summary>
+  /// Проверяет увеличение очков от ускорителя.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_AcceleratorIncreasesScore()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    state.AddCrystal(CreateCrystal(CrystalType.Blue));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(10, state.Score);
+  }
+
+  /// <summary>
+  /// Проверяет ускорение скорости дрона при активном ускорителе.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_AcceleratorIncreasesDroneSpeed()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    state.Drone.Position = Vector2.Zero;
+    state.Drone.Velocity = new Vector2(10, 0);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.InRange(state.Drone.Position.X, 15.99, 16.01);
+  }
+
+  /// <summary>
+  /// Проверяет замедление астероидов стабилизатором времени.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_TimeStabilizerSlowsAsteroids()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var asteroid = new Asteroid(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      new Vector2(0, 10),
+      new Aabb(10, 10));
+    state.AddAsteroid(asteroid);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.InRange(asteroid.Position.Y, 6.49, 6.51);
+  }
+
+  /// <summary>
+  /// Проверяет добавление времени уровня стабилизатором.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_TimeStabilizerAddsLevelTime()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.LevelTimeRemainingSec = 30;
+    state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(35, state.LevelTimeRemainingSec);
+  }
+
+  /// <summary>
+  /// Проверяет притяжение кристалла магнитом внутри радиуса.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_MagnetAttractsCrystalInsideRadius()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.Magnet, 5));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      new Vector2(100, 0),
+      new Vector2(5, 0),
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.True(crystal.Velocity.X < 0);
+  }
+
+  /// <summary>
+  /// Проверяет отсутствие влияния магнита вне радиуса.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_MagnetDoesNotAffectCrystalOutsideRadius()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.Magnet, 5));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      new Vector2(130, 0),
+      new Vector2(5, 0),
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(5, crystal.Velocity.X);
+  }
+
+  /// <summary>
+  /// Проверяет ускорение дрона к центру чёрной дыры.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_BlackHoleAcceleratesDroneTowardsCenter()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(10, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      20));
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.True(state.Drone.Velocity.X < 0);
+  }
+
+  /// <summary>
+  /// Проверяет, что пауза останавливает обновление мира.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_PauseStopsUpdates()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      new Vector2(0, 10),
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+    state.TogglePause();
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.Equal(0, crystal.Position.Y);
+    Xunit.Assert.Equal(0, state.Score);
+  }
+
+  /// <summary>
+  /// Проверяет публикацию события активации бонуса.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_PublishesBonusActivated()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    string? bonusType = null;
+
+    bus.Subscribe<BonusActivated>(evt => bonusType = evt.parBonusType);
+
+    state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(BonusType.Accelerator.ToString(), bonusType);
+  }
+
+  /// <summary>
+  /// Проверяет публикацию события удаления при сборе кристалла.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_PublishesObjectDespawnedForCrystal()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    state.AddCrystal(CreateCrystal(CrystalType.Blue));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal("Collected", reason);
+  }
+
+  /// <summary>
+  /// Проверяет публикацию события удаления при столкновении с астероидом.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_PublishesObjectDespawnedForAsteroid()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    state.AddAsteroid(new Asteroid(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10)));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal("Collision", reason);
+  }
+
+  /// <summary>
+  /// Проверяет величину урона от астероида в событии.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_PublishesDamageTakenAmount()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var amount = 0;
+
+    bus.Subscribe<DamageTaken>(evt => amount = evt.parAmount);
+
+    state.AddAsteroid(new Asteroid(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10)));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(10, amount);
+  }
+
+  /// <summary>
+  /// Проверяет, что событие сбора содержит начисленные очки.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_CrystalCollectedContainsPoints()
+  {
+    var random = new FakeRandomProvider(9);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var points = 0;
+
+    bus.Subscribe<CrystalCollected>(evt => points = evt.parPoints);
+
+    state.AddCrystal(CreateCrystal(CrystalType.Blue));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(9, points);
+  }
+
   private static GameState CreateStateWithDrone()
   {
     var drone = new Drone(
@@ -210,5 +517,16 @@ public sealed class GameWorldUpdateServiceTests
       Vector2.Zero,
       new Aabb(10, 10),
       CrystalType.Blue);
+  }
+
+  private static Bonus CreateBonus(BonusType parType, double parDurationSec)
+  {
+    return new Bonus(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      parType,
+      parDurationSec);
   }
 }

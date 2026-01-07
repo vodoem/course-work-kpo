@@ -37,7 +37,7 @@ public sealed class GameLoopTests
   /// Проверяет, что снимок состояния доступен при параллельных обновлениях.
   /// </summary>
   [Xunit.Fact]
-  public void GetSnapshot_IsSafeDuringUpdates()
+  public async Task GetSnapshot_IsSafeDuringUpdates()
   {
     var state = new GameState();
     var queue = new CommandQueue();
@@ -58,7 +58,7 @@ public sealed class GameLoopTests
       Xunit.Assert.True(snapshot.parTickNo >= 0);
     }
 
-    updateTask.Wait();
+    await updateTask;
   }
 
   /// <summary>

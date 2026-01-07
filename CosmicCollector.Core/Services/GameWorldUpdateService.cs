@@ -19,6 +19,8 @@ public sealed class GameWorldUpdateService
   private const double BlackHoleAcceleration = 30.0;
   private const double AcceleratorScoreMultiplier = 1.25;
   private const double TimeStabilizerMultiplier = 0.65;
+  private const double DroneAcceleratorMultiplier = 1.6;
+  private const double TimeStabilizerBonusSeconds = 5.0;
 
   private readonly IRandomProvider _randomProvider;
 
@@ -51,6 +53,11 @@ public sealed class GameWorldUpdateService
 
     lock (parGameState.SyncRoot)
     {
+      if (parGameState.IsPaused)
+      {
+        return;
+      }
+
       UpdateBonusTimers(parGameState, parDt);
 
       var speedMultiplier = 1.0 + (0.015 * (parLevel - 1));
@@ -58,7 +65,13 @@ public sealed class GameWorldUpdateService
       var isTimeStabilizerActive = parGameState.TimeStabilizerRemainingSec > 0;
       var isMagnetActive = parGameState.MagnetRemainingSec > 0;
 
-      UpdateObjectPositions(parGameState, parDt, speedMultiplier, isTimeStabilizerActive, isMagnetActive);
+      UpdateObjectPositions(
+        parGameState,
+        parDt,
+        speedMultiplier,
+        isAcceleratorActive,
+        isTimeStabilizerActive,
+        isMagnetActive);
       ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive);
     }
@@ -75,9 +88,14 @@ public sealed class GameWorldUpdateService
     GameState parGameState,
     double parDt,
     double parSpeedMultiplier,
+    bool parIsAcceleratorActive,
     bool parIsTimeStabilizerActive,
     bool parIsMagnetActive)
   {
+    var droneMultiplier = parIsAcceleratorActive ? DroneAcceleratorMultiplier : 1.0;
+    var drone = parGameState.DroneInternal;
+    drone.Position = drone.Position.Add(drone.Velocity.Multiply(parDt * droneMultiplier));
+
     foreach (var crystal in parGameState.CrystalsInternal)
     {
       if (parIsMagnetActive)
@@ -246,6 +264,7 @@ public sealed class GameWorldUpdateService
         parGameState.TimeStabilizerRemainingSec = Math.Max(
           parGameState.TimeStabilizerRemainingSec,
           parBonus.DurationSec);
+        parGameState.LevelTimeRemainingSec += TimeStabilizerBonusSeconds;
         break;
       case BonusType.Magnet:
         parGameState.MagnetRemainingSec = Math.Max(

@@ -25,6 +25,7 @@ public sealed class GameState
   private double _magnetRemainingSec;
   // TODO: Реализовать обратный отсчёт 3..1 на снятие паузы через тики.
   private int _countdownValue;
+  private double _levelTimeRemainingSec;
 
   /// <summary>
   /// Инициализирует состояние игры со стандартным дроном.
@@ -98,6 +99,27 @@ public sealed class GameState
   {
     get => _magnetRemainingSec;
     set => _magnetRemainingSec = value;
+  }
+
+  /// <summary>
+  /// Оставшееся время уровня в секундах.
+  /// </summary>
+  public double LevelTimeRemainingSec
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _levelTimeRemainingSec;
+      }
+    }
+    set
+    {
+      lock (_lockObject)
+      {
+        _levelTimeRemainingSec = value;
+      }
+    }
   }
 
   /// <summary>
