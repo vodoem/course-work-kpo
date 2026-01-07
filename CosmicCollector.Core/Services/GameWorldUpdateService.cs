@@ -53,11 +53,17 @@ public sealed class GameWorldUpdateService
 
     lock (parGameState.SyncRoot)
     {
+      if (parGameState.IsLevelCompleted || parGameState.IsGameOver)
+      {
+        return;
+      }
+
       if (parGameState.IsPaused)
       {
         return;
       }
 
+      parGameState.LevelTimeRemainingSec = Math.Max(0, parGameState.LevelTimeRemainingSec - parDt);
       UpdateBonusTimers(parGameState, parDt);
 
       var speedMultiplier = 1.0 + (0.015 * (parLevel - 1));
@@ -74,6 +80,7 @@ public sealed class GameWorldUpdateService
         isMagnetActive);
       ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive);
+      CheckEndConditions(parGameState, parEventPublisher);
     }
   }
 
@@ -193,6 +200,7 @@ public sealed class GameWorldUpdateService
       }
 
       parGameState.AddScore(points);
+      parGameState.MarkCrystalCollected(crystal.Type);
       parEventPublisher.Publish(new CrystalCollected(crystal.Type.ToString(), points, 0));
       parEventPublisher.Publish(new ObjectDespawned(crystal.Id, "Collected"));
       crystalsToRemove.Add(crystal);
@@ -237,6 +245,29 @@ public sealed class GameWorldUpdateService
     foreach (var bonus in bonusesToRemove)
     {
       parGameState.BonusesInternal.Remove(bonus);
+    }
+  }
+
+  private void CheckEndConditions(GameState parGameState, IEventPublisher parEventPublisher)
+  {
+    if (parGameState.LevelTimeRemainingSec <= 0)
+    {
+      parGameState.MarkGameOver();
+      parEventPublisher.Publish(new GameOver("TimeExpired"));
+      return;
+    }
+
+    if (parGameState.DroneInternal.Energy <= 0)
+    {
+      parGameState.MarkGameOver();
+      parEventPublisher.Publish(new GameOver("EnergyDepleted"));
+      return;
+    }
+
+    if (parGameState.Score >= parGameState.RequiredScore && parGameState.HasAllCrystalTypes())
+    {
+      parGameState.MarkLevelCompleted();
+      parEventPublisher.Publish(new LevelCompleted("ScoreAndTypes"));
     }
   }
 

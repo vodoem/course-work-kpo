@@ -487,6 +487,77 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.Equal(9, points);
   }
 
+  /// <summary>
+  /// Проверяет победу при достижении RequiredScore и сборе всех типов кристаллов.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_LevelCompletedWhenScoreAndTypesMet()
+  {
+    var random = new FakeRandomProvider(10);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var completed = 0;
+
+    state.RequiredScore = 10;
+    state.LevelTimeRemainingSec = 100;
+
+    bus.Subscribe<LevelCompleted>(_ => completed++);
+
+    state.AddCrystal(CreateCrystal(CrystalType.Blue));
+    state.AddCrystal(CreateCrystal(CrystalType.Green));
+    state.AddCrystal(CreateCrystal(CrystalType.Red));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.True(state.IsLevelCompleted);
+    Xunit.Assert.Equal(1, completed);
+  }
+
+  /// <summary>
+  /// Проверяет поражение при окончании времени уровня.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_GameOverWhenTimeExpired()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var gameOver = 0;
+
+    state.LevelTimeRemainingSec = 0;
+
+    bus.Subscribe<GameOver>(_ => gameOver++);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.True(state.IsGameOver);
+    Xunit.Assert.Equal(1, gameOver);
+  }
+
+  /// <summary>
+  /// Проверяет поражение при нулевой энергии.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_GameOverWhenEnergyDepleted()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = new GameState(new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(10, 10), 0));
+    var bus = new EventBus();
+    var gameOver = 0;
+
+    state.LevelTimeRemainingSec = 100;
+
+    bus.Subscribe<GameOver>(_ => gameOver++);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.True(state.IsGameOver);
+    Xunit.Assert.Equal(1, gameOver);
+  }
+
   private static GameState CreateStateWithDrone()
   {
     var drone = new Drone(

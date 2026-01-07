@@ -20,10 +20,16 @@ public sealed class GameState
   private bool _isPaused;
   private long _tickNo;
   private int _score;
+  private int _requiredScore;
   private double _acceleratorRemainingSec;
   private double _timeStabilizerRemainingSec;
   private double _magnetRemainingSec;
   private double _levelTimeRemainingSec;
+  private bool _collectedBlue;
+  private bool _collectedGreen;
+  private bool _collectedRed;
+  private bool _isLevelCompleted;
+  private bool _isGameOver;
 
   /// <summary>
   /// Инициализирует состояние игры со стандартным дроном.
@@ -116,6 +122,55 @@ public sealed class GameState
       lock (_lockObject)
       {
         _levelTimeRemainingSec = value;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Требуемые очки для завершения уровня.
+  /// </summary>
+  public int RequiredScore
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _requiredScore;
+      }
+    }
+    set
+    {
+      lock (_lockObject)
+      {
+        _requiredScore = value;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Признак завершения уровня.
+  /// </summary>
+  public bool IsLevelCompleted
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _isLevelCompleted;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Признак окончания игры.
+  /// </summary>
+  public bool IsGameOver
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _isGameOver;
       }
     }
   }
@@ -307,5 +362,50 @@ public sealed class GameState
   internal void AddScore(int parPoints)
   {
     _score += parPoints;
+  }
+
+  /// <summary>
+  /// Отмечает сбор кристалла указанного типа.
+  /// </summary>
+  /// <param name="parType">Тип кристалла.</param>
+  internal void MarkCrystalCollected(CrystalType parType)
+  {
+    switch (parType)
+    {
+      case CrystalType.Blue:
+        _collectedBlue = true;
+        break;
+      case CrystalType.Green:
+        _collectedGreen = true;
+        break;
+      case CrystalType.Red:
+        _collectedRed = true;
+        break;
+    }
+  }
+
+  /// <summary>
+  /// Проверяет, что все типы кристаллов собраны.
+  /// </summary>
+  /// <returns>Истина, если все типы собраны.</returns>
+  internal bool HasAllCrystalTypes()
+  {
+    return _collectedBlue && _collectedGreen && _collectedRed;
+  }
+
+  /// <summary>
+  /// Помечает уровень завершённым.
+  /// </summary>
+  internal void MarkLevelCompleted()
+  {
+    _isLevelCompleted = true;
+  }
+
+  /// <summary>
+  /// Помечает игру завершённой.
+  /// </summary>
+  internal void MarkGameOver()
+  {
+    _isGameOver = true;
   }
 }
