@@ -13,6 +13,7 @@ public sealed class GameState
 {
   private readonly object _lockObject = new();
   private readonly Drone _drone;
+  private readonly WorldBounds _worldBounds;
   private readonly List<Crystal> _crystals = new();
   private readonly List<Asteroid> _asteroids = new();
   private readonly List<Bonus> _bonuses = new();
@@ -36,7 +37,9 @@ public sealed class GameState
   /// Инициализирует состояние игры со стандартным дроном.
   /// </summary>
   public GameState()
-    : this(new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(32, 32), 100))
+    : this(
+      new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(32, 32), 100),
+      new WorldBounds(0, 0, 800, 600))
   {
   }
 
@@ -44,9 +47,10 @@ public sealed class GameState
   /// Инициализирует состояние игры.
   /// </summary>
   /// <param name="parDrone">Начальное состояние дрона.</param>
-  public GameState(Drone parDrone)
+  public GameState(Drone parDrone, WorldBounds parWorldBounds)
   {
     _drone = parDrone;
+    _worldBounds = parWorldBounds;
   }
 
   /// <summary>
@@ -78,6 +82,11 @@ public sealed class GameState
   /// Доступ к дрону внутри блокировки.
   /// </summary>
   internal Drone DroneInternal => _drone;
+
+  /// <summary>
+  /// Границы игрового мира.
+  /// </summary>
+  public WorldBounds WorldBounds => _worldBounds;
 
   /// <summary>
   /// Остаток действия ускорителя в секундах.

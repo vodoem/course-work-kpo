@@ -544,7 +544,9 @@ public sealed class GameWorldUpdateServiceTests
   {
     var random = new FakeRandomProvider(8);
     var service = new GameWorldUpdateService(random);
-    var state = new GameState(new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(10, 10), 0));
+    var state = new GameState(
+      new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(10, 10), 0),
+      new WorldBounds(0, 0, 800, 600));
     var bus = new EventBus();
     var gameOver = 0;
 
@@ -558,6 +560,85 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.Equal(1, gameOver);
   }
 
+  /// <summary>
+  /// Проверяет удаление объекта ниже нижней границы.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_RemovesObjectBelowBottom()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var bounds = new WorldBounds(0, 0, 100, 100);
+    var state = CreateStateWithDrone(bounds);
+    var bus = new EventBus();
+    var despawned = 0;
+
+    bus.Subscribe<ObjectDespawned>(_ => despawned++);
+
+    state.AddCrystal(new Crystal(
+      Guid.NewGuid(),
+      new Vector2(0, 106),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      CrystalType.Blue));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(0, state.GetSnapshot().parCrystals.Count);
+    Xunit.Assert.Equal(1, despawned);
+  }
+
+  /// <summary>
+  /// Проверяет, что объект на границе не удаляется.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_DoesNotRemoveObjectOnBottomEdge()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var bounds = new WorldBounds(0, 0, 100, 100);
+    var state = CreateStateWithDrone(bounds);
+    var bus = new EventBus();
+
+    state.AddCrystal(new Crystal(
+      Guid.NewGuid(),
+      new Vector2(0, 105),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      CrystalType.Blue));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Single(state.GetSnapshot().parCrystals);
+  }
+
+  /// <summary>
+  /// Проверяет причину удаления объекта за пределами границы.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_PublishesOutOfBoundsDespawnReason()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var bounds = new WorldBounds(0, 0, 100, 100);
+    var state = CreateStateWithDrone(bounds);
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    state.AddCrystal(new Crystal(
+      Guid.NewGuid(),
+      new Vector2(0, 106),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      CrystalType.Blue));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal("OutOfBounds", reason);
+  }
+
   private static GameState CreateStateWithDrone()
   {
     var drone = new Drone(
@@ -567,7 +648,19 @@ public sealed class GameWorldUpdateServiceTests
       new Aabb(10, 10),
       100);
 
-    return new GameState(drone);
+    return new GameState(drone, new WorldBounds(0, 0, 800, 600));
+  }
+
+  private static GameState CreateStateWithDrone(WorldBounds parBounds)
+  {
+    var drone = new Drone(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      100);
+
+    return new GameState(drone, parBounds);
   }
 
   private static Crystal CreateCrystal(CrystalType parType)

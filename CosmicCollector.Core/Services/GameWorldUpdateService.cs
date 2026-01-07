@@ -80,6 +80,7 @@ public sealed class GameWorldUpdateService
       ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
       var timeStabilizerCollected = false;
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive, ref timeStabilizerCollected);
+      RemoveOutOfBoundsObjects(parGameState, parEventPublisher);
 
       if (parGameState.HasLevelTimer && !timeStabilizerCollected)
       {
@@ -276,6 +277,63 @@ public sealed class GameWorldUpdateService
       parGameState.MarkLevelCompleted();
       parEventPublisher.Publish(new LevelCompleted("ScoreAndTypes"));
     }
+  }
+
+  private void RemoveOutOfBoundsObjects(GameState parGameState, IEventPublisher parEventPublisher)
+  {
+    var bounds = parGameState.WorldBounds;
+    var crystalsToRemove = new List<Crystal>();
+    var asteroidsToRemove = new List<Asteroid>();
+    var bonusesToRemove = new List<Bonus>();
+
+    foreach (var crystal in parGameState.CrystalsInternal)
+    {
+      if (IsBelowBottom(crystal, bounds))
+      {
+        crystalsToRemove.Add(crystal);
+      }
+    }
+
+    foreach (var asteroid in parGameState.AsteroidsInternal)
+    {
+      if (IsBelowBottom(asteroid, bounds))
+      {
+        asteroidsToRemove.Add(asteroid);
+      }
+    }
+
+    foreach (var bonus in parGameState.BonusesInternal)
+    {
+      if (IsBelowBottom(bonus, bounds))
+      {
+        bonusesToRemove.Add(bonus);
+      }
+    }
+
+    foreach (var crystal in crystalsToRemove)
+    {
+      parGameState.CrystalsInternal.Remove(crystal);
+      parEventPublisher.Publish(new ObjectDespawned(crystal.Id, "OutOfBounds"));
+    }
+
+    foreach (var asteroid in asteroidsToRemove)
+    {
+      parGameState.AsteroidsInternal.Remove(asteroid);
+      parEventPublisher.Publish(new ObjectDespawned(asteroid.Id, "OutOfBounds"));
+    }
+
+    foreach (var bonus in bonusesToRemove)
+    {
+      parGameState.BonusesInternal.Remove(bonus);
+      parEventPublisher.Publish(new ObjectDespawned(bonus.Id, "OutOfBounds"));
+    }
+  }
+
+  private static bool IsBelowBottom(GameObject parObject, WorldBounds parWorldBounds)
+  {
+    var halfHeight = parObject.Bounds.Height / 2.0;
+    var top = parObject.Position.Y - halfHeight;
+    return top > parWorldBounds.Bottom;
   }
 
   private int GetCrystalPoints(CrystalType parType)
