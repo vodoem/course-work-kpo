@@ -1,3 +1,11 @@
+using CosmicCollector.Core.Entities;
+using CosmicCollector.Core.Events;
+using CosmicCollector.Core.Geometry;
+using CosmicCollector.Core.Model;
+using CosmicCollector.Core.Randomization;
+using System;
+using System.Collections.Generic;
+
 namespace CosmicCollector.Core.Services;
 
 /// <summary>
@@ -5,4 +13,259 @@ namespace CosmicCollector.Core.Services;
 /// </summary>
 public sealed class GameWorldUpdateService
 {
+  private const double SoftMargin = 8.0;
+  private const int AsteroidDamage = 10;
+  private const double MagnetRadius = 120.0;
+  private const double BlackHoleAcceleration = 30.0;
+  private const double AcceleratorScoreMultiplier = 1.25;
+  private const double TimeStabilizerMultiplier = 0.65;
+
+  private readonly IRandomProvider _randomProvider;
+
+  /// <summary>
+  /// Инициализирует сервис обновления мира.
+  /// </summary>
+  /// <param name="parRandomProvider">Провайдер случайных значений.</param>
+  public GameWorldUpdateService(IRandomProvider parRandomProvider)
+  {
+    _randomProvider = parRandomProvider;
+  }
+
+  /// <summary>
+  /// Обновляет состояние мира за один шаг.
+  /// </summary>
+  /// <param name="parGameState">Состояние игры.</param>
+  /// <param name="parDt">Длительность шага.</param>
+  /// <param name="parLevel">Номер уровня.</param>
+  /// <param name="parEventPublisher">Публикатор событий.</param>
+  public void Update(
+    GameState parGameState,
+    double parDt,
+    int parLevel,
+    IEventPublisher parEventPublisher)
+  {
+    if (parDt <= 0)
+    {
+      return;
+    }
+
+    lock (parGameState.SyncRoot)
+    {
+      UpdateBonusTimers(parGameState, parDt);
+
+      var speedMultiplier = 1.0 + (0.015 * (parLevel - 1));
+      var isAcceleratorActive = parGameState.AcceleratorRemainingSec > 0;
+      var isTimeStabilizerActive = parGameState.TimeStabilizerRemainingSec > 0;
+      var isMagnetActive = parGameState.MagnetRemainingSec > 0;
+
+      UpdateObjectPositions(parGameState, parDt, speedMultiplier, isTimeStabilizerActive, isMagnetActive);
+      ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
+      HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive);
+    }
+  }
+
+  private void UpdateBonusTimers(GameState parGameState, double parDt)
+  {
+    parGameState.AcceleratorRemainingSec = Math.Max(0, parGameState.AcceleratorRemainingSec - parDt);
+    parGameState.TimeStabilizerRemainingSec = Math.Max(0, parGameState.TimeStabilizerRemainingSec - parDt);
+    parGameState.MagnetRemainingSec = Math.Max(0, parGameState.MagnetRemainingSec - parDt);
+  }
+
+  private void UpdateObjectPositions(
+    GameState parGameState,
+    double parDt,
+    double parSpeedMultiplier,
+    bool parIsTimeStabilizerActive,
+    bool parIsMagnetActive)
+  {
+    foreach (var crystal in parGameState.CrystalsInternal)
+    {
+      if (parIsMagnetActive)
+      {
+        ApplyMagnetEffect(parGameState.DroneInternal, crystal);
+      }
+
+      var velocity = crystal.Velocity.Multiply(parSpeedMultiplier);
+      crystal.Position = crystal.Position.Add(velocity.Multiply(parDt));
+    }
+
+    foreach (var asteroid in parGameState.AsteroidsInternal)
+    {
+      var multiplier = parSpeedMultiplier;
+
+      if (parIsTimeStabilizerActive)
+      {
+        multiplier *= TimeStabilizerMultiplier;
+      }
+
+      var velocity = asteroid.Velocity.Multiply(multiplier);
+      asteroid.Position = asteroid.Position.Add(velocity.Multiply(parDt));
+    }
+
+    foreach (var bonus in parGameState.BonusesInternal)
+    {
+      var velocity = bonus.Velocity.Multiply(parSpeedMultiplier);
+      bonus.Position = bonus.Position.Add(velocity.Multiply(parDt));
+    }
+  }
+
+  private void ApplyMagnetEffect(Drone parDrone, Crystal parCrystal)
+  {
+    var direction = new Vector2(
+      parDrone.Position.X - parCrystal.Position.X,
+      parDrone.Position.Y - parCrystal.Position.Y);
+    var distance = direction.Length();
+
+    if (distance <= 0 || distance > MagnetRadius)
+    {
+      return;
+    }
+
+    var normalized = direction.Normalize();
+    parCrystal.Velocity = normalized.Multiply(parCrystal.Velocity.Length());
+  }
+
+  private void ApplyBlackHoleInfluence(
+    GameState parGameState,
+    double parDt,
+    IEventPublisher parEventPublisher)
+  {
+    var drone = parGameState.DroneInternal;
+
+    foreach (var blackHole in parGameState.BlackHolesInternal)
+    {
+      var direction = new Vector2(
+        blackHole.Position.X - drone.Position.X,
+        blackHole.Position.Y - drone.Position.Y);
+      var distance = direction.Length();
+
+      if (distance <= 0 || distance > blackHole.Radius)
+      {
+        continue;
+      }
+
+      var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
+      drone.Velocity = drone.Velocity.Add(acceleration.Multiply(parDt));
+      parEventPublisher.Publish(new DamageTaken("BlackHole", 0));
+    }
+  }
+
+  private void HandleCollisions(
+    GameState parGameState,
+    IEventPublisher parEventPublisher,
+    bool parIsAcceleratorActive)
+  {
+    var drone = parGameState.DroneInternal;
+    var crystalsToRemove = new List<Crystal>();
+    var asteroidsToRemove = new List<Asteroid>();
+    var bonusesToRemove = new List<Bonus>();
+
+    foreach (var crystal in parGameState.CrystalsInternal)
+    {
+      if (!Intersects(drone, crystal, SoftMargin))
+      {
+        continue;
+      }
+
+      var points = GetCrystalPoints(crystal.Type);
+
+      if (parIsAcceleratorActive)
+      {
+        points = (int)Math.Round(points * AcceleratorScoreMultiplier, MidpointRounding.AwayFromZero);
+      }
+
+      parGameState.AddScore(points);
+      parEventPublisher.Publish(new CrystalCollected(crystal.Type.ToString(), points, 0));
+      parEventPublisher.Publish(new ObjectDespawned(crystal.Id, "Collected"));
+      crystalsToRemove.Add(crystal);
+    }
+
+    foreach (var asteroid in parGameState.AsteroidsInternal)
+    {
+      if (!Intersects(drone, asteroid, SoftMargin))
+      {
+        continue;
+      }
+
+      drone.Energy -= AsteroidDamage;
+      parEventPublisher.Publish(new DamageTaken("Asteroid", AsteroidDamage));
+      parEventPublisher.Publish(new ObjectDespawned(asteroid.Id, "Collision"));
+      asteroidsToRemove.Add(asteroid);
+    }
+
+    foreach (var bonus in parGameState.BonusesInternal)
+    {
+      if (!Intersects(drone, bonus, SoftMargin))
+      {
+        continue;
+      }
+
+      ActivateBonus(parGameState, bonus);
+      parEventPublisher.Publish(new BonusActivated(bonus.Type.ToString(), bonus.DurationSec));
+      parEventPublisher.Publish(new ObjectDespawned(bonus.Id, "Collected"));
+      bonusesToRemove.Add(bonus);
+    }
+
+    foreach (var crystal in crystalsToRemove)
+    {
+      parGameState.CrystalsInternal.Remove(crystal);
+    }
+
+    foreach (var asteroid in asteroidsToRemove)
+    {
+      parGameState.AsteroidsInternal.Remove(asteroid);
+    }
+
+    foreach (var bonus in bonusesToRemove)
+    {
+      parGameState.BonusesInternal.Remove(bonus);
+    }
+  }
+
+  private int GetCrystalPoints(CrystalType parType)
+  {
+    return parType switch
+    {
+      CrystalType.Blue => _randomProvider.NextInt(8, 10),
+      CrystalType.Green => _randomProvider.NextInt(5, 7),
+      CrystalType.Red => _randomProvider.NextInt(1, 4),
+      _ => 0
+    };
+  }
+
+  private void ActivateBonus(GameState parGameState, Bonus parBonus)
+  {
+    switch (parBonus.Type)
+    {
+      case BonusType.Accelerator:
+        parGameState.AcceleratorRemainingSec = Math.Max(
+          parGameState.AcceleratorRemainingSec,
+          parBonus.DurationSec);
+        break;
+      case BonusType.TimeStabilizer:
+        parGameState.TimeStabilizerRemainingSec = Math.Max(
+          parGameState.TimeStabilizerRemainingSec,
+          parBonus.DurationSec);
+        break;
+      case BonusType.Magnet:
+        parGameState.MagnetRemainingSec = Math.Max(
+          parGameState.MagnetRemainingSec,
+          parBonus.DurationSec);
+        break;
+    }
+  }
+
+  private static bool Intersects(GameObject parLeft, GameObject parRight, double parSoftMargin)
+  {
+    var halfWidthLeft = parLeft.Bounds.Width / 2.0 + parSoftMargin;
+    var halfHeightLeft = parLeft.Bounds.Height / 2.0 + parSoftMargin;
+    var halfWidthRight = parRight.Bounds.Width / 2.0 + parSoftMargin;
+    var halfHeightRight = parRight.Bounds.Height / 2.0 + parSoftMargin;
+
+    var deltaX = Math.Abs(parLeft.Position.X - parRight.Position.X);
+    var deltaY = Math.Abs(parLeft.Position.Y - parRight.Position.Y);
+
+    return deltaX <= (halfWidthLeft + halfWidthRight)
+      && deltaY <= (halfHeightLeft + halfHeightRight);
+  }
 }

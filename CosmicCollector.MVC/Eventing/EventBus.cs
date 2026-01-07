@@ -13,22 +13,13 @@ public sealed class EventBus : IEventBus
   /// <inheritdoc />
   public void Publish<TEvent>(TEvent parEvent) where TEvent : IGameEvent
   {
-    List<Delegate>? handlersCopy;
+    PublishInternal(typeof(TEvent), parEvent);
+  }
 
-    lock (_lockObject)
-    {
-      if (!_handlers.TryGetValue(typeof(TEvent), out var handlers))
-      {
-        return;
-      }
-
-      handlersCopy = new List<Delegate>(handlers);
-    }
-
-    foreach (var handler in handlersCopy)
-    {
-      ((Action<TEvent>)handler).Invoke(parEvent);
-    }
+  /// <inheritdoc />
+  public void Publish(IGameEvent parEvent)
+  {
+    PublishInternal(parEvent.GetType(), parEvent);
   }
 
   /// <inheritdoc />
@@ -63,6 +54,26 @@ public sealed class EventBus : IEventBus
       {
         _handlers.Remove(typeof(TEvent));
       }
+    }
+  }
+
+  private void PublishInternal(Type parEventType, IGameEvent parEvent)
+  {
+    List<Delegate>? handlersCopy;
+
+    lock (_lockObject)
+    {
+      if (!_handlers.TryGetValue(parEventType, out var handlers))
+      {
+        return;
+      }
+
+      handlersCopy = new List<Delegate>(handlers);
+    }
+
+    foreach (var handler in handlersCopy)
+    {
+      handler.DynamicInvoke(parEvent);
     }
   }
 }

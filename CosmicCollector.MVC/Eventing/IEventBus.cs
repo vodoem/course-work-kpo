@@ -5,7 +5,7 @@ namespace CosmicCollector.MVC.Eventing;
 /// <summary>
 /// Публикует и подписывает на доменные события ядра.
 /// </summary>
-public interface IEventBus
+public interface IEventBus : IEventPublisher
 {
   /// <summary>
   /// Публикует доменное событие для всех подписчиков.

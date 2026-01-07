@@ -3,26 +3,31 @@ using CosmicCollector.Core.Geometry;
 namespace CosmicCollector.Core.Entities;
 
 /// <summary>
-/// Представляет сущность дрона игрока.
+/// Представляет кристалл.
 /// </summary>
-public sealed class Drone : GameObject
+public sealed class Crystal : GameObject
 {
   /// <summary>
-  /// Инициализирует дрон.
+  /// Инициализирует кристалл.
   /// </summary>
   /// <param name="parId">Идентификатор.</param>
   /// <param name="parPosition">Позиция.</param>
   /// <param name="parVelocity">Скорость.</param>
   /// <param name="parBounds">Габариты.</param>
-  /// <param name="parEnergy">Энергия.</param>
-  public Drone(Guid parId, Vector2 parPosition, Vector2 parVelocity, Aabb parBounds, int parEnergy)
+  /// <param name="parType">Тип кристалла.</param>
+  public Crystal(
+    Guid parId,
+    Vector2 parPosition,
+    Vector2 parVelocity,
+    Aabb parBounds,
+    CrystalType parType)
     : base(parId, parPosition, parVelocity, parBounds)
   {
-    Energy = parEnergy;
+    Type = parType;
   }
 
   /// <summary>
-  /// Текущая энергия дрона.
+  /// Тип кристалла.
   /// </summary>
-  public int Energy { get; set; }
+  public CrystalType Type { get; }
 }
