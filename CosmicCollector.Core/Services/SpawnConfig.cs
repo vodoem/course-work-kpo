@@ -13,37 +13,39 @@ public sealed class SpawnConfig
   /// Конфигурация с отключённым спавном.
   /// </summary>
   public static SpawnConfig Disabled =>
-    new(
-      false,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      1,
-      1,
-      new Aabb(10, 10),
-      new Aabb(10, 10),
-      new Aabb(10, 10),
-      new Aabb(10, 10),
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      0,
-      1,
-      new List<WeightedOption<CrystalType>>(),
-      new List<WeightedOption<BonusType>>());
+    new();
+
+  private SpawnConfig()
+  {
+    IsEnabled = false;
+    MaxActiveCrystals = 0;
+    MaxActiveAsteroids = 0;
+    MaxActiveBonuses = 0;
+    MaxActiveBlackHoles = 0;
+    CrystalIntervalTicks = 0;
+    AsteroidIntervalTicks = 0;
+    BonusIntervalTicks = 0;
+    BlackHoleIntervalTicks = 0;
+    IntervalDecreasePerLevel = 0;
+    MaxActiveIncreasePerLevel = 0;
+    SpawnMargin = 1;
+    SpawnGap = 1;
+    MaxSpawnAttempts = 1;
+    CrystalBounds = new Aabb(10, 10);
+    AsteroidBounds = new Aabb(10, 10);
+    BonusBounds = new Aabb(10, 10);
+    BlackHoleBounds = new Aabb(10, 10);
+    CrystalBaseSpeed = 0;
+    AsteroidBaseSpeed = 0;
+    BonusBaseSpeed = 0;
+    BlackHoleBaseSpeed = 0;
+    BlackHoleRadius = 0;
+    BlackHoleCoreRadius = 0;
+    BonusDurationSec = 0;
+    AsteroidSpeedMultiplier = 1;
+    CrystalTypeWeights = new List<WeightedOption<CrystalType>>();
+    BonusTypeWeights = new List<WeightedOption<BonusType>>();
+  }
 
   /// <summary>
   /// Инициализирует конфигурацию спавна.
