@@ -18,7 +18,7 @@ public sealed class SpawnSystemTests
   public void Spawn_CreatesObjectAboveTopBoundary()
   {
     var random = new FakeRandomProvider(new[] { 50, 1 });
-    var config = CreateConfig(crystalIntervalTicks: 1);
+    var config = CreateConfig();
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -37,7 +37,7 @@ public sealed class SpawnSystemTests
   public void Spawn_CreatesObjectWithinXBounds()
   {
     var random = new FakeRandomProvider(new[] { 25, 1 });
-    var config = CreateConfig(crystalIntervalTicks: 1, spawnMargin: 4);
+    var config = CreateConfig(builder => builder.SpawnMargin = 4);
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -58,7 +58,7 @@ public sealed class SpawnSystemTests
   public void Spawn_RespectsLimits()
   {
     var random = new FakeRandomProvider(new[] { 20, 1, 30, 1 });
-    var config = CreateConfig(crystalIntervalTicks: 1, maxActiveCrystals: 1);
+    var config = CreateConfig(builder => builder.MaxActiveCrystals = 1);
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -76,7 +76,7 @@ public sealed class SpawnSystemTests
   public void Spawn_RespectsIntervalsTicks()
   {
     var random = new FakeRandomProvider(new[] { 20, 1 });
-    var config = CreateConfig(crystalIntervalTicks: 2);
+    var config = CreateConfig(builder => builder.CrystalIntervalTicks = 2);
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -94,10 +94,12 @@ public sealed class SpawnSystemTests
   public void Spawn_UsesLevelScaling()
   {
     var random = new FakeRandomProvider(new[] { 20, 1 });
-    var config = CreateConfig(
-      crystalIntervalTicks: 5,
-      intervalDecreasePerLevel: 1,
-      crystalBaseSpeed: 2.0);
+    var config = CreateConfig(builder =>
+    {
+      builder.CrystalIntervalTicks = 5;
+      builder.IntervalDecreasePerLevel = 1;
+      builder.CrystalBaseSpeed = 2.0;
+    });
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -116,7 +118,11 @@ public sealed class SpawnSystemTests
   public void Spawn_AvoidsImmediateCollisionWithDrone()
   {
     var random = new FakeRandomProvider(new[] { 10, 1, 10, 1, 10, 1 });
-    var config = CreateConfig(crystalIntervalTicks: 1, spawnMargin: 5, maxSpawnAttempts: 3);
+    var config = CreateConfig(builder =>
+    {
+      builder.SpawnMargin = 5;
+      builder.MaxSpawnAttempts = 3;
+    });
     var state = CreateGameState(new WorldBounds(0, 0, 20, 100));
     state.Drone.Position = new Vector2(10, -7);
     var system = new SpawnSystem(random, config);
@@ -139,7 +145,7 @@ public sealed class SpawnSystemTests
       new(CrystalType.Green, 2),
       new(CrystalType.Red, 3)
     };
-    var config = CreateConfig(crystalIntervalTicks: 1, crystalWeights: weights);
+    var config = CreateConfig(builder => builder.CrystalWeights = weights);
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -163,11 +169,13 @@ public sealed class SpawnSystemTests
       new(BonusType.TimeStabilizer, 2),
       new(BonusType.Magnet, 3)
     };
-    var config = CreateConfig(
-      crystalIntervalTicks: 0,
-      asteroidIntervalTicks: 0,
-      bonusIntervalTicks: 1,
-      bonusWeights: weights);
+    var config = CreateConfig(builder =>
+    {
+      builder.CrystalIntervalTicks = 0;
+      builder.AsteroidIntervalTicks = 0;
+      builder.BonusIntervalTicks = 1;
+      builder.BonusWeights = weights;
+    });
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -185,7 +193,11 @@ public sealed class SpawnSystemTests
   public void Spawn_BlackHole_CreatesObjectAboveTopBoundary()
   {
     var random = new FakeRandomProvider(50);
-    var config = CreateConfig(blackHoleIntervalTicks: 1);
+    var config = CreateConfig(builder =>
+    {
+      builder.CrystalIntervalTicks = 0;
+      builder.BlackHoleIntervalTicks = 1;
+    });
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -204,7 +216,12 @@ public sealed class SpawnSystemTests
   public void Spawn_BlackHole_RespectsLimitsAndIntervals()
   {
     var random = new FakeRandomProvider(new[] { 20, 30 });
-    var config = CreateConfig(blackHoleIntervalTicks: 2, maxActiveBlackHoles: 1);
+    var config = CreateConfig(builder =>
+    {
+      builder.CrystalIntervalTicks = 0;
+      builder.BlackHoleIntervalTicks = 2;
+      builder.MaxActiveBlackHoles = 1;
+    });
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -225,7 +242,12 @@ public sealed class SpawnSystemTests
   public void Spawn_BlackHole_HasZeroVelocity()
   {
     var random = new FakeRandomProvider(20);
-    var config = CreateConfig(blackHoleIntervalTicks: 1, blackHoleBaseSpeed: 0);
+    var config = CreateConfig(builder =>
+    {
+      builder.CrystalIntervalTicks = 0;
+      builder.BlackHoleIntervalTicks = 1;
+      builder.BlackHoleBaseSpeed = 0;
+    });
     var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
     var system = new SpawnSystem(random, config);
 
@@ -249,59 +271,70 @@ public sealed class SpawnSystemTests
     return new GameState(drone, parBounds);
   }
 
-  private static SpawnConfig CreateConfig(
-    int crystalIntervalTicks,
-    int asteroidIntervalTicks = 0,
-    int bonusIntervalTicks = 0,
-    int blackHoleIntervalTicks = 0,
-    int maxActiveCrystals = 3,
-    int maxActiveAsteroids = 3,
-    int maxActiveBonuses = 3,
-    int maxActiveBlackHoles = 3,
-    int intervalDecreasePerLevel = 0,
-    int maxActiveIncreasePerLevel = 0,
-    double spawnMargin = 1,
-    double spawnGap = 2,
-    int maxSpawnAttempts = 5,
-    double crystalBaseSpeed = 4.0,
-    double asteroidBaseSpeed = 6.0,
-    double bonusBaseSpeed = 3.0,
-    double blackHoleBaseSpeed = 0,
-    double blackHoleRadius = 220,
-    double blackHoleCoreRadius = 40,
-    double bonusDurationSec = 5.0,
-    double asteroidSpeedMultiplier = 1.3,
-    IReadOnlyList<WeightedOption<CrystalType>>? crystalWeights = null,
-    IReadOnlyList<WeightedOption<BonusType>>? bonusWeights = null)
+  private static SpawnConfig CreateConfig(Action<SpawnConfigBuilder>? parConfigure = null)
   {
-    return new SpawnConfig(
-      true,
-      maxActiveCrystals,
-      maxActiveAsteroids,
-      maxActiveBonuses,
-      maxActiveBlackHoles,
-      crystalIntervalTicks,
-      asteroidIntervalTicks,
-      bonusIntervalTicks,
-      blackHoleIntervalTicks,
-      intervalDecreasePerLevel,
-      maxActiveIncreasePerLevel,
-      spawnMargin,
-      spawnGap,
-      maxSpawnAttempts,
-      new Aabb(10, 10),
-      new Aabb(12, 12),
-      new Aabb(8, 8),
-      new Aabb(14, 14),
-      crystalBaseSpeed,
-      asteroidBaseSpeed,
-      bonusBaseSpeed,
-      blackHoleBaseSpeed,
-      blackHoleRadius,
-      blackHoleCoreRadius,
-      bonusDurationSec,
-      asteroidSpeedMultiplier,
-      crystalWeights ?? new List<WeightedOption<CrystalType>> { new(CrystalType.Blue, 1) },
-      bonusWeights ?? new List<WeightedOption<BonusType>> { new(BonusType.Accelerator, 1) });
+    var builder = new SpawnConfigBuilder();
+    parConfigure?.Invoke(builder);
+    return builder.Build();
+  }
+
+  private sealed class SpawnConfigBuilder
+  {
+    public int CrystalIntervalTicks { get; set; } = 1;
+    public int AsteroidIntervalTicks { get; set; } = 0;
+    public int BonusIntervalTicks { get; set; } = 0;
+    public int BlackHoleIntervalTicks { get; set; } = 0;
+    public int MaxActiveCrystals { get; set; } = 3;
+    public int MaxActiveAsteroids { get; set; } = 3;
+    public int MaxActiveBonuses { get; set; } = 3;
+    public int MaxActiveBlackHoles { get; set; } = 3;
+    public int IntervalDecreasePerLevel { get; set; } = 0;
+    public int MaxActiveIncreasePerLevel { get; set; } = 0;
+    public double SpawnMargin { get; set; } = 1;
+    public double SpawnGap { get; set; } = 2;
+    public int MaxSpawnAttempts { get; set; } = 5;
+    public double CrystalBaseSpeed { get; set; } = 4.0;
+    public double AsteroidBaseSpeed { get; set; } = 6.0;
+    public double BonusBaseSpeed { get; set; } = 3.0;
+    public double BlackHoleBaseSpeed { get; set; } = 0;
+    public double BlackHoleRadius { get; set; } = 220;
+    public double BlackHoleCoreRadius { get; set; } = 40;
+    public double BonusDurationSec { get; set; } = 5.0;
+    public double AsteroidSpeedMultiplier { get; set; } = 1.3;
+    public IReadOnlyList<WeightedOption<CrystalType>>? CrystalWeights { get; set; }
+    public IReadOnlyList<WeightedOption<BonusType>>? BonusWeights { get; set; }
+
+    public SpawnConfig Build()
+    {
+      return new SpawnConfig(
+        true,
+        MaxActiveCrystals,
+        MaxActiveAsteroids,
+        MaxActiveBonuses,
+        MaxActiveBlackHoles,
+        CrystalIntervalTicks,
+        AsteroidIntervalTicks,
+        BonusIntervalTicks,
+        BlackHoleIntervalTicks,
+        IntervalDecreasePerLevel,
+        MaxActiveIncreasePerLevel,
+        SpawnMargin,
+        SpawnGap,
+        MaxSpawnAttempts,
+        new Aabb(10, 10),
+        new Aabb(12, 12),
+        new Aabb(8, 8),
+        new Aabb(14, 14),
+        CrystalBaseSpeed,
+        AsteroidBaseSpeed,
+        BonusBaseSpeed,
+        BlackHoleBaseSpeed,
+        BlackHoleRadius,
+        BlackHoleCoreRadius,
+        BonusDurationSec,
+        AsteroidSpeedMultiplier,
+        CrystalWeights ?? new List<WeightedOption<CrystalType>> { new(CrystalType.Blue, 1) },
+        BonusWeights ?? new List<WeightedOption<BonusType>> { new(BonusType.Accelerator, 1) });
+    }
   }
 }
