@@ -508,9 +508,27 @@ public sealed class GameWorldUpdateService
     var maxX = bounds.Right - halfWidth;
     var minY = bounds.Top + halfHeight;
     var maxY = bounds.Bottom - halfHeight;
+    var clampedX = drone.Position.X;
+    var clampedY = drone.Position.Y;
 
-    var clampedX = Math.Max(minX, Math.Min(maxX, drone.Position.X));
-    var clampedY = Math.Max(minY, Math.Min(maxY, drone.Position.Y));
+    if (drone.Position.X < bounds.Left - halfWidth)
+    {
+      clampedX = minX;
+    }
+    else if (drone.Position.X > bounds.Right + halfWidth)
+    {
+      clampedX = maxX;
+    }
+
+    if (drone.Position.Y < bounds.Top - halfHeight)
+    {
+      clampedY = minY;
+    }
+    else if (drone.Position.Y > bounds.Bottom + halfHeight)
+    {
+      clampedY = maxY;
+    }
+
     drone.Position = new Vector2(clampedX, clampedY);
   }
 }
