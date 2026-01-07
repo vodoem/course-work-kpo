@@ -259,6 +259,26 @@ public sealed class SpawnSystemTests
     Xunit.Assert.Equal(0, snapshot.parBlackHoles[0].parVelocity.Y);
   }
 
+  /// <summary>
+  /// Проверяет, что SpawnSystem использует фабрику объектов.
+  /// </summary>
+  [Xunit.Fact]
+  public void Spawn_UsesFactory()
+  {
+    var random = new FakeRandomProvider(20);
+    var factory = new SpyFactory();
+    var config = CreateConfig(builder =>
+    {
+      builder.CrystalIntervalTicks = 1;
+    });
+    var state = CreateGameState(new WorldBounds(0, 0, 100, 100));
+    var system = new SpawnSystem(random, config, factory);
+
+    system.TrySpawn(state, 1, 1);
+
+    Xunit.Assert.Equal(1, factory.CrystalCreatedCount);
+  }
+
   private static GameState CreateGameState(WorldBounds parBounds)
   {
     var drone = new Drone(
@@ -335,6 +355,44 @@ public sealed class SpawnSystemTests
         AsteroidSpeedMultiplier,
         CrystalWeights ?? new List<WeightedOption<CrystalType>> { new(CrystalType.Blue, 1) },
         BonusWeights ?? new List<WeightedOption<BonusType>> { new(BonusType.Accelerator, 1) });
+    }
+  }
+
+  private sealed class SpyFactory : IGameObjectFactory
+  {
+    public int CrystalCreatedCount { get; private set; }
+
+    public Crystal CreateCrystal(Guid parId, Vector2 parPosition, Vector2 parVelocity, Aabb parBounds, CrystalType parType)
+    {
+      CrystalCreatedCount++;
+      return new Crystal(parId, parPosition, parVelocity, parBounds, parType);
+    }
+
+    public Asteroid CreateAsteroid(Guid parId, Vector2 parPosition, Vector2 parVelocity, Aabb parBounds)
+    {
+      return new Asteroid(parId, parPosition, parVelocity, parBounds);
+    }
+
+    public Bonus CreateBonus(
+      Guid parId,
+      Vector2 parPosition,
+      Vector2 parVelocity,
+      Aabb parBounds,
+      BonusType parType,
+      double parDurationSec)
+    {
+      return new Bonus(parId, parPosition, parVelocity, parBounds, parType, parDurationSec);
+    }
+
+    public BlackHole CreateBlackHole(
+      Guid parId,
+      Vector2 parPosition,
+      Vector2 parVelocity,
+      Aabb parBounds,
+      double parRadius,
+      double parCoreRadius)
+    {
+      return new BlackHole(parId, parPosition, parVelocity, parBounds, parRadius, parCoreRadius);
     }
   }
 }

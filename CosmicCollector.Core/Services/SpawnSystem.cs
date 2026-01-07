@@ -12,16 +12,22 @@ public sealed class SpawnSystem
 {
   private readonly IRandomProvider _randomProvider;
   private readonly SpawnConfig _config;
+  private readonly IGameObjectFactory _factory;
 
   /// <summary>
   /// Инициализирует систему спавна.
   /// </summary>
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   /// <param name="parConfig">Конфигурация спавна.</param>
-  public SpawnSystem(IRandomProvider parRandomProvider, SpawnConfig parConfig)
+  /// <param name="parFactory">Фабрика игровых объектов.</param>
+  public SpawnSystem(
+    IRandomProvider parRandomProvider,
+    SpawnConfig parConfig,
+    IGameObjectFactory? parFactory = null)
   {
     _randomProvider = parRandomProvider;
     _config = parConfig;
+    _factory = parFactory ?? new DefaultGameObjectFactory();
   }
 
   /// <summary>
@@ -73,7 +79,7 @@ public sealed class SpawnSystem
 
     var velocity = new Vector2(0, GetScaledSpeed(_config.CrystalBaseSpeed, parLevel));
     var type = PickWeighted(_config.CrystalTypeWeights);
-    var crystal = new Crystal(Guid.NewGuid(), position, velocity, _config.CrystalBounds, type);
+    var crystal = _factory.CreateCrystal(Guid.NewGuid(), position, velocity, _config.CrystalBounds, type);
     parGameState.CrystalsInternal.Add(crystal);
     parResults.Add(new SpawnedObject(nameof(Crystal), crystal.Id));
   }
@@ -103,7 +109,7 @@ public sealed class SpawnSystem
 
     var baseSpeed = _config.AsteroidBaseSpeed * _config.AsteroidSpeedMultiplier;
     var velocity = new Vector2(0, GetScaledSpeed(baseSpeed, parLevel));
-    var asteroid = new Asteroid(Guid.NewGuid(), position, velocity, _config.AsteroidBounds);
+    var asteroid = _factory.CreateAsteroid(Guid.NewGuid(), position, velocity, _config.AsteroidBounds);
     parGameState.AsteroidsInternal.Add(asteroid);
     parResults.Add(new SpawnedObject(nameof(Asteroid), asteroid.Id));
   }
@@ -133,7 +139,7 @@ public sealed class SpawnSystem
 
     var velocity = new Vector2(0, GetScaledSpeed(_config.BonusBaseSpeed, parLevel));
     var type = PickWeighted(_config.BonusTypeWeights);
-    var bonus = new Bonus(
+    var bonus = _factory.CreateBonus(
       Guid.NewGuid(),
       position,
       velocity,
@@ -168,7 +174,7 @@ public sealed class SpawnSystem
     }
 
     var velocity = new Vector2(0, GetScaledSpeed(_config.BlackHoleBaseSpeed, parLevel));
-    var blackHole = new BlackHole(
+    var blackHole = _factory.CreateBlackHole(
       Guid.NewGuid(),
       position,
       velocity,
