@@ -37,6 +37,7 @@ public sealed class GameState
   private double _resumeCountdownAccumulatedSec;
   private bool _isDisoriented;
   private double _disorientationRemainingSec;
+  private bool _wasInBlackHoleRadius;
 
   /// <summary>
   /// Инициализирует состояние игры со стандартным дроном.
@@ -534,6 +535,15 @@ public sealed class GameState
     {
       _drone.Velocity = parVelocity;
     }
+  }
+
+  /// <summary>
+  /// Признак нахождения в радиусе чёрной дыры на прошлом тике.
+  /// </summary>
+  internal bool WasInBlackHoleRadius
+  {
+    get => _wasInBlackHoleRadius;
+    set => _wasInBlackHoleRadius = value;
   }
 
   private void StartResumeCountdownLocked()
