@@ -16,9 +16,9 @@ public sealed class GameWorldUpdateService
   private const double SoftMargin = 8.0;
   private const int AsteroidDamage = 10;
   private const double MagnetRadius = 120.0;
-  private const double MagnetAttractionMultiplier = 1.4;
+  private const double MagnetAttractionAcceleration = 30.0;
   private const double BlackHoleAcceleration = 30.0;
-  private const int BlackHoleCoreDamage = 10;
+  private const int BlackHoleCoreDamage = 40;
   private const double AcceleratorScoreMultiplier = 1.25;
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
@@ -148,7 +148,7 @@ public sealed class GameWorldUpdateService
     {
       if (parIsMagnetActive)
       {
-        ApplyMagnetEffect(parGameState.DroneInternal, crystal);
+        ApplyMagnetEffect(parGameState.DroneInternal, crystal, parDt);
       }
 
       var velocity = crystal.Velocity.Multiply(parSpeedMultiplier);
@@ -175,7 +175,7 @@ public sealed class GameWorldUpdateService
     }
   }
 
-  private void ApplyMagnetEffect(Drone parDrone, Crystal parCrystal)
+  private void ApplyMagnetEffect(Drone parDrone, Crystal parCrystal, double parDt)
   {
     var direction = new Vector2(
       parDrone.Position.X - parCrystal.Position.X,
@@ -188,7 +188,8 @@ public sealed class GameWorldUpdateService
     }
 
     var normalized = direction.Normalize();
-    parCrystal.Velocity = normalized.Multiply(parCrystal.Velocity.Length() * MagnetAttractionMultiplier);
+    var acceleratedSpeed = parCrystal.Velocity.Length() + (MagnetAttractionAcceleration * parDt);
+    parCrystal.Velocity = normalized.Multiply(acceleratedSpeed);
   }
 
   private void ApplyBlackHoleInfluence(

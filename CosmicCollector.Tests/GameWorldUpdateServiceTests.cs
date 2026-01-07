@@ -479,7 +479,7 @@ public sealed class GameWorldUpdateServiceTests
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    Xunit.Assert.Equal(90, state.Drone.Energy);
+    Xunit.Assert.Equal(60, state.Drone.Energy);
   }
 
   /// <summary>
