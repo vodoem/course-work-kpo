@@ -444,14 +444,16 @@ public sealed class GameWorldUpdateService
       return;
     }
 
-    parGameState.DisorientationRemainingSec = Math.Max(
-      0,
-      parGameState.DisorientationRemainingSec - parDt);
+    var remaining = parGameState.DisorientationRemainingSec - parDt;
 
-    if (parGameState.DisorientationRemainingSec <= 0)
+    if (remaining <= 0)
     {
+      parGameState.DisorientationRemainingSec = 0;
       parGameState.IsDisoriented = false;
+      return;
     }
+
+    parGameState.DisorientationRemainingSec = remaining;
   }
 
   private static bool Intersects(GameObject parLeft, GameObject parRight, double parSoftMargin)
