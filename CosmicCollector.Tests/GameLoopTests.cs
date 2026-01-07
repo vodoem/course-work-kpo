@@ -1,5 +1,9 @@
+using CosmicCollector.Core.Entities;
 using CosmicCollector.Core.Events;
+using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
+using CosmicCollector.Core.Randomization;
+using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Loop;
@@ -90,11 +94,23 @@ public sealed class GameLoopTests
   [Xunit.Fact]
   public void ProcessCommands_InvertsMoveWhenDisoriented()
   {
-    var state = new GameState();
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = new GameState(
+      new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(10, 10), 100),
+      new WorldBounds(0, 0, 800, 600));
     var queue = new CommandQueue();
     var bus = new EventBus();
-    state.DisorientationRemainingSec = 1.0;
-    state.IsDisoriented = true;
+    state.Drone.Position = new Vector2(10, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
 
     var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
 

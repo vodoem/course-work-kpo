@@ -491,9 +491,6 @@ public sealed class GameState
   /// <summary>
   /// Признак дезориентации дрона.
   /// </summary>
-  /// <summary>
-  /// Признак дезориентации дрона.
-  /// </summary>
   public bool IsDisoriented
   {
     get
@@ -509,9 +506,6 @@ public sealed class GameState
     }
   }
 
-  /// <summary>
-  /// Оставшееся время дезориентации в секундах.
-  /// </summary>
   /// <summary>
   /// Оставшееся время дезориентации в секундах.
   /// </summary>

@@ -584,7 +584,7 @@ public sealed class GameWorldUpdateServiceTests
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    Xunit.Assert.Equal(0, state.GetSnapshot().parCrystals.Count);
+    Xunit.Assert.Empty(state.GetSnapshot().parCrystals);
     Xunit.Assert.Equal(1, despawned);
   }
 
