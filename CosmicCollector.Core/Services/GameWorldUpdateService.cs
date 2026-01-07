@@ -24,14 +24,26 @@ public sealed class GameWorldUpdateService
   private const double DisorientationDurationSec = 3.0;
 
   private readonly IRandomProvider _randomProvider;
+  private readonly SpawnSystem _spawnSystem;
 
   /// <summary>
   /// Инициализирует сервис обновления мира.
   /// </summary>
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   public GameWorldUpdateService(IRandomProvider parRandomProvider)
+    : this(parRandomProvider, SpawnConfig.Disabled)
+  {
+  }
+
+  /// <summary>
+  /// Инициализирует сервис обновления мира.
+  /// </summary>
+  /// <param name="parRandomProvider">Провайдер случайных значений.</param>
+  /// <param name="parSpawnConfig">Конфигурация спавна.</param>
+  public GameWorldUpdateService(IRandomProvider parRandomProvider, SpawnConfig parSpawnConfig)
   {
     _randomProvider = parRandomProvider;
+    _spawnSystem = new SpawnSystem(parRandomProvider, parSpawnConfig);
   }
 
   /// <summary>
@@ -65,6 +77,7 @@ public sealed class GameWorldUpdateService
         return;
       }
 
+      var tickCount = parGameState.AdvanceTickCount();
       UpdateBonusTimers(parGameState, parDt);
       UpdateDisorientation(parGameState, parDt);
 
@@ -80,6 +93,7 @@ public sealed class GameWorldUpdateService
         isAcceleratorActive,
         isTimeStabilizerActive,
         isMagnetActive);
+      SpawnObjects(parGameState, parLevel, tickCount, parEventPublisher);
       ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
       var timeStabilizerCollected = false;
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive, ref timeStabilizerCollected);
@@ -99,6 +113,20 @@ public sealed class GameWorldUpdateService
     parGameState.AcceleratorRemainingSec = Math.Max(0, parGameState.AcceleratorRemainingSec - parDt);
     parGameState.TimeStabilizerRemainingSec = Math.Max(0, parGameState.TimeStabilizerRemainingSec - parDt);
     parGameState.MagnetRemainingSec = Math.Max(0, parGameState.MagnetRemainingSec - parDt);
+  }
+
+  private void SpawnObjects(
+    GameState parGameState,
+    int parLevel,
+    long parTickCount,
+    IEventPublisher parEventPublisher)
+  {
+    var spawned = _spawnSystem.TrySpawn(parGameState, parLevel, parTickCount);
+
+    foreach (var item in spawned)
+    {
+      parEventPublisher.Publish(new ObjectSpawned(item.ObjectType, item.ObjectId));
+    }
   }
 
   private void UpdateObjectPositions(

@@ -32,6 +32,7 @@ public sealed class GameState
   private bool _collectedRed;
   private bool _isLevelCompleted;
   private bool _isGameOver;
+  private long _tickCount;
   private bool _isResumeCountdownActive;
   private int _resumeCountdownValue;
   private double _resumeCountdownAccumulatedSec;
@@ -289,6 +290,33 @@ public sealed class GameState
     {
       _tickNo++;
       return _tickNo;
+    }
+  }
+
+  /// <summary>
+  /// Увеличивает счётчик тиков обновления мира.
+  /// </summary>
+  /// <returns>Текущее значение счётчика.</returns>
+  internal long AdvanceTickCount()
+  {
+    lock (_lockObject)
+    {
+      _tickCount++;
+      return _tickCount;
+    }
+  }
+
+  /// <summary>
+  /// Счётчик тиков обновления мира.
+  /// </summary>
+  internal long TickCount
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _tickCount;
+      }
     }
   }
 
