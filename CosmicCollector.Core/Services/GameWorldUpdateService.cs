@@ -60,6 +60,7 @@ public sealed class GameWorldUpdateService
 
       if (parGameState.IsPaused)
       {
+        ProcessResumeCountdown(parGameState, parDt, parEventPublisher);
         return;
       }
 
@@ -276,6 +277,43 @@ public sealed class GameWorldUpdateService
     {
       parGameState.MarkLevelCompleted();
       parEventPublisher.Publish(new LevelCompleted("ScoreAndTypes"));
+    }
+  }
+
+  private void ProcessResumeCountdown(
+    GameState parGameState,
+    double parDt,
+    IEventPublisher parEventPublisher)
+  {
+    if (!parGameState.IsResumeCountdownActive)
+    {
+      return;
+    }
+
+    parGameState.ResumeCountdownAccumulatedSec += parDt;
+
+    while (parGameState.ResumeCountdownAccumulatedSec >= 1.0 && parGameState.IsResumeCountdownActive)
+    {
+      parGameState.ResumeCountdownAccumulatedSec -= 1.0;
+      var value = parGameState.ResumeCountdownValue;
+
+      if (value <= 0)
+      {
+        parGameState.StopResumeCountdown();
+        break;
+      }
+
+      parEventPublisher.Publish(new CountdownTick(value));
+      value--;
+      parGameState.ResumeCountdownValue = value;
+
+      if (value == 0)
+      {
+        parGameState.StopResumeCountdown();
+        parGameState.SetPaused(false);
+        parEventPublisher.Publish(new PauseToggled(false));
+        break;
+      }
     }
   }
 

@@ -32,6 +32,9 @@ public sealed class GameState
   private bool _collectedRed;
   private bool _isLevelCompleted;
   private bool _isGameOver;
+  private bool _isResumeCountdownActive;
+  private int _resumeCountdownValue;
+  private double _resumeCountdownAccumulatedSec;
 
   /// <summary>
   /// Инициализирует состояние игры со стандартным дроном.
@@ -222,9 +225,56 @@ public sealed class GameState
   {
     lock (_lockObject)
     {
-      _isPaused = !_isPaused;
+      if (!_isPaused)
+      {
+        _isPaused = true;
+        return _isPaused;
+      }
+
+      StartResumeCountdownLocked();
       return _isPaused;
     }
+  }
+
+  /// <summary>
+  /// Признак активного отсчёта при снятии паузы.
+  /// </summary>
+  internal bool IsResumeCountdownActive
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _isResumeCountdownActive;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Текущее значение отсчёта.
+  /// </summary>
+  internal int ResumeCountdownValue
+  {
+    get => _resumeCountdownValue;
+    set => _resumeCountdownValue = value;
+  }
+
+  /// <summary>
+  /// Накопленное время для шага отсчёта.
+  /// </summary>
+  internal double ResumeCountdownAccumulatedSec
+  {
+    get => _resumeCountdownAccumulatedSec;
+    set => _resumeCountdownAccumulatedSec = value;
+  }
+
+  /// <summary>
+  /// Снимает паузу без запуска отсчёта.
+  /// </summary>
+  /// <param name="parIsPaused">Новое состояние паузы.</param>
+  internal void SetPaused(bool parIsPaused)
+  {
+    _isPaused = parIsPaused;
   }
 
   /// <summary>
@@ -432,5 +482,24 @@ public sealed class GameState
   internal void MarkGameOver()
   {
     _isGameOver = true;
+  }
+
+  private void StartResumeCountdownLocked()
+  {
+    if (_isResumeCountdownActive)
+    {
+      return;
+    }
+
+    _isResumeCountdownActive = true;
+    _resumeCountdownValue = 3;
+    _resumeCountdownAccumulatedSec = 0;
+  }
+
+  internal void StopResumeCountdown()
+  {
+    _isResumeCountdownActive = false;
+    _resumeCountdownValue = 0;
+    _resumeCountdownAccumulatedSec = 0;
   }
 }

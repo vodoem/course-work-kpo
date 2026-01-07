@@ -639,6 +639,88 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.Equal("OutOfBounds", reason);
   }
 
+  /// <summary>
+  /// Проверяет запуск отсчёта при снятии паузы и отсутствие движения мира.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_ResumeCountdownPreventsWorldUpdate()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      new Vector2(0, 10),
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    state.TogglePause();
+    state.TogglePause();
+
+    for (var i = 0; i < 180; i++)
+    {
+      service.Update(state, 1.0 / 60.0, 1, bus);
+    }
+
+    Xunit.Assert.False(state.IsPaused);
+    Xunit.Assert.Equal(0, crystal.Position.Y);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.False(state.IsPaused);
+    Xunit.Assert.InRange(crystal.Position.Y, 0.16, 0.17);
+  }
+
+  /// <summary>
+  /// Проверяет последовательность событий отсчёта 3..1.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_ResumeCountdownPublishesTicks()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var ticks = new List<int>();
+
+    bus.Subscribe<CountdownTick>(evt => ticks.Add(evt.parValue));
+
+    state.TogglePause();
+    state.TogglePause();
+
+    for (var i = 0; i < 180; i++)
+    {
+      service.Update(state, 1.0 / 60.0, 1, bus);
+    }
+
+    Xunit.Assert.Equal(new[] { 3, 2, 1 }, ticks);
+  }
+
+  /// <summary>
+  /// Проверяет снятие паузы после завершения отсчёта.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_ResumeCountdownFinishesAndUnpauses()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.TogglePause();
+    state.TogglePause();
+
+    for (var i = 0; i < 180; i++)
+    {
+      service.Update(state, 1.0 / 60.0, 1, bus);
+    }
+
+    Xunit.Assert.False(state.IsPaused);
+  }
+
   private static GameState CreateStateWithDrone()
   {
     var drone = new Drone(
