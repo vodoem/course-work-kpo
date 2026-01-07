@@ -226,6 +226,87 @@ public sealed class GameWorldUpdateServiceTests
   }
 
   /// <summary>
+  /// Проверяет базовую скорость дрона.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_DroneMovesWithBaseSpeed()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = Vector2.Zero;
+    state.Drone.Velocity = new Vector2(GameRules.DroneBaseSpeed, 0);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.InRange(state.Drone.Position.X, 3.99, 4.01);
+  }
+
+  /// <summary>
+  /// Проверяет ускорение скорости дрона при активном ускорителе от базовой.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_AcceleratorScalesBaseDroneSpeed()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    state.Drone.Position = Vector2.Zero;
+    state.Drone.Velocity = new Vector2(GameRules.DroneBaseSpeed, 0);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.InRange(state.Drone.Position.X, 6.39, 6.41);
+  }
+
+  /// <summary>
+  /// Проверяет ограничение дрона по левой границе.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_ClampsDroneToLeftBoundary()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var bounds = new WorldBounds(0, 0, 100, 100);
+    var state = CreateStateWithDrone(bounds);
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(-100, 50);
+    state.Drone.Velocity = Vector2.Zero;
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.InRange(state.Drone.Position.X, 4.99, 5.01);
+  }
+
+  /// <summary>
+  /// Проверяет ограничение дрона по нижней границе.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_ClampsDroneToBottomBoundary()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var bounds = new WorldBounds(0, 0, 100, 100);
+    var state = CreateStateWithDrone(bounds);
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(50, 200);
+    state.Drone.Velocity = Vector2.Zero;
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.InRange(state.Drone.Position.Y, 94.99, 95.01);
+  }
+
+  /// <summary>
   /// Проверяет замедление астероидов стабилизатором времени.
   /// </summary>
   [Xunit.Fact]
@@ -298,6 +379,33 @@ public sealed class GameWorldUpdateServiceTests
   }
 
   /// <summary>
+  /// Проверяет усиление скорости кристалла магнитом.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_MagnetAcceleratesCrystal()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.Magnet, 5));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      new Vector2(100, 0),
+      new Vector2(5, 0),
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.True(crystal.Velocity.Length() > 5);
+  }
+
+  /// <summary>
   /// Проверяет отсутствие влияния магнита вне радиуса.
   /// </summary>
   [Xunit.Fact]
@@ -347,6 +455,56 @@ public sealed class GameWorldUpdateServiceTests
     service.Update(state, 1.0, 1, bus);
 
     Xunit.Assert.True(state.Drone.Velocity.X < 0);
+  }
+
+  /// <summary>
+  /// Проверяет урон от чёрной дыры внутри ядра.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_BlackHoleDealsDamageInsideCore()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(10, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(90, state.Drone.Energy);
+  }
+
+  /// <summary>
+  /// Проверяет отсутствие урона от чёрной дыры вне ядра.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_BlackHoleDoesNotDamageOutsideCore()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(100, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(100, state.Drone.Energy);
   }
 
   /// <summary>

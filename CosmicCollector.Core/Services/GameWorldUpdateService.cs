@@ -16,7 +16,9 @@ public sealed class GameWorldUpdateService
   private const double SoftMargin = 8.0;
   private const int AsteroidDamage = 10;
   private const double MagnetRadius = 120.0;
+  private const double MagnetAttractionMultiplier = 1.4;
   private const double BlackHoleAcceleration = 30.0;
+  private const int BlackHoleCoreDamage = 10;
   private const double AcceleratorScoreMultiplier = 1.25;
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
@@ -140,6 +142,7 @@ public sealed class GameWorldUpdateService
     var droneMultiplier = parIsAcceleratorActive ? DroneAcceleratorMultiplier : 1.0;
     var drone = parGameState.DroneInternal;
     drone.Position = drone.Position.Add(drone.Velocity.Multiply(parDt * droneMultiplier));
+    ClampDroneToBounds(parGameState);
 
     foreach (var crystal in parGameState.CrystalsInternal)
     {
@@ -185,7 +188,7 @@ public sealed class GameWorldUpdateService
     }
 
     var normalized = direction.Normalize();
-    parCrystal.Velocity = normalized.Multiply(parCrystal.Velocity.Length());
+    parCrystal.Velocity = normalized.Multiply(parCrystal.Velocity.Length() * MagnetAttractionMultiplier);
   }
 
   private void ApplyBlackHoleInfluence(
@@ -210,7 +213,12 @@ public sealed class GameWorldUpdateService
       var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
       drone.Velocity = drone.Velocity.Add(acceleration.Multiply(parDt));
       ActivateDisorientation(parGameState, DisorientationDurationSec);
-      parEventPublisher.Publish(new DamageTaken("BlackHole", 0));
+
+      if (distance <= blackHole.CoreRadius)
+      {
+        drone.Energy -= BlackHoleCoreDamage;
+        parEventPublisher.Publish(new DamageTaken("BlackHole", BlackHoleCoreDamage));
+      }
     }
   }
 
@@ -487,5 +495,21 @@ public sealed class GameWorldUpdateService
 
     return deltaX <= (halfWidthLeft + halfWidthRight + parSoftMargin)
       && deltaY <= (halfHeightLeft + halfHeightRight + parSoftMargin);
+  }
+
+  private static void ClampDroneToBounds(GameState parGameState)
+  {
+    var drone = parGameState.DroneInternal;
+    var bounds = parGameState.WorldBounds;
+    var halfWidth = drone.Bounds.Width / 2.0;
+    var halfHeight = drone.Bounds.Height / 2.0;
+    var minX = bounds.Left + halfWidth;
+    var maxX = bounds.Right - halfWidth;
+    var minY = bounds.Top + halfHeight;
+    var maxY = bounds.Bottom - halfHeight;
+
+    var clampedX = Math.Max(minX, Math.Min(maxX, drone.Position.X));
+    var clampedY = Math.Max(minY, Math.Min(maxY, drone.Position.Y));
+    drone.Position = new Vector2(clampedX, clampedY);
   }
 }

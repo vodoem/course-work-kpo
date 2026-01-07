@@ -1,6 +1,7 @@
 using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
+using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 
@@ -12,7 +13,6 @@ namespace CosmicCollector.MVC.Loop;
 public sealed class ManualGameLoopRunner
 {
   private const double StepSeconds = 1.0 / 60.0;
-  private const double DroneSpeed = 10.0;
   private readonly GameState _gameState;
   private readonly CommandQueue _commandQueue;
   private readonly IEventBus _eventBus;
@@ -83,7 +83,7 @@ public sealed class ManualGameLoopRunner
   {
     var snapshot = _gameState.GetSnapshot();
     var direction = NormalizeDirection(snapshot.parDrone.parIsDisoriented, parDirection);
-    _gameState.SetDroneVelocity(new Vector2(direction * DroneSpeed, snapshot.parDrone.parVelocity.Y));
+    _gameState.SetDroneVelocity(new Vector2(direction * GameRules.DroneBaseSpeed, snapshot.parDrone.parVelocity.Y));
   }
 
   private static int NormalizeDirection(bool parIsDisoriented, int parDirection)

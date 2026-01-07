@@ -15,6 +15,50 @@ public sealed class SpawnConfig
   public static SpawnConfig Disabled =>
     new();
 
+  /// <summary>
+  /// Конфигурация спавна с параметрами по умолчанию из ТЗ.
+  /// </summary>
+  public static SpawnConfig Default =>
+    new(
+      true,
+      3,
+      3,
+      3,
+      1,
+      60,
+      90,
+      120,
+      180,
+      0,
+      0,
+      4,
+      6,
+      10,
+      new Aabb(10, 10),
+      new Aabb(12, 12),
+      new Aabb(8, 8),
+      new Aabb(14, 14),
+      2,
+      3,
+      2,
+      0,
+      220,
+      40,
+      5,
+      1.3,
+      new List<WeightedOption<CrystalType>>
+      {
+        new(CrystalType.Blue, 1),
+        new(CrystalType.Green, 1),
+        new(CrystalType.Red, 1)
+      },
+      new List<WeightedOption<BonusType>>
+      {
+        new(BonusType.Accelerator, 1),
+        new(BonusType.TimeStabilizer, 1),
+        new(BonusType.Magnet, 1)
+      });
+
   private SpawnConfig()
   {
     IsEnabled = false;
