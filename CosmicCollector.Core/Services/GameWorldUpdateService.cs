@@ -257,15 +257,15 @@ public sealed class GameWorldUpdateService
 
   private static bool Intersects(GameObject parLeft, GameObject parRight, double parSoftMargin)
   {
-    var halfWidthLeft = parLeft.Bounds.Width / 2.0 + parSoftMargin;
-    var halfHeightLeft = parLeft.Bounds.Height / 2.0 + parSoftMargin;
-    var halfWidthRight = parRight.Bounds.Width / 2.0 + parSoftMargin;
-    var halfHeightRight = parRight.Bounds.Height / 2.0 + parSoftMargin;
+    var halfWidthLeft = parLeft.Bounds.Width / 2.0;
+    var halfHeightLeft = parLeft.Bounds.Height / 2.0;
+    var halfWidthRight = parRight.Bounds.Width / 2.0;
+    var halfHeightRight = parRight.Bounds.Height / 2.0;
 
     var deltaX = Math.Abs(parLeft.Position.X - parRight.Position.X);
     var deltaY = Math.Abs(parLeft.Position.Y - parRight.Position.Y);
 
-    return deltaX <= (halfWidthLeft + halfWidthRight)
-      && deltaY <= (halfHeightLeft + halfHeightRight);
+    return deltaX <= (halfWidthLeft + halfWidthRight + parSoftMargin)
+      && deltaY <= (halfHeightLeft + halfHeightRight + parSoftMargin);
   }
 }
