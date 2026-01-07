@@ -24,6 +24,8 @@ public sealed class SpawnConfig
       0,
       0,
       0,
+      0,
+      0,
       1,
       1,
       1,
@@ -36,10 +38,10 @@ public sealed class SpawnConfig
       0,
       0,
       0,
-      1,
-      1,
       0,
       0,
+      0,
+      1,
       new List<WeightedOption<CrystalType>>(),
       new List<WeightedOption<BonusType>>());
 
