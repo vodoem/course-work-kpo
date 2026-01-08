@@ -19,5 +19,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CosmicCollector.Persistence\CosmicCollector.Persistence.csproj" />
+    <ProjectReference Include="..\CosmicCollector.Core\CosmicCollector.Core.csproj" />
+    <ProjectReference Include="..\CosmicCollector.MVC\CosmicCollector.MVC.csproj" />
   </ItemGroup>
 </Project>

@@ -20,6 +20,7 @@ public static class Program
     IConsoleRenderer renderer = new ConsoleRenderer();
     IConsoleInputReader inputReader = new ConsoleInputReader();
     IRulesTextProvider rulesTextProvider = new FileRulesTextProvider("rules/rules-text.md");
+    IGameSessionFactory gameSessionFactory = new GameSessionFactory();
     IRecordsRepository recordsRepository = new RecordsRepository(
       Path.Combine(AppContext.BaseDirectory, "records.json"));
 
@@ -29,6 +30,7 @@ public static class Program
       inputReader,
       renderer,
       rulesTextProvider,
+      gameSessionFactory,
       recordsRepository);
 
     controller.Run();
