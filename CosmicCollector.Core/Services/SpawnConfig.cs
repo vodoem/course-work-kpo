@@ -41,7 +41,7 @@ public sealed class SpawnConfig
       100,
       150,
       100,
-      50,
+      100,
       220,
       40,
       5,
