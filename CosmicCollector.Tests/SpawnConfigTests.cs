@@ -15,8 +15,10 @@ public sealed class SpawnConfigTests
   {
     var config = SpawnConfig.Default;
 
-    Xunit.Assert.Equal(50, config.CrystalBaseSpeed);
-    Xunit.Assert.Equal(75, config.AsteroidBaseSpeed);
+    Xunit.Assert.Equal(100, config.CrystalBaseSpeed);
+    Xunit.Assert.Equal(150, config.AsteroidBaseSpeed);
+    Xunit.Assert.Equal(100, config.BonusBaseSpeed);
+    Xunit.Assert.Equal(50, config.BlackHoleBaseSpeed);
     Xunit.Assert.Equal(220, config.BlackHoleRadius);
     Xunit.Assert.Equal(40, config.BlackHoleCoreRadius);
   }
