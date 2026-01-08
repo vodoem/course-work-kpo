@@ -101,7 +101,12 @@ public sealed class GameWorldUpdateService
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive, ref timeStabilizerCollected);
       RemoveOutOfBoundsObjects(parGameState, parEventPublisher);
 
-      if (parGameState.HasLevelTimer && !timeStabilizerCollected)
+      if (parGameState.HasLevelTimer &&
+          !timeStabilizerCollected &&
+          !parGameState.IsPaused &&
+          !parGameState.IsResumeCountdownActive &&
+          !parGameState.IsGameOver &&
+          !parGameState.IsLevelCompleted)
       {
         parGameState.LevelTimeRemainingSec = Math.Max(0, parGameState.LevelTimeRemainingSec - parDt);
       }

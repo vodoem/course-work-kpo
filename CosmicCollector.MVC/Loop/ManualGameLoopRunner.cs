@@ -43,10 +43,7 @@ public sealed class ManualGameLoopRunner
   {
     ProcessCommands();
 
-    if (!_gameState.IsPaused)
-    {
-      _updateCallback?.Invoke(StepSeconds);
-    }
+    _updateCallback?.Invoke(StepSeconds);
 
     var tickNo = _gameState.AdvanceTick();
     _eventBus.Publish(new GameTick(StepSeconds, tickNo));
