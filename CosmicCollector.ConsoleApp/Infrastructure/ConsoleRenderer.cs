@@ -36,6 +36,18 @@ public sealed class ConsoleRenderer : IConsoleRenderer
   }
 
   /// <inheritdoc />
+  public void SetForegroundColor(ConsoleColor parColor)
+  {
+    Console.ForegroundColor = parColor;
+  }
+
+  /// <inheritdoc />
+  public void ResetColor()
+  {
+    Console.ResetColor();
+  }
+
+  /// <inheritdoc />
   public void SetBufferSize(int parWidth, int parHeight)
   {
     try

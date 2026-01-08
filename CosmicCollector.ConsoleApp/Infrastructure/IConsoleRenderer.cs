@@ -36,6 +36,17 @@ public interface IConsoleRenderer
   void Write(string parText);
 
   /// <summary>
+  /// Устанавливает цвет текста.
+  /// </summary>
+  /// <param name="parColor">Цвет текста.</param>
+  void SetForegroundColor(ConsoleColor parColor);
+
+  /// <summary>
+  /// Сбрасывает цвет текста.
+  /// </summary>
+  void ResetColor();
+
+  /// <summary>
   /// Устанавливает размер буфера консоли.
   /// </summary>
   /// <param name="parWidth">Ширина буфера.</param>

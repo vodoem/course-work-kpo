@@ -18,12 +18,9 @@ public sealed class GameScreenView : IGameScreenView
   private const char BonusAcceleratorChar = 'A';
   private const char BonusTimeStabilizerChar = 'T';
   private const char BonusMagnetChar = 'M';
-  private const char CrystalBlueChar = '◆';
-  private const char CrystalGreenChar = '◆';
-  private const char CrystalRedChar = '◆';
-  private const double VisualScaleX = 1.0;
-  private const double VisualScaleY = 0.6;
-  private const int HudHeight = 5;
+  private const char CrystalChar = '◆';
+  private const int HudHeight = 4;
+  private const double PixelsPerCell = 12.0;
   private readonly IConsoleRenderer _renderer;
   private readonly WorldBounds _worldBounds;
 
@@ -45,21 +42,22 @@ public sealed class GameScreenView : IGameScreenView
     int height = Math.Max(10, _renderer.WindowHeight);
     _renderer.SetBufferSize(width, height);
     char[,] buffer = CreateBuffer(width, height);
+    ConsoleColor[,] colors = CreateColorBuffer(width, height, ConsoleColor.Gray);
 
-    DrawHud(buffer, width, parSnapshot, parLevel);
+    DrawHud(buffer, colors, width, parSnapshot, parLevel);
 
     int fieldOffsetY = HudHeight;
     int fieldWidth = width;
     int fieldHeight = Math.Max(6, height - fieldOffsetY);
 
-    DrawBorder(buffer, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawDrone(buffer, parSnapshot.parDrone.parPosition, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawCrystals(buffer, parSnapshot.parCrystals, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawAsteroids(buffer, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawBonuses(buffer, parSnapshot.parBonuses, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawBlackHoles(buffer, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBorder(buffer, colors, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawDrone(buffer, colors, parSnapshot.parDrone.parPosition, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawCrystals(buffer, colors, parSnapshot.parCrystals, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawAsteroids(buffer, colors, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBonuses(buffer, colors, parSnapshot.parBonuses, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBlackHoles(buffer, colors, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
 
-    RenderBuffer(buffer, width, height);
+    RenderBuffer(buffer, colors, width, height);
   }
 
   private char[,] CreateBuffer(int parWidth, int parHeight)
@@ -77,31 +75,63 @@ public sealed class GameScreenView : IGameScreenView
     return buffer;
   }
 
-  private void DrawBorder(char[,] parBuffer, int parOffsetY, int parWidth, int parHeight)
+  private ConsoleColor[,] CreateColorBuffer(int parWidth, int parHeight, ConsoleColor parDefault)
+  {
+    var colors = new ConsoleColor[parWidth, parHeight];
+
+    for (int x = 0; x < parWidth; x++)
+    {
+      for (int y = 0; y < parHeight; y++)
+      {
+        colors[x, y] = parDefault;
+      }
+    }
+
+    return colors;
+  }
+
+  private void DrawBorder(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    int parOffsetY,
+    int parWidth,
+    int parHeight)
   {
     for (int x = 0; x < parWidth; x++)
     {
       parBuffer[x, parOffsetY] = BorderChar;
       parBuffer[x, parOffsetY + parHeight - 1] = BorderChar;
+      parColors[x, parOffsetY] = ConsoleColor.DarkGray;
+      parColors[x, parOffsetY + parHeight - 1] = ConsoleColor.DarkGray;
     }
 
     for (int y = 0; y < parHeight; y++)
     {
       parBuffer[0, parOffsetY + y] = BorderChar;
       parBuffer[parWidth - 1, parOffsetY + y] = BorderChar;
+      parColors[0, parOffsetY + y] = ConsoleColor.DarkGray;
+      parColors[parWidth - 1, parOffsetY + y] = ConsoleColor.DarkGray;
     }
   }
 
-  private void DrawDrone(char[,] parBuffer, Vector2 parPosition, int parOffsetY, int parWidth, int parHeight)
+  private void DrawDrone(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    Vector2 parPosition,
+    int parOffsetY,
+    int parWidth,
+    int parHeight)
   {
     if (TryMapToGrid(parPosition, parOffsetY, parWidth, parHeight, out var coords))
     {
       parBuffer[coords.X, coords.Y] = DroneChar;
+      parColors[coords.X, coords.Y] = ConsoleColor.White;
     }
   }
 
   private void DrawCrystals(
     char[,] parBuffer,
+    ConsoleColor[,] parColors,
     IReadOnlyList<CrystalSnapshot> parCrystals,
     int parOffsetY,
     int parWidth,
@@ -114,18 +144,20 @@ public sealed class GameScreenView : IGameScreenView
         continue;
       }
 
-      parBuffer[coords.X, coords.Y] = crystal.parType switch
+      parBuffer[coords.X, coords.Y] = CrystalChar;
+      parColors[coords.X, coords.Y] = crystal.parType switch
       {
-        CrystalType.Blue => CrystalBlueChar,
-        CrystalType.Green => CrystalGreenChar,
-        CrystalType.Red => CrystalRedChar,
-        _ => CrystalBlueChar
+        CrystalType.Blue => ConsoleColor.Cyan,
+        CrystalType.Green => ConsoleColor.Green,
+        CrystalType.Red => ConsoleColor.Red,
+        _ => ConsoleColor.Cyan
       };
     }
   }
 
   private void DrawAsteroids(
     char[,] parBuffer,
+    ConsoleColor[,] parColors,
     IReadOnlyList<AsteroidSnapshot> parAsteroids,
     int parOffsetY,
     int parWidth,
@@ -136,12 +168,14 @@ public sealed class GameScreenView : IGameScreenView
       if (TryMapToGrid(asteroid.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         parBuffer[coords.X, coords.Y] = AsteroidChar;
+        parColors[coords.X, coords.Y] = ConsoleColor.DarkGray;
       }
     }
   }
 
   private void DrawBonuses(
     char[,] parBuffer,
+    ConsoleColor[,] parColors,
     IReadOnlyList<BonusSnapshot> parBonuses,
     int parOffsetY,
     int parWidth,
@@ -161,11 +195,19 @@ public sealed class GameScreenView : IGameScreenView
         BonusType.Magnet => BonusMagnetChar,
         _ => BonusAcceleratorChar
       };
+      parColors[coords.X, coords.Y] = bonus.parType switch
+      {
+        BonusType.Accelerator => ConsoleColor.Yellow,
+        BonusType.TimeStabilizer => ConsoleColor.White,
+        BonusType.Magnet => ConsoleColor.DarkGreen,
+        _ => ConsoleColor.Yellow
+      };
     }
   }
 
   private void DrawBlackHoles(
     char[,] parBuffer,
+    ConsoleColor[,] parColors,
     IReadOnlyList<BlackHoleSnapshot> parBlackHoles,
     int parOffsetY,
     int parWidth,
@@ -176,6 +218,7 @@ public sealed class GameScreenView : IGameScreenView
       if (TryMapToGrid(blackHole.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         parBuffer[coords.X, coords.Y] = BlackHoleChar;
+        parColors[coords.X, coords.Y] = ConsoleColor.Magenta;
       }
     }
   }
@@ -196,14 +239,8 @@ public sealed class GameScreenView : IGameScreenView
       return false;
     }
 
-    double scaledWidth = worldWidth * VisualScaleX;
-    double scaledHeight = worldHeight * VisualScaleY;
-    double normalizedX = (parPosition.X - _worldBounds.Left) / scaledWidth;
-    double normalizedY = (parPosition.Y - _worldBounds.Top) / scaledHeight;
-    normalizedX = Math.Clamp(normalizedX, 0, 1);
-    normalizedY = Math.Clamp(normalizedY, 0, 1);
-    int gridX = MapToCellX(normalizedX, parWidth);
-    int gridY = MapToCellY(normalizedY, parOffsetY, parHeight);
+    int gridX = MapWorldToCellX(parPosition.X, parWidth);
+    int gridY = MapWorldToCellY(parPosition.Y, parOffsetY, parHeight);
 
     if (gridX < 1 || gridX > parWidth - 2 || gridY < parOffsetY + 1 || gridY > parOffsetY + parHeight - 2)
     {
@@ -215,73 +252,72 @@ public sealed class GameScreenView : IGameScreenView
     return true;
   }
 
-  private int MapToCellX(double parNormalizedX, int parWidth)
+  private int MapWorldToCellX(double parWorldX, int parWidth)
   {
-    int innerWidth = Math.Max(1, parWidth - 2);
-    return 1 + (int)Math.Round(parNormalizedX * (innerWidth - 1));
-  }
-
-  private int MapToCellY(double parNormalizedY, int parOffsetY, int parHeight)
-  {
-    int innerHeight = Math.Max(1, parHeight - 2);
-    int mapped = (int)Math.Round(parNormalizedY * (innerHeight - 1));
-    return parOffsetY + 1 + mapped;
-  }
-
-  private bool ValidateDronePlacement(Vector2 parPosition, int parWidth)
-  {
-    int fieldHeight = Math.Max(6, _renderer.WindowHeight - HudHeight);
-    int fieldOffsetY = HudHeight;
     double worldWidth = _worldBounds.Right - _worldBounds.Left;
-    double worldHeight = _worldBounds.Bottom - _worldBounds.Top;
-
-    if (worldWidth <= 0 || worldHeight <= 0)
+    if (worldWidth <= 0)
     {
-      return false;
+      return 1;
     }
 
-    double scaledWidth = worldWidth * VisualScaleX;
-    double scaledHeight = worldHeight * VisualScaleY;
-    double normalizedX = (parPosition.X - _worldBounds.Left) / scaledWidth;
-    double normalizedY = (parPosition.Y - _worldBounds.Top) / scaledHeight;
+    int innerWidth = Math.Max(1, parWidth - 2);
+    double normalizedX = (parWorldX - _worldBounds.Left) / worldWidth;
     normalizedX = Math.Clamp(normalizedX, 0, 1);
-    normalizedY = Math.Clamp(normalizedY, 0, 1);
-    int gridX = MapToCellX(normalizedX, parWidth);
-    int gridY = MapToCellY(normalizedY, fieldOffsetY, fieldHeight);
-    int expectedX = parWidth / 2;
-    int expectedY = fieldOffsetY + fieldHeight - 2;
-
-    return Math.Abs(gridX - expectedX) <= 1 && Math.Abs(gridY - expectedY) <= 1;
+    int cellX = (int)Math.Round((normalizedX * worldWidth) / PixelsPerCell);
+    int clamped = Math.Clamp(cellX, 0, innerWidth - 1);
+    return 1 + clamped;
   }
 
-  private void DrawHud(char[,] parBuffer, int parWidth, GameSnapshot parSnapshot, int parLevel)
+  private int MapWorldToCellY(double parWorldY, int parOffsetY, int parHeight)
   {
-    string goals = "Цели: кристаллы всех типов";
-    string timer = $"Таймер: {parSnapshot.parTickNo / 60.0:0.0}с";
-    string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
-    WriteHudLine(parBuffer, 0, parWidth, goals, timer, progress);
+    int innerHeight = Math.Max(1, parHeight - 2);
+    double worldHeight = _worldBounds.Bottom - _worldBounds.Top;
+    if (worldHeight <= 0)
+    {
+      return parOffsetY + 1;
+    }
 
-    string crystals = $"Кристаллы (на поле): B={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Blue)} " +
+    double distanceFromBottom = _worldBounds.Bottom - parWorldY;
+    double normalizedY = distanceFromBottom / worldHeight;
+    normalizedY = Math.Clamp(normalizedY, 0, 1);
+    int cellY = (int)Math.Round((normalizedY * worldHeight) / PixelsPerCell);
+    int clamped = Math.Clamp(cellY, 0, innerHeight - 1);
+    return parOffsetY + 1 + clamped;
+  }
+
+  private void DrawHud(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    int parWidth,
+    GameSnapshot parSnapshot,
+    int parLevel)
+  {
+    string goals = "Цели: кристаллы всех типов | Энергия: —";
+    string timerHeader = "ТАЙМЕР";
+    string timerValue = $"{parSnapshot.parTickNo / 60.0:0.0}с";
+    string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
+    WriteHudLine(parBuffer, parColors, 0, parWidth, goals, timerHeader, progress);
+
+    string collected = "Собрано: B=— G=— R=— | Энергия: —";
+    string timerLine = CenterText(timerValue, parWidth / 3);
+    string progressLine = $"На поле: B={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Blue)} " +
       $"G={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Green)} " +
       $"R={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Red)}";
-    WriteText(parBuffer, 1, parWidth, crystals);
+    WriteHudLine(parBuffer, parColors, 1, parWidth, collected, timerLine, progressLine);
 
-    string bonusesSummary = BuildBonusesSummary(parSnapshot);
-    WriteText(parBuffer, 2, parWidth, $"Бонусы (на поле): {bonusesSummary}");
+    string bonusesSummary = $"Бонусы: A={parSnapshot.parBonuses.Count(b => b.parType == BonusType.Accelerator)} " +
+      $"T={parSnapshot.parBonuses.Count(b => b.parType == BonusType.TimeStabilizer)} " +
+      $"M={parSnapshot.parBonuses.Count(b => b.parType == BonusType.Magnet)}";
+    WriteText(parBuffer, parColors, 2, parWidth, bonusesSummary, 0, parWidth, ConsoleColor.Yellow);
 
-    string legend = $"Легенда: {DroneChar}=дрон {CrystalBlueChar}=кристалл {AsteroidChar}=астероид " +
-      $"{BlackHoleChar}=чёрная дыра {BonusAcceleratorChar}=ускоритель {BonusTimeStabilizerChar}=стабилизатор " +
-      $"{BonusMagnetChar}=магнит";
-    WriteText(parBuffer, 3, parWidth, legend);
-
-    string droneCheck = ValidateDronePlacement(parSnapshot.parDrone.parPosition, parWidth) ?
-      "Проверка: дрон внизу по центру" :
-      "Проверка: дрон смещён";
-    WriteText(parBuffer, 4, parWidth, droneCheck);
+    string legend = $"Легенда: {DroneChar} дрон {CrystalChar} кристалл {AsteroidChar} астероид {BlackHoleChar} дыра " +
+      $"{BonusAcceleratorChar} ускор {BonusTimeStabilizerChar} стаб {BonusMagnetChar} магнит";
+    WriteText(parBuffer, parColors, 3, parWidth, legend, 0, parWidth, ConsoleColor.Gray);
   }
 
   private void WriteHudLine(
     char[,] parBuffer,
+    ConsoleColor[,] parColors,
     int parRow,
     int parWidth,
     string parLeft,
@@ -289,17 +325,20 @@ public sealed class GameScreenView : IGameScreenView
     string parRight)
   {
     int third = parWidth / 3;
-    WriteText(parBuffer, parRow, parWidth, parLeft, 0, third);
-    WriteText(parBuffer, parRow, parWidth, parCenter, third, third);
-    WriteText(parBuffer, parRow, parWidth, parRight, third * 2, parWidth - (third * 2));
+    WriteText(parBuffer, parColors, parRow, parWidth, parLeft, 0, third, ConsoleColor.White);
+    WriteText(parBuffer, parColors, parRow, parWidth, parCenter, third, third, ConsoleColor.Cyan);
+    WriteText(parBuffer, parColors, parRow, parWidth, parRight, third * 2, parWidth - (third * 2), ConsoleColor.White);
   }
 
-  private void WriteText(char[,] parBuffer, int parRow, int parWidth, string parText)
-  {
-    WriteText(parBuffer, parRow, parWidth, parText, 0, parWidth);
-  }
-
-  private void WriteText(char[,] parBuffer, int parRow, int parWidth, string parText, int parStart, int parMaxLength)
+  private void WriteText(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    int parRow,
+    int parWidth,
+    string parText,
+    int parStart,
+    int parMaxLength,
+    ConsoleColor parColor)
   {
     if (parRow < 0 || parRow >= parBuffer.GetLength(1))
     {
@@ -310,36 +349,68 @@ public sealed class GameScreenView : IGameScreenView
     for (int i = 0; i < text.Length && (parStart + i) < parWidth; i++)
     {
       parBuffer[parStart + i, parRow] = text[i];
+      parColors[parStart + i, parRow] = parColor;
     }
   }
 
-  private void RenderBuffer(char[,] parBuffer, int parWidth, int parHeight)
+  private void RenderBuffer(char[,] parBuffer, ConsoleColor[,] parColors, int parWidth, int parHeight)
   {
-    var builder = new StringBuilder(parHeight * (parWidth + 1));
+    var builder = new StringBuilder(parWidth);
+    _renderer.SetCursorPosition(0, 0);
 
     for (int y = 0; y < parHeight; y++)
     {
+      _renderer.SetCursorPosition(0, y);
+      builder.Clear();
+      ConsoleColor? currentColor = null;
+
       for (int x = 0; x < parWidth; x++)
       {
+        var color = parColors[x, y];
+        if (currentColor != color)
+        {
+          FlushLine(builder, currentColor);
+          currentColor = color;
+        }
+
         builder.Append(parBuffer[x, y]);
       }
 
-      if (y < parHeight - 1)
-      {
-        builder.Append('\n');
-      }
+      FlushLine(builder, currentColor);
     }
 
-    _renderer.SetCursorPosition(0, 0);
-    _renderer.Write(builder.ToString());
+    _renderer.ResetColor();
   }
 
-  private static string BuildBonusesSummary(GameSnapshot parSnapshot)
+  private void FlushLine(StringBuilder parBuilder, ConsoleColor? parColor)
   {
-    int accelerator = parSnapshot.parBonuses.Count(bonus => bonus.parType == BonusType.Accelerator);
-    int timeStabilizer = parSnapshot.parBonuses.Count(bonus => bonus.parType == BonusType.TimeStabilizer);
-    int magnet = parSnapshot.parBonuses.Count(bonus => bonus.parType == BonusType.Magnet);
+    if (parBuilder.Length == 0)
+    {
+      return;
+    }
 
-    return $"ускоритель={accelerator}, стабилизатор={timeStabilizer}, магнит={magnet}";
+    if (parColor.HasValue)
+    {
+      _renderer.SetForegroundColor(parColor.Value);
+    }
+
+    _renderer.Write(parBuilder.ToString());
+    parBuilder.Clear();
+  }
+
+  private static string CenterText(string parText, int parWidth)
+  {
+    if (parWidth <= 0)
+    {
+      return string.Empty;
+    }
+
+    if (parText.Length >= parWidth)
+    {
+      return parText[..parWidth];
+    }
+
+    int left = (parWidth - parText.Length) / 2;
+    return new string(' ', left) + parText;
   }
 }
