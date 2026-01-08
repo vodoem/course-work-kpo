@@ -103,18 +103,26 @@ public sealed class MainMenuController
 
         if (selectedItem.Kind == MenuItemKind.Play)
         {
-          GameSession session = _gameSessionFactory.Create();
-          GameScreenView gameScreenView = new GameScreenView(_renderer, session.WorldBounds);
-          IKeyStateProvider keyStateProvider = new WindowsKeyStateProvider();
-          GameScreenController gameScreenController = new GameScreenController(
-            gameScreenView,
-            session.EventBus,
-            session.SnapshotProvider,
-            session.GameLoopRunner,
-            session.CommandQueue,
-            keyStateProvider,
-            session.Level);
-          gameScreenController.Run();
+          var action = GameEndAction.RestartGame;
+
+          while (action == GameEndAction.RestartGame)
+          {
+            GameSession session = _gameSessionFactory.Create();
+            GameScreenView gameScreenView = new GameScreenView(_renderer, session.WorldBounds);
+            IKeyStateProvider keyStateProvider = new WindowsKeyStateProvider();
+            GameScreenController gameScreenController = new GameScreenController(
+              gameScreenView,
+              session.EventBus,
+              session.SnapshotProvider,
+              session.GameLoopRunner,
+              session.CommandQueue,
+              keyStateProvider,
+              _renderer,
+              _inputReader,
+              session.Level);
+            action = gameScreenController.Run();
+          }
+
           _view.Render(selectedIndex);
           continue;
         }

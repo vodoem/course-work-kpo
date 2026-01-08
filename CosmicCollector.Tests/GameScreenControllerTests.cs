@@ -23,6 +23,7 @@ public sealed class GameScreenControllerTests
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
+    controller.StartForTests();
 
     controller.ApplyInputState(true, false, false);
 
@@ -40,6 +41,7 @@ public sealed class GameScreenControllerTests
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
+    controller.StartForTests();
     controller.UpdatePauseState(true);
 
     controller.ApplyInputState(false, true, false);
@@ -55,6 +57,7 @@ public sealed class GameScreenControllerTests
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
+    controller.StartForTests();
     controller.UpdateCountdown(2);
 
     controller.ApplyInputState(true, false, false);
@@ -70,6 +73,7 @@ public sealed class GameScreenControllerTests
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
+    controller.StartForTests();
 
     controller.ApplyInputState(false, false, true);
 
@@ -86,6 +90,7 @@ public sealed class GameScreenControllerTests
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
+    controller.StartForTests();
     controller.UpdatePauseState(true);
 
     controller.ApplyInputState(false, false, true);
@@ -104,11 +109,34 @@ public sealed class GameScreenControllerTests
     var queue = new CommandQueue();
     var view = new TestGameScreenView();
     var controller = CreateController(queue, view);
+    controller.StartForTests();
     controller.UpdateCountdown(3);
 
     controller.RenderSnapshot(CreateSnapshot());
 
     Xunit.Assert.Equal(3, view.LastCountdownValue);
+  }
+
+  /// <summary>
+  /// Проверяет, что после завершения игра не рендерится и ввод отключён.
+  /// </summary>
+  [Xunit.Fact]
+  public void HandleGameEnd_StopsRenderingAndInput()
+  {
+    var queue = new CommandQueue();
+    var view = new TestGameScreenView();
+    var controller = CreateController(queue, view);
+    controller.StartForTests();
+    var snapshot = CreateSnapshot();
+
+    controller.RenderSnapshot(snapshot);
+    controller.HandleGameEndForTests(GameEndReason.GameOver, snapshot);
+    controller.RenderSnapshot(snapshot);
+    controller.ApplyInputState(true, false, false);
+
+    Xunit.Assert.Equal(1, view.RenderCalls);
+    Xunit.Assert.Empty(queue.DrainAll());
+    Xunit.Assert.False(controller.IsInputEnabled);
   }
 
   private static GameScreenController CreateController(CommandQueue parQueue)
@@ -125,6 +153,8 @@ public sealed class GameScreenControllerTests
       new TestLoopRunner(),
       parQueue,
       new TestKeyStateProvider(),
+      new TestConsoleRenderer(),
+      new TestInputReader(),
       1);
   }
 
@@ -193,5 +223,57 @@ public sealed class GameScreenControllerTests
     {
       return false;
     }
+  }
+
+  private sealed class TestInputReader : IConsoleInputReader
+  {
+    public ConsoleKeyInfo ReadKey()
+    {
+      return new ConsoleKeyInfo('\0', ConsoleKey.NoName, false, false, false);
+    }
+  }
+
+  private sealed class TestConsoleRenderer : IConsoleRenderer
+  {
+    public void Clear()
+    {
+    }
+
+    public void WriteLine(string parText)
+    {
+    }
+
+    public ConsoleKeyInfo ReadKey()
+    {
+      return new ConsoleKeyInfo('\0', ConsoleKey.NoName, false, false, false);
+    }
+
+    public void SetCursorPosition(int parLeft, int parTop)
+    {
+    }
+
+    public void Write(string parText)
+    {
+    }
+
+    public void SetForegroundColor(ConsoleColor parColor)
+    {
+    }
+
+    public void ResetColor()
+    {
+    }
+
+    public void SetBufferSize(int parWidth, int parHeight)
+    {
+    }
+
+    public int BufferWidth => 80;
+
+    public int BufferHeight => 25;
+
+    public int WindowWidth => 80;
+
+    public int WindowHeight => 25;
   }
 }
