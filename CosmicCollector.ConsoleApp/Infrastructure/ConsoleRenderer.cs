@@ -24,6 +24,18 @@ public sealed class ConsoleRenderer : IConsoleRenderer
   }
 
   /// <inheritdoc />
+  public void SetCursorPosition(int parLeft, int parTop)
+  {
+    Console.SetCursorPosition(parLeft, parTop);
+  }
+
+  /// <inheritdoc />
+  public void Write(string parText)
+  {
+    Console.Write(parText);
+  }
+
+  /// <inheritdoc />
   public int BufferWidth => Console.BufferWidth;
 
   /// <inheritdoc />

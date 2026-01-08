@@ -1,3 +1,4 @@
+using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
@@ -23,6 +24,7 @@ public sealed class GameSessionFactory : IGameSessionFactory
     var randomProvider = new DefaultRandomProvider();
     var updateService = new GameWorldUpdateService(randomProvider, SpawnConfig.Default);
     var snapshotProvider = new GameSnapshotProvider(gameState);
+    InitializeDrone(gameState);
     var gameLoopRunner = new GameLoopRunner(
       gameState,
       commandQueue,
@@ -35,5 +37,16 @@ public sealed class GameSessionFactory : IGameSessionFactory
       snapshotProvider,
       gameState.WorldBounds,
       DefaultLevel);
+  }
+
+  private static void InitializeDrone(GameState parGameState)
+  {
+    var drone = parGameState.Drone;
+    var bounds = parGameState.WorldBounds;
+    var halfWidth = drone.Bounds.Width / 2.0;
+    var halfHeight = drone.Bounds.Height / 2.0;
+    var centerX = (bounds.Left + bounds.Right) / 2.0;
+    var bottomY = bounds.Bottom - halfHeight;
+    drone.Position = new Vector2(centerX, bottomY);
   }
 }

@@ -23,6 +23,19 @@ public interface IConsoleRenderer
   ConsoleKeyInfo ReadKey();
 
   /// <summary>
+  /// Устанавливает позицию курсора.
+  /// </summary>
+  /// <param name="parLeft">Колонка.</param>
+  /// <param name="parTop">Строка.</param>
+  void SetCursorPosition(int parLeft, int parTop);
+
+  /// <summary>
+  /// Пишет текст без перевода строки.
+  /// </summary>
+  /// <param name="parText">Текст.</param>
+  void Write(string parText);
+
+  /// <summary>
   /// Возвращает ширину буфера.
   /// </summary>
   int BufferWidth { get; }

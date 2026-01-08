@@ -2,6 +2,7 @@ using CosmicCollector.ConsoleApp.Infrastructure;
 using CosmicCollector.Core.Entities;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Snapshots;
+using System.Text;
 
 namespace CosmicCollector.ConsoleApp.Views;
 
@@ -10,16 +11,19 @@ namespace CosmicCollector.ConsoleApp.Views;
 /// </summary>
 public sealed class GameScreenView : IGameScreenView
 {
-  private const char BorderChar = '#';
-  private const char DroneChar = 'D';
-  private const char AsteroidChar = 'A';
-  private const char BlackHoleChar = 'O';
-  private const char BonusAcceleratorChar = 'U';
-  private const char BonusTimeStabilizerChar = 'T';
-  private const char BonusMagnetChar = 'M';
-  private const char CrystalBlueChar = 'B';
-  private const char CrystalGreenChar = 'G';
-  private const char CrystalRedChar = 'R';
+  private const char BorderChar = '█';
+  private const char DroneChar = '▲';
+  private const char AsteroidChar = '☄';
+  private const char BlackHoleChar = '●';
+  private const char BonusAcceleratorChar = '⚡';
+  private const char BonusTimeStabilizerChar = '⌛';
+  private const char BonusMagnetChar = '⦿';
+  private const char CrystalBlueChar = '♦';
+  private const char CrystalGreenChar = '◊';
+  private const char CrystalRedChar = '✦';
+  private const double VisualScaleX = 1.0;
+  private const double VisualScaleY = 0.5;
+  private const int HudHeight = 5;
   private readonly IConsoleRenderer _renderer;
   private readonly WorldBounds _worldBounds;
 
@@ -37,37 +41,24 @@ public sealed class GameScreenView : IGameScreenView
   /// <inheritdoc />
   public void Render(GameSnapshot parSnapshot, int parLevel)
   {
-    _renderer.Clear();
+    int width = Math.Max(20, _renderer.BufferWidth);
+    int height = Math.Max(10, _renderer.BufferHeight);
+    char[,] buffer = CreateBuffer(width, height);
 
-    double secondsElapsed = parSnapshot.parTickNo / 60.0;
-    string bonusesSummary = BuildBonusesSummary(parSnapshot);
+    DrawHud(buffer, width, parSnapshot, parLevel);
 
-    _renderer.WriteLine($"Очки: {parSnapshot.parDrone.parScore} | Энергия: {parSnapshot.parDrone.parEnergy} | " +
-      $"Уровень: {parLevel} | Таймер: {secondsElapsed:0.0}с");
-    _renderer.WriteLine($"Бонусы: {bonusesSummary}");
-    _renderer.WriteLine(string.Empty);
+    int fieldOffsetY = HudHeight;
+    int fieldWidth = width;
+    int fieldHeight = Math.Max(6, height - fieldOffsetY);
 
-    int fieldWidth = Math.Max(10, _renderer.BufferWidth - 2);
-    int fieldHeight = Math.Max(6, _renderer.BufferHeight - 6);
-    char[,] buffer = CreateBuffer(fieldWidth, fieldHeight);
+    DrawBorder(buffer, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawDrone(buffer, parSnapshot.parDrone.parPosition, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawCrystals(buffer, parSnapshot.parCrystals, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawAsteroids(buffer, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBonuses(buffer, parSnapshot.parBonuses, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBlackHoles(buffer, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
 
-    DrawBorder(buffer, fieldWidth, fieldHeight);
-    DrawDrone(buffer, parSnapshot.parDrone.parPosition, fieldWidth, fieldHeight);
-    DrawCrystals(buffer, parSnapshot.parCrystals, fieldWidth, fieldHeight);
-    DrawAsteroids(buffer, parSnapshot.parAsteroids, fieldWidth, fieldHeight);
-    DrawBonuses(buffer, parSnapshot.parBonuses, fieldWidth, fieldHeight);
-    DrawBlackHoles(buffer, parSnapshot.parBlackHoles, fieldWidth, fieldHeight);
-
-    for (int y = 0; y < fieldHeight; y++)
-    {
-      var lineChars = new char[fieldWidth];
-      for (int x = 0; x < fieldWidth; x++)
-      {
-        lineChars[x] = buffer[x, y];
-      }
-
-      _renderer.WriteLine(new string(lineChars));
-    }
+    RenderBuffer(buffer, width, height);
   }
 
   private char[,] CreateBuffer(int parWidth, int parHeight)
@@ -85,24 +76,24 @@ public sealed class GameScreenView : IGameScreenView
     return buffer;
   }
 
-  private void DrawBorder(char[,] parBuffer, int parWidth, int parHeight)
+  private void DrawBorder(char[,] parBuffer, int parOffsetY, int parWidth, int parHeight)
   {
     for (int x = 0; x < parWidth; x++)
     {
-      parBuffer[x, 0] = BorderChar;
-      parBuffer[x, parHeight - 1] = BorderChar;
+      parBuffer[x, parOffsetY] = BorderChar;
+      parBuffer[x, parOffsetY + parHeight - 1] = BorderChar;
     }
 
     for (int y = 0; y < parHeight; y++)
     {
-      parBuffer[0, y] = BorderChar;
-      parBuffer[parWidth - 1, y] = BorderChar;
+      parBuffer[0, parOffsetY + y] = BorderChar;
+      parBuffer[parWidth - 1, parOffsetY + y] = BorderChar;
     }
   }
 
-  private void DrawDrone(char[,] parBuffer, Vector2 parPosition, int parWidth, int parHeight)
+  private void DrawDrone(char[,] parBuffer, Vector2 parPosition, int parOffsetY, int parWidth, int parHeight)
   {
-    if (TryMapToGrid(parPosition, parWidth, parHeight, out var coords))
+    if (TryMapToGrid(parPosition, parOffsetY, parWidth, parHeight, out var coords))
     {
       parBuffer[coords.X, coords.Y] = DroneChar;
     }
@@ -111,12 +102,13 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawCrystals(
     char[,] parBuffer,
     IReadOnlyList<CrystalSnapshot> parCrystals,
+    int parOffsetY,
     int parWidth,
     int parHeight)
   {
     foreach (var crystal in parCrystals)
     {
-      if (!TryMapToGrid(crystal.parPosition, parWidth, parHeight, out var coords))
+      if (!TryMapToGrid(crystal.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         continue;
       }
@@ -134,12 +126,13 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawAsteroids(
     char[,] parBuffer,
     IReadOnlyList<AsteroidSnapshot> parAsteroids,
+    int parOffsetY,
     int parWidth,
     int parHeight)
   {
     foreach (var asteroid in parAsteroids)
     {
-      if (TryMapToGrid(asteroid.parPosition, parWidth, parHeight, out var coords))
+      if (TryMapToGrid(asteroid.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         parBuffer[coords.X, coords.Y] = AsteroidChar;
       }
@@ -149,12 +142,13 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawBonuses(
     char[,] parBuffer,
     IReadOnlyList<BonusSnapshot> parBonuses,
+    int parOffsetY,
     int parWidth,
     int parHeight)
   {
     foreach (var bonus in parBonuses)
     {
-      if (!TryMapToGrid(bonus.parPosition, parWidth, parHeight, out var coords))
+      if (!TryMapToGrid(bonus.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         continue;
       }
@@ -172,19 +166,25 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawBlackHoles(
     char[,] parBuffer,
     IReadOnlyList<BlackHoleSnapshot> parBlackHoles,
+    int parOffsetY,
     int parWidth,
     int parHeight)
   {
     foreach (var blackHole in parBlackHoles)
     {
-      if (TryMapToGrid(blackHole.parPosition, parWidth, parHeight, out var coords))
+      if (TryMapToGrid(blackHole.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         parBuffer[coords.X, coords.Y] = BlackHoleChar;
       }
     }
   }
 
-  private bool TryMapToGrid(Vector2 parPosition, int parWidth, int parHeight, out (int X, int Y) parCoords)
+  private bool TryMapToGrid(
+    Vector2 parPosition,
+    int parOffsetY,
+    int parWidth,
+    int parHeight,
+    out (int X, int Y) parCoords)
   {
     double worldWidth = _worldBounds.Right - _worldBounds.Left;
     double worldHeight = _worldBounds.Bottom - _worldBounds.Top;
@@ -195,12 +195,16 @@ public sealed class GameScreenView : IGameScreenView
       return false;
     }
 
-    double normalizedX = (parPosition.X - _worldBounds.Left) / worldWidth;
-    double normalizedY = (parPosition.Y - _worldBounds.Top) / worldHeight;
-    int gridX = 1 + (int)Math.Round(normalizedX * (parWidth - 3));
-    int gridY = 1 + (int)Math.Round(normalizedY * (parHeight - 3));
+    double scaledWidth = worldWidth * VisualScaleX;
+    double scaledHeight = worldHeight * VisualScaleY;
+    double normalizedX = (parPosition.X - _worldBounds.Left) / scaledWidth;
+    double normalizedY = (parPosition.Y - _worldBounds.Top) / scaledHeight;
+    normalizedX = Math.Clamp(normalizedX, 0, 1);
+    normalizedY = Math.Clamp(normalizedY, 0, 1);
+    int gridX = MapToCellX(normalizedX, parWidth);
+    int gridY = MapToCellY(normalizedY, parOffsetY, parHeight);
 
-    if (gridX < 1 || gridX > parWidth - 2 || gridY < 1 || gridY > parHeight - 2)
+    if (gridX < 1 || gridX > parWidth - 2 || gridY < parOffsetY + 1 || gridY > parOffsetY + parHeight - 2)
     {
       parCoords = (0, 0);
       return false;
@@ -208,6 +212,126 @@ public sealed class GameScreenView : IGameScreenView
 
     parCoords = (gridX, gridY);
     return true;
+  }
+
+  private int MapToCellX(double parNormalizedX, int parWidth)
+  {
+    int innerWidth = Math.Max(1, parWidth - 2);
+    return 1 + (int)Math.Round(parNormalizedX * (innerWidth - 1));
+  }
+
+  private int MapToCellY(double parNormalizedY, int parOffsetY, int parHeight)
+  {
+    int innerHeight = Math.Max(1, parHeight - 2);
+    int mapped = (int)Math.Round(parNormalizedY * (innerHeight - 1));
+    int inverted = (innerHeight - 1) - mapped;
+    return parOffsetY + 1 + inverted;
+  }
+
+  private bool ValidateDronePlacement(Vector2 parPosition, int parWidth)
+  {
+    int fieldHeight = Math.Max(6, _renderer.BufferHeight - HudHeight);
+    int fieldOffsetY = HudHeight;
+    double worldWidth = _worldBounds.Right - _worldBounds.Left;
+    double worldHeight = _worldBounds.Bottom - _worldBounds.Top;
+
+    if (worldWidth <= 0 || worldHeight <= 0)
+    {
+      return false;
+    }
+
+    double scaledWidth = worldWidth * VisualScaleX;
+    double scaledHeight = worldHeight * VisualScaleY;
+    double normalizedX = (parPosition.X - _worldBounds.Left) / scaledWidth;
+    double normalizedY = (parPosition.Y - _worldBounds.Top) / scaledHeight;
+    normalizedX = Math.Clamp(normalizedX, 0, 1);
+    normalizedY = Math.Clamp(normalizedY, 0, 1);
+    int gridX = MapToCellX(normalizedX, parWidth);
+    int gridY = MapToCellY(normalizedY, fieldOffsetY, fieldHeight);
+    int expectedX = parWidth / 2;
+    int expectedY = fieldOffsetY + fieldHeight - 2;
+
+    return Math.Abs(gridX - expectedX) <= 1 && Math.Abs(gridY - expectedY) <= 1;
+  }
+
+  private void DrawHud(char[,] parBuffer, int parWidth, GameSnapshot parSnapshot, int parLevel)
+  {
+    string goals = "Цели: —";
+    string timer = $"Таймер: {parSnapshot.parTickNo / 60.0:0.0}с";
+    string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
+    WriteHudLine(parBuffer, 0, parWidth, goals, timer, progress);
+
+    string crystals = $"Кристаллы (на поле): B={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Blue)} " +
+      $"G={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Green)} " +
+      $"R={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Red)}";
+    WriteText(parBuffer, 1, parWidth, crystals);
+
+    string bonusesSummary = BuildBonusesSummary(parSnapshot);
+    WriteText(parBuffer, 2, parWidth, $"Бонусы (на поле): {bonusesSummary}");
+
+    string legend = $"Легенда: {DroneChar}=дрон {CrystalBlueChar}/{CrystalGreenChar}/{CrystalRedChar}=кристаллы " +
+      $"{AsteroidChar}=астероид {BlackHoleChar}=чёрная дыра {BonusAcceleratorChar}=ускоритель " +
+      $"{BonusTimeStabilizerChar}=стабилизатор {BonusMagnetChar}=магнит";
+    WriteText(parBuffer, 3, parWidth, legend);
+
+    string droneCheck = ValidateDronePlacement(parSnapshot.parDrone.parPosition, parWidth) ?
+      "Проверка: дрон внизу по центру" :
+      "Проверка: дрон смещён";
+    WriteText(parBuffer, 4, parWidth, droneCheck);
+  }
+
+  private void WriteHudLine(
+    char[,] parBuffer,
+    int parRow,
+    int parWidth,
+    string parLeft,
+    string parCenter,
+    string parRight)
+  {
+    int third = parWidth / 3;
+    WriteText(parBuffer, parRow, parWidth, parLeft, 0, third);
+    WriteText(parBuffer, parRow, parWidth, parCenter, third, third);
+    WriteText(parBuffer, parRow, parWidth, parRight, third * 2, parWidth - (third * 2));
+  }
+
+  private void WriteText(char[,] parBuffer, int parRow, int parWidth, string parText)
+  {
+    WriteText(parBuffer, parRow, parWidth, parText, 0, parWidth);
+  }
+
+  private void WriteText(char[,] parBuffer, int parRow, int parWidth, string parText, int parStart, int parMaxLength)
+  {
+    if (parRow < 0 || parRow >= parBuffer.GetLength(1))
+    {
+      return;
+    }
+
+    string text = parText.Length > parMaxLength ? parText[..parMaxLength] : parText;
+    for (int i = 0; i < text.Length && (parStart + i) < parWidth; i++)
+    {
+      parBuffer[parStart + i, parRow] = text[i];
+    }
+  }
+
+  private void RenderBuffer(char[,] parBuffer, int parWidth, int parHeight)
+  {
+    var builder = new StringBuilder(parHeight * (parWidth + 1));
+
+    for (int y = 0; y < parHeight; y++)
+    {
+      for (int x = 0; x < parWidth; x++)
+      {
+        builder.Append(parBuffer[x, y]);
+      }
+
+      if (y < parHeight - 1)
+      {
+        builder.Append('\n');
+      }
+    }
+
+    _renderer.SetCursorPosition(0, 0);
+    _renderer.Write(builder.ToString());
   }
 
   private static string BuildBonusesSummary(GameSnapshot parSnapshot)

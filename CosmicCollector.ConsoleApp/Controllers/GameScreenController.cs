@@ -1,6 +1,7 @@
 using CosmicCollector.ConsoleApp.Infrastructure;
 using CosmicCollector.ConsoleApp.Views;
 using CosmicCollector.Core.Events;
+using CosmicCollector.Core.Snapshots;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Loop;
 
@@ -16,9 +17,11 @@ public sealed class GameScreenController
   private readonly IGameSnapshotProvider _snapshotProvider;
   private readonly IGameLoopRunner _gameLoopRunner;
   private readonly AutoResetEvent _tickSignal = new(false);
+  private readonly object _snapshotLock = new();
   private IDisposable? _gameStartedSubscription;
   private IDisposable? _gameTickSubscription;
   private int _level;
+  private GameSnapshot? _latestSnapshot;
 
   /// <summary>
   /// Создаёт контроллер игрового экрана.
@@ -56,6 +59,7 @@ public sealed class GameScreenController
     while (true)
     {
       _tickSignal.WaitOne();
+      RenderLatestSnapshot();
     }
   }
 
@@ -67,7 +71,29 @@ public sealed class GameScreenController
   private void OnGameTick(GameTick parEvent)
   {
     var snapshot = _snapshotProvider.GetSnapshot();
-    _view.Render(snapshot, _level);
+
+    lock (_snapshotLock)
+    {
+      _latestSnapshot = snapshot;
+    }
+
     _tickSignal.Set();
+  }
+
+  private void RenderLatestSnapshot()
+  {
+    GameSnapshot? snapshot;
+
+    lock (_snapshotLock)
+    {
+      snapshot = _latestSnapshot;
+    }
+
+    if (snapshot is null)
+    {
+      return;
+    }
+
+    _view.Render(snapshot, _level);
   }
 }

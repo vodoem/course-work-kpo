@@ -2,6 +2,7 @@ using CosmicCollector.ConsoleApp.Controllers;
 using CosmicCollector.ConsoleApp.Infrastructure;
 using CosmicCollector.ConsoleApp.Views;
 using CosmicCollector.Persistence.Records;
+using System.Text;
 
 namespace CosmicCollector.ConsoleApp;
 
@@ -16,6 +17,7 @@ public static class Program
   public static void Main()
   {
     Console.CursorVisible = false;
+    Console.OutputEncoding = Encoding.UTF8;
 
     IConsoleRenderer renderer = new ConsoleRenderer();
     IConsoleInputReader inputReader = new ConsoleInputReader();
