@@ -22,7 +22,8 @@ public sealed class GameSessionFactory : IGameSessionFactory
     var eventBus = new EventBus();
     var commandQueue = new CommandQueue();
     var randomProvider = new DefaultRandomProvider();
-    var updateService = new GameWorldUpdateService(randomProvider, SpawnConfig.Default);
+    var spawnConfig = BuildSpawnConfig();
+    var updateService = new GameWorldUpdateService(randomProvider, spawnConfig);
     var snapshotProvider = new GameSnapshotProvider(gameState);
     InitializeDrone(gameState);
     var gameLoopRunner = new GameLoopRunner(
@@ -37,6 +38,42 @@ public sealed class GameSessionFactory : IGameSessionFactory
       snapshotProvider,
       gameState.WorldBounds,
       DefaultLevel);
+  }
+
+  private static SpawnConfig BuildSpawnConfig()
+  {
+    var defaultConfig = SpawnConfig.Default;
+    var speedMultiplier = 25.0;
+
+    return new SpawnConfig(
+      defaultConfig.IsEnabled,
+      defaultConfig.MaxActiveCrystals,
+      defaultConfig.MaxActiveAsteroids,
+      defaultConfig.MaxActiveBonuses,
+      defaultConfig.MaxActiveBlackHoles,
+      defaultConfig.CrystalIntervalTicks,
+      defaultConfig.AsteroidIntervalTicks,
+      defaultConfig.BonusIntervalTicks,
+      defaultConfig.BlackHoleIntervalTicks,
+      defaultConfig.IntervalDecreasePerLevel,
+      defaultConfig.MaxActiveIncreasePerLevel,
+      defaultConfig.SpawnMargin,
+      defaultConfig.SpawnGap,
+      defaultConfig.MaxSpawnAttempts,
+      defaultConfig.CrystalBounds,
+      defaultConfig.AsteroidBounds,
+      defaultConfig.BonusBounds,
+      defaultConfig.BlackHoleBounds,
+      defaultConfig.CrystalBaseSpeed * speedMultiplier,
+      defaultConfig.AsteroidBaseSpeed * speedMultiplier,
+      defaultConfig.BonusBaseSpeed * speedMultiplier,
+      defaultConfig.BlackHoleBaseSpeed * speedMultiplier,
+      defaultConfig.BlackHoleRadius,
+      defaultConfig.BlackHoleCoreRadius,
+      defaultConfig.BonusDurationSec,
+      defaultConfig.AsteroidSpeedMultiplier,
+      defaultConfig.CrystalTypeWeights,
+      defaultConfig.BonusTypeWeights);
   }
 
   private static void InitializeDrone(GameState parGameState)
