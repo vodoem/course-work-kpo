@@ -12,4 +12,7 @@
       <TargetPath>rules\rules-text.md</TargetPath>
     </Content>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CosmicCollector.Persistence\CosmicCollector.Persistence.csproj" />
+  </ItemGroup>
 </Project>
