@@ -139,6 +139,26 @@ public sealed class GameScreenControllerTests
     Xunit.Assert.False(controller.IsInputEnabled);
   }
 
+  /// <summary>
+  /// Проверяет, что публикация GameOver переводит контроллер к выходу.
+  /// </summary>
+  [Xunit.Fact]
+  public void PublishGameOver_SetsExitFlagAndFinalSnapshot()
+  {
+    var queue = new CommandQueue();
+    var controller = CreateController(queue);
+    controller.InitializeForTests();
+
+    var bus = new EventBus();
+    var controllerWithBus = CreateController(queue, new TestGameScreenView(), bus);
+    controllerWithBus.InitializeForTests();
+    bus.Publish(new GameOver("Test"));
+
+    Xunit.Assert.True(controllerWithBus.ShouldExitGameScreen);
+    Xunit.Assert.NotNull(controllerWithBus.FinalSnapshot);
+    Xunit.Assert.Equal(GameEndReason.GameOver, controllerWithBus.EndReason);
+  }
+
   private static GameScreenController CreateController(CommandQueue parQueue)
   {
     return CreateController(parQueue, new TestGameScreenView());
@@ -146,9 +166,17 @@ public sealed class GameScreenControllerTests
 
   private static GameScreenController CreateController(CommandQueue parQueue, TestGameScreenView parView)
   {
+    return CreateController(parQueue, parView, new EventBus());
+  }
+
+  private static GameScreenController CreateController(
+    CommandQueue parQueue,
+    TestGameScreenView parView,
+    EventBus parEventBus)
+  {
     return new GameScreenController(
       parView,
-      new EventBus(),
+      parEventBus,
       new TestSnapshotProvider(),
       new TestLoopRunner(),
       parQueue,

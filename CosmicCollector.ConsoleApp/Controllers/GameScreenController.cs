@@ -42,6 +42,7 @@ public sealed class GameScreenController
   private bool _rightHeld;
   private bool _pauseHeld;
   private int _moveDirection;
+  private bool _shouldExitGameScreen;
   private bool _isInputEnabled = true;
   private GameSnapshot? _finalSnapshot;
   private GameEndReason? _endReason;
@@ -86,6 +87,7 @@ public sealed class GameScreenController
   /// </summary>
   public GameEndAction Run()
   {
+    _shouldExitGameScreen = false;
     _gameStartedSubscription = _eventBus.Subscribe<GameStarted>(OnGameStarted);
     _gameTickSubscription = _eventBus.Subscribe<GameTick>(OnGameTick);
     _pauseSubscription = _eventBus.Subscribe<PauseToggled>(OnPauseToggled);
@@ -100,6 +102,12 @@ public sealed class GameScreenController
     while (_isRunning)
     {
       _tickSignal.WaitOne();
+      if (_shouldExitGameScreen)
+      {
+        _isRunning = false;
+        break;
+      }
+
       RenderLatestSnapshot();
     }
 
@@ -163,9 +171,7 @@ public sealed class GameScreenController
     _finalSnapshot = _snapshotProvider.GetSnapshot();
     _endReason = parReason;
     _isInputEnabled = false;
-    _isRunning = false;
-    _gameLoopRunner.Stop();
-    StopInputLoop();
+    _shouldExitGameScreen = true;
     _tickSignal.Set();
   }
 
@@ -179,11 +185,6 @@ public sealed class GameScreenController
     }
 
     if (snapshot is null)
-    {
-      return;
-    }
-
-    if (!_isRunning)
     {
       return;
     }
@@ -288,7 +289,10 @@ public sealed class GameScreenController
     var stopwatch = Stopwatch.StartNew();
     long lastPoll = 0;
 
-    while (_isRunning && _inputCancellation is not null && !_inputCancellation.IsCancellationRequested)
+    while (_isRunning &&
+           !_shouldExitGameScreen &&
+           _inputCancellation is not null &&
+           !_inputCancellation.IsCancellationRequested)
     {
       long elapsed = stopwatch.ElapsedMilliseconds;
       if (elapsed - lastPoll < pollIntervalMs)
@@ -303,7 +307,7 @@ public sealed class GameScreenController
       bool rightHeld = _keyStateProvider.IsKeyDown(ConsoleKey.D) || _keyStateProvider.IsKeyDown(ConsoleKey.RightArrow);
       bool pauseHeld = _keyStateProvider.IsKeyDown(ConsoleKey.P) || _keyStateProvider.IsKeyDown(ConsoleKey.Spacebar);
 
-      ApplyInputState(leftHeld, rightHeld, pauseHeld);
+    ApplyInputState(leftHeld, rightHeld, pauseHeld);
     }
   }
 
@@ -328,6 +332,18 @@ public sealed class GameScreenController
   }
 
   /// <summary>
+  /// Инициализирует подписки на события для тестов без запуска цикла.
+  /// </summary>
+  public void InitializeForTests()
+  {
+    _isRunning = true;
+    _isInputEnabled = true;
+    _shouldExitGameScreen = false;
+    _gameOverSubscription = _eventBus.Subscribe<GameOver>(OnGameOver);
+    _levelCompletedSubscription = _eventBus.Subscribe<LevelCompleted>(OnLevelCompleted);
+  }
+
+  /// <summary>
   /// Завершает игру для тестов и фиксирует финальный снимок.
   /// </summary>
   /// <param name="parReason">Причина завершения.</param>
@@ -337,7 +353,7 @@ public sealed class GameScreenController
     _finalSnapshot = parSnapshot;
     _endReason = parReason;
     _isInputEnabled = false;
-    _isRunning = false;
+    _shouldExitGameScreen = true;
   }
 
   private bool CanMove()
@@ -382,4 +398,9 @@ public sealed class GameScreenController
   /// Возвращает причину завершения.
   /// </summary>
   public GameEndReason? EndReason => _endReason;
+
+  /// <summary>
+  /// Возвращает признак выхода с игрового экрана.
+  /// </summary>
+  public bool ShouldExitGameScreen => _shouldExitGameScreen;
 }
