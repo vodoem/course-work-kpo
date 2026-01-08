@@ -1,5 +1,6 @@
 using CosmicCollector.ConsoleApp.Infrastructure;
 using CosmicCollector.ConsoleApp.Views;
+using CosmicCollector.Persistence.Records;
 
 namespace CosmicCollector.ConsoleApp.Controllers;
 
@@ -12,6 +13,7 @@ public sealed class MainMenuController
   private readonly IConsoleInputReader _inputReader;
   private readonly IConsoleRenderer _renderer;
   private readonly IRulesTextProvider _rulesTextProvider;
+  private readonly IRecordsRepository _recordsRepository;
 
   /// <summary>
   /// Создаёт контроллер главного меню.
@@ -20,16 +22,19 @@ public sealed class MainMenuController
   /// <param name="parInputReader">Читатель ввода.</param>
   /// <param name="parRenderer">Рендерер консоли.</param>
   /// <param name="parRulesTextProvider">Поставщик текста правил.</param>
+  /// <param name="parRecordsRepository">Репозиторий рекордов.</param>
   public MainMenuController(
     IMainMenuView parView,
     IConsoleInputReader parInputReader,
     IConsoleRenderer parRenderer,
-    IRulesTextProvider parRulesTextProvider)
+    IRulesTextProvider parRulesTextProvider,
+    IRecordsRepository parRecordsRepository)
   {
     _view = parView;
     _inputReader = parInputReader;
     _renderer = parRenderer;
     _rulesTextProvider = parRulesTextProvider;
+    _recordsRepository = parRecordsRepository;
   }
 
   /// <summary>
@@ -76,6 +81,18 @@ public sealed class MainMenuController
             _inputReader,
             _rulesTextProvider);
           rulesController.Run();
+          _view.Render(selectedIndex);
+          continue;
+        }
+
+        if (selectedItem.Kind == MenuItemKind.Records)
+        {
+          RecordsView recordsView = new RecordsView(_renderer);
+          RecordsController recordsController = new RecordsController(
+            recordsView,
+            _inputReader,
+            _recordsRepository);
+          recordsController.Run();
           _view.Render(selectedIndex);
           continue;
         }

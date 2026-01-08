@@ -1,6 +1,7 @@
 using CosmicCollector.ConsoleApp.Controllers;
 using CosmicCollector.ConsoleApp.Infrastructure;
 using CosmicCollector.ConsoleApp.Views;
+using CosmicCollector.Persistence.Records;
 
 namespace CosmicCollector.ConsoleApp;
 
@@ -19,13 +20,16 @@ public static class Program
     IConsoleRenderer renderer = new ConsoleRenderer();
     IConsoleInputReader inputReader = new ConsoleInputReader();
     IRulesTextProvider rulesTextProvider = new FileRulesTextProvider("rules/rules-text.md");
+    IRecordsRepository recordsRepository = new RecordsRepository(
+      Path.Combine(AppContext.BaseDirectory, "records.json"));
 
     IMainMenuView view = new MainMenuView(renderer);
     MainMenuController controller = new MainMenuController(
       view,
       inputReader,
       renderer,
-      rulesTextProvider);
+      rulesTextProvider,
+      recordsRepository);
 
     controller.Run();
   }
