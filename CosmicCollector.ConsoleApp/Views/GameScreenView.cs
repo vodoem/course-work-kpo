@@ -18,7 +18,7 @@ public sealed class GameScreenView : IGameScreenView
   private const char BonusAcceleratorChar = 'A';
   private const char BonusTimeStabilizerChar = 'T';
   private const char BonusMagnetChar = 'M';
-  private const char CrystalChar = '◆';
+  private const char CrystalChar = '♦';
   private const int HudHeight = RenderConfig.HudHeight;
   private const double PixelsPerCell = RenderConfig.PixelsPerCell;
   private readonly IConsoleRenderer _renderer;
@@ -259,27 +259,15 @@ public sealed class GameScreenView : IGameScreenView
     GameSnapshot parSnapshot,
     int parLevel)
   {
-    string goals = "Цели: кристаллы всех типов | Энергия: —";
-    string timerHeader = "ТАЙМЕР";
-    string timerValue = $"{parSnapshot.parTickNo / 60.0:0.0}с";
+    string goals = "Цели: B=— G=— R=— | Цель энергии: —";
+    string timerHeader = "Таймер";
     string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
     WriteHudLine(parBuffer, parColors, 0, parWidth, goals, timerHeader, progress);
 
-    string collected = "Собрано: B=— G=— R=— | Энергия: —";
-    string timerLine = CenterText(timerValue, parWidth / 3);
-    string progressLine = $"На поле: B={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Blue)} " +
-      $"G={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Green)} " +
-      $"R={parSnapshot.parCrystals.Count(c => c.parType == CrystalType.Red)}";
+    string collected = "Собрано: B=— G=— R=—";
+    string timerLine = CenterText($"{parSnapshot.parTickNo / 60.0:0.0}с", parWidth / 3);
+    string progressLine = "Прогресс: B=— G=— R=—";
     WriteHudLine(parBuffer, parColors, 1, parWidth, collected, timerLine, progressLine);
-
-    string bonusesSummary = $"Бонусы: A={parSnapshot.parBonuses.Count(b => b.parType == BonusType.Accelerator)} " +
-      $"T={parSnapshot.parBonuses.Count(b => b.parType == BonusType.TimeStabilizer)} " +
-      $"M={parSnapshot.parBonuses.Count(b => b.parType == BonusType.Magnet)}";
-    WriteText(parBuffer, parColors, 2, parWidth, bonusesSummary, 0, parWidth, ConsoleColor.Yellow);
-
-    string legend = $"Легенда: {DroneChar} дрон {CrystalChar} кристалл {AsteroidChar} астероид {BlackHoleChar} дыра " +
-      $"{BonusAcceleratorChar} ускор {BonusTimeStabilizerChar} стаб {BonusMagnetChar} магнит";
-    WriteText(parBuffer, parColors, 3, parWidth, legend, 0, parWidth, ConsoleColor.Gray);
   }
 
   private void WriteHudLine(

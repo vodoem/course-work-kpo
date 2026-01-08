@@ -13,5 +13,5 @@ public static class RenderConfig
   /// <summary>
   /// Высота HUD в строках.
   /// </summary>
-  public const int HudHeight = 4;
+  public const int HudHeight = 2;
 }
