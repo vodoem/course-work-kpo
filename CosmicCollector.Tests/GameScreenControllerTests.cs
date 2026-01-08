@@ -79,6 +79,23 @@ public sealed class GameScreenControllerTests
   }
 
   /// <summary>
+  /// Проверяет, что пауза обрабатывается даже в состоянии паузы.
+  /// </summary>
+  [Xunit.Fact]
+  public void ApplyInputState_TogglePause_WhenPaused_StillEnqueuesCommand()
+  {
+    var queue = new CommandQueue();
+    var controller = CreateController(queue);
+    controller.UpdatePauseState(true);
+
+    controller.ApplyInputState(false, false, true);
+
+    var commands = queue.DrainAll();
+    Xunit.Assert.Single(commands);
+    Xunit.Assert.IsType<TogglePauseCommand>(commands[0]);
+  }
+
+  /// <summary>
   /// Проверяет, что отсчёт передаётся в представление.
   /// </summary>
   [Xunit.Fact]
@@ -124,6 +141,8 @@ public sealed class GameScreenControllerTests
       0);
 
     return new GameSnapshot(
+      false,
+      0,
       false,
       0,
       drone,

@@ -28,8 +28,10 @@ public sealed class PauseCountdownTests
     var bus = new EventBus();
     var queue = new CommandQueue();
     var toggles = new List<bool>();
+    var countdownValues = new List<int>();
 
     bus.Subscribe<PauseToggled>(evt => toggles.Add(evt.parIsPaused));
+    bus.Subscribe<CountdownTick>(evt => countdownValues.Add(evt.parValue));
 
     var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
 
@@ -46,6 +48,7 @@ public sealed class PauseCountdownTests
     }
 
     Xunit.Assert.False(state.IsPaused);
+    Xunit.Assert.Equal(new[] { 3, 2, 1 }, countdownValues);
     Xunit.Assert.Contains(false, toggles);
   }
 

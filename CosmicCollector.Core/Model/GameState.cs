@@ -34,6 +34,7 @@ public sealed class GameState
   private bool _isGameOver;
   private long _tickCount;
   private bool _isResumeCountdownActive;
+  private bool _isResumeCountdownJustStarted;
   private int _resumeCountdownValue;
   private double _resumeCountdownAccumulatedSec;
   private bool _isDisoriented;
@@ -273,6 +274,15 @@ public sealed class GameState
   }
 
   /// <summary>
+  /// Признак только что запущенного отсчёта.
+  /// </summary>
+  internal bool IsResumeCountdownJustStarted
+  {
+    get => _isResumeCountdownJustStarted;
+    set => _isResumeCountdownJustStarted = value;
+  }
+
+  /// <summary>
   /// Снимает паузу без запуска отсчёта.
   /// </summary>
   /// <param name="parIsPaused">Новое состояние паузы.</param>
@@ -379,6 +389,8 @@ public sealed class GameState
       return new Snapshots.GameSnapshot(
         _isPaused,
         _tickNo,
+        _hasLevelTimer,
+        _levelTimeRemainingSec,
         droneSnapshot,
         crystals,
         asteroids,
@@ -614,6 +626,7 @@ public sealed class GameState
     }
 
     _isResumeCountdownActive = true;
+    _isResumeCountdownJustStarted = true;
     _resumeCountdownValue = 3;
     _resumeCountdownAccumulatedSec = 0;
   }
@@ -621,6 +634,7 @@ public sealed class GameState
   internal void StopResumeCountdown()
   {
     _isResumeCountdownActive = false;
+    _isResumeCountdownJustStarted = false;
     _resumeCountdownValue = 0;
     _resumeCountdownAccumulatedSec = 0;
   }

@@ -337,6 +337,22 @@ public sealed class GameWorldUpdateService
       return;
     }
 
+    if (parGameState.IsResumeCountdownJustStarted)
+    {
+      var startValue = parGameState.ResumeCountdownValue;
+      parEventPublisher.Publish(new CountdownTick(startValue));
+      parGameState.ResumeCountdownValue = Math.Max(0, startValue - 1);
+      parGameState.IsResumeCountdownJustStarted = false;
+
+      if (parGameState.ResumeCountdownValue == 0)
+      {
+        parGameState.StopResumeCountdown();
+        parGameState.SetPaused(false);
+        parEventPublisher.Publish(new PauseToggled(false));
+        return;
+      }
+    }
+
     parGameState.ResumeCountdownAccumulatedSec += parDt;
 
     while (parGameState.ResumeCountdownAccumulatedSec >= 1.0 && parGameState.IsResumeCountdownActive)

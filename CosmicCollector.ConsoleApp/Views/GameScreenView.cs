@@ -2,6 +2,7 @@ using CosmicCollector.ConsoleApp.Infrastructure;
 using CosmicCollector.Core.Entities;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Snapshots;
+using System;
 using System.Text;
 
 namespace CosmicCollector.ConsoleApp.Views;
@@ -262,7 +263,7 @@ public sealed class GameScreenView : IGameScreenView
   {
     string goals = "Цели: B=— G=— R=— | Цель энергии: —";
     string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
-    string timerLine = CenterText($"{parSnapshot.parTickNo / 60.0:0.0}с", parWidth / 3);
+    string timerLine = GetTimerText(parSnapshot, parWidth / 3);
     WriteHudLine(parBuffer, parColors, 0, parWidth, goals, timerLine, progress);
 
     string collected = "Собрано: B=— G=— R=—";
@@ -367,6 +368,19 @@ public sealed class GameScreenView : IGameScreenView
 
     int left = (parWidth - parText.Length) / 2;
     return new string(' ', left) + parText;
+  }
+
+  private static string GetTimerText(GameSnapshot parSnapshot, int parWidth)
+  {
+    string text = "—";
+
+    if (parSnapshot.parHasLevelTimer)
+    {
+      var seconds = Math.Max(0, Math.Floor(parSnapshot.parLevelTimeRemainingSec));
+      text = $"{seconds:0}с";
+    }
+
+    return CenterText(text, parWidth);
   }
 
   private void DrawOverlay(
