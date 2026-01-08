@@ -341,16 +341,9 @@ public sealed class GameWorldUpdateService
     {
       var startValue = parGameState.ResumeCountdownValue;
       parEventPublisher.Publish(new CountdownTick(startValue));
-      parGameState.ResumeCountdownValue = Math.Max(0, startValue - 1);
       parGameState.IsResumeCountdownJustStarted = false;
-
-      if (parGameState.ResumeCountdownValue == 0)
-      {
-        parGameState.StopResumeCountdown();
-        parGameState.SetPaused(false);
-        parEventPublisher.Publish(new PauseToggled(false));
-        return;
-      }
+      parGameState.ResumeCountdownAccumulatedSec = 0;
+      return;
     }
 
     parGameState.ResumeCountdownAccumulatedSec += parDt;
@@ -358,25 +351,18 @@ public sealed class GameWorldUpdateService
     while (parGameState.ResumeCountdownAccumulatedSec >= 1.0 && parGameState.IsResumeCountdownActive)
     {
       parGameState.ResumeCountdownAccumulatedSec -= 1.0;
-      var value = parGameState.ResumeCountdownValue;
-
-      if (value <= 0)
-      {
-        parGameState.StopResumeCountdown();
-        break;
-      }
-
-      parEventPublisher.Publish(new CountdownTick(value));
-      value--;
+      var value = parGameState.ResumeCountdownValue - 1;
       parGameState.ResumeCountdownValue = value;
 
-      if (value == 0)
+      if (value <= 0)
       {
         parGameState.StopResumeCountdown();
         parGameState.SetPaused(false);
         parEventPublisher.Publish(new PauseToggled(false));
         break;
       }
+
+      parEventPublisher.Publish(new CountdownTick(value));
     }
   }
 
