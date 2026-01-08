@@ -46,7 +46,7 @@ public sealed class GameSessionFactory : IGameSessionFactory
     var halfWidth = drone.Bounds.Width / 2.0;
     var halfHeight = drone.Bounds.Height / 2.0;
     var centerX = (bounds.Left + bounds.Right) / 2.0;
-    var bottomY = bounds.Bottom - halfHeight;
+    var bottomY = bounds.Bottom - halfHeight - 1;
     drone.Position = new Vector2(centerX, bottomY);
   }
 }

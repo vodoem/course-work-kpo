@@ -36,6 +36,13 @@ public interface IConsoleRenderer
   void Write(string parText);
 
   /// <summary>
+  /// Устанавливает размер буфера консоли.
+  /// </summary>
+  /// <param name="parWidth">Ширина буфера.</param>
+  /// <param name="parHeight">Высота буфера.</param>
+  void SetBufferSize(int parWidth, int parHeight);
+
+  /// <summary>
   /// Возвращает ширину буфера.
   /// </summary>
   int BufferWidth { get; }
@@ -44,4 +51,14 @@ public interface IConsoleRenderer
   /// Возвращает высоту буфера.
   /// </summary>
   int BufferHeight { get; }
+
+  /// <summary>
+  /// Возвращает ширину окна.
+  /// </summary>
+  int WindowWidth { get; }
+
+  /// <summary>
+  /// Возвращает высоту окна.
+  /// </summary>
+  int WindowHeight { get; }
 }

@@ -36,8 +36,29 @@ public sealed class ConsoleRenderer : IConsoleRenderer
   }
 
   /// <inheritdoc />
+  public void SetBufferSize(int parWidth, int parHeight)
+  {
+    try
+    {
+      Console.SetBufferSize(parWidth, parHeight);
+    }
+    catch (ArgumentOutOfRangeException)
+    {
+    }
+    catch (IOException)
+    {
+    }
+  }
+
+  /// <inheritdoc />
   public int BufferWidth => Console.BufferWidth;
 
   /// <inheritdoc />
   public int BufferHeight => Console.BufferHeight;
+
+  /// <inheritdoc />
+  public int WindowWidth => Console.WindowWidth;
+
+  /// <inheritdoc />
+  public int WindowHeight => Console.WindowHeight;
 }

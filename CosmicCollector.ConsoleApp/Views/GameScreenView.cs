@@ -11,18 +11,18 @@ namespace CosmicCollector.ConsoleApp.Views;
 /// </summary>
 public sealed class GameScreenView : IGameScreenView
 {
-  private const char BorderChar = '█';
+  private const char BorderChar = '#';
   private const char DroneChar = '▲';
-  private const char AsteroidChar = '☄';
-  private const char BlackHoleChar = '●';
-  private const char BonusAcceleratorChar = '⚡';
-  private const char BonusTimeStabilizerChar = '⌛';
-  private const char BonusMagnetChar = '⦿';
-  private const char CrystalBlueChar = '♦';
-  private const char CrystalGreenChar = '◊';
-  private const char CrystalRedChar = '✦';
+  private const char AsteroidChar = '*';
+  private const char BlackHoleChar = 'O';
+  private const char BonusAcceleratorChar = 'A';
+  private const char BonusTimeStabilizerChar = 'T';
+  private const char BonusMagnetChar = 'M';
+  private const char CrystalBlueChar = '◆';
+  private const char CrystalGreenChar = '◆';
+  private const char CrystalRedChar = '◆';
   private const double VisualScaleX = 1.0;
-  private const double VisualScaleY = 0.5;
+  private const double VisualScaleY = 0.6;
   private const int HudHeight = 5;
   private readonly IConsoleRenderer _renderer;
   private readonly WorldBounds _worldBounds;
@@ -41,8 +41,9 @@ public sealed class GameScreenView : IGameScreenView
   /// <inheritdoc />
   public void Render(GameSnapshot parSnapshot, int parLevel)
   {
-    int width = Math.Max(20, _renderer.BufferWidth);
-    int height = Math.Max(10, _renderer.BufferHeight);
+    int width = Math.Max(20, _renderer.WindowWidth);
+    int height = Math.Max(10, _renderer.WindowHeight);
+    _renderer.SetBufferSize(width, height);
     char[,] buffer = CreateBuffer(width, height);
 
     DrawHud(buffer, width, parSnapshot, parLevel);
@@ -224,13 +225,12 @@ public sealed class GameScreenView : IGameScreenView
   {
     int innerHeight = Math.Max(1, parHeight - 2);
     int mapped = (int)Math.Round(parNormalizedY * (innerHeight - 1));
-    int inverted = (innerHeight - 1) - mapped;
-    return parOffsetY + 1 + inverted;
+    return parOffsetY + 1 + mapped;
   }
 
   private bool ValidateDronePlacement(Vector2 parPosition, int parWidth)
   {
-    int fieldHeight = Math.Max(6, _renderer.BufferHeight - HudHeight);
+    int fieldHeight = Math.Max(6, _renderer.WindowHeight - HudHeight);
     int fieldOffsetY = HudHeight;
     double worldWidth = _worldBounds.Right - _worldBounds.Left;
     double worldHeight = _worldBounds.Bottom - _worldBounds.Top;
@@ -256,7 +256,7 @@ public sealed class GameScreenView : IGameScreenView
 
   private void DrawHud(char[,] parBuffer, int parWidth, GameSnapshot parSnapshot, int parLevel)
   {
-    string goals = "Цели: —";
+    string goals = "Цели: кристаллы всех типов";
     string timer = $"Таймер: {parSnapshot.parTickNo / 60.0:0.0}с";
     string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
     WriteHudLine(parBuffer, 0, parWidth, goals, timer, progress);
@@ -269,9 +269,9 @@ public sealed class GameScreenView : IGameScreenView
     string bonusesSummary = BuildBonusesSummary(parSnapshot);
     WriteText(parBuffer, 2, parWidth, $"Бонусы (на поле): {bonusesSummary}");
 
-    string legend = $"Легенда: {DroneChar}=дрон {CrystalBlueChar}/{CrystalGreenChar}/{CrystalRedChar}=кристаллы " +
-      $"{AsteroidChar}=астероид {BlackHoleChar}=чёрная дыра {BonusAcceleratorChar}=ускоритель " +
-      $"{BonusTimeStabilizerChar}=стабилизатор {BonusMagnetChar}=магнит";
+    string legend = $"Легенда: {DroneChar}=дрон {CrystalBlueChar}=кристалл {AsteroidChar}=астероид " +
+      $"{BlackHoleChar}=чёрная дыра {BonusAcceleratorChar}=ускоритель {BonusTimeStabilizerChar}=стабилизатор " +
+      $"{BonusMagnetChar}=магнит";
     WriteText(parBuffer, 3, parWidth, legend);
 
     string droneCheck = ValidateDronePlacement(parSnapshot.parDrone.parPosition, parWidth) ?
