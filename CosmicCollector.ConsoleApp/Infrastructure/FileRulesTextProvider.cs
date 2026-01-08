@@ -5,7 +5,13 @@ namespace CosmicCollector.ConsoleApp.Infrastructure;
 /// </summary>
 public sealed class FileRulesTextProvider : IRulesTextProvider
 {
-  private readonly string _filePath;
+  private const string RulesRelativePath = "rules/rules-text.md";
+  private static readonly string[] FallbackLines =
+  {
+    "Файл правил не найден.",
+    "Проверьте наличие rules/rules-text.md рядом с приложением.",
+    "Возврат в меню доступен по Esc."
+  };
 
   /// <summary>
   /// Создаёт поставщик текста правил.
@@ -13,12 +19,18 @@ public sealed class FileRulesTextProvider : IRulesTextProvider
   /// <param name="parFilePath">Путь к файлу с правилами.</param>
   public FileRulesTextProvider(string parFilePath)
   {
-    _filePath = parFilePath;
   }
 
   /// <inheritdoc />
   public string[] GetLines()
   {
-    return File.ReadAllLines(_filePath);
+    string filePath = Path.Combine(AppContext.BaseDirectory, RulesRelativePath);
+
+    if (!File.Exists(filePath))
+    {
+      return FallbackLines;
+    }
+
+    return File.ReadAllLines(filePath);
   }
 }
