@@ -113,11 +113,6 @@ public sealed class GameScreenController
   {
     _isPaused = parEvent.parIsPaused;
 
-    if (!parEvent.parIsPaused)
-    {
-      _countdownValue = 0;
-    }
-
     if (parEvent.parIsPaused)
     {
       SetMoveDirection(0);
@@ -156,6 +151,11 @@ public sealed class GameScreenController
     }
 
     _view.Render(snapshot, _level, _isPaused, _countdownValue);
+
+    if (!_isPaused && _countdownValue > 0)
+    {
+      _countdownValue = 0;
+    }
   }
 
   /// <summary>
@@ -206,11 +206,6 @@ public sealed class GameScreenController
   public void UpdatePauseState(bool parIsPaused)
   {
     _isPaused = parIsPaused;
-
-    if (!parIsPaused)
-    {
-      _countdownValue = 0;
-    }
 
     if (parIsPaused)
     {
