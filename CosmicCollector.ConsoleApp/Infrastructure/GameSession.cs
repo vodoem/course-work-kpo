@@ -1,4 +1,5 @@
 using CosmicCollector.Core.Geometry;
+using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Loop;
 
@@ -15,18 +16,21 @@ public sealed class GameSession
   /// <param name="parEventBus">Шина событий.</param>
   /// <param name="parGameLoopRunner">Игровой цикл.</param>
   /// <param name="parSnapshotProvider">Поставщик снимков.</param>
+  /// <param name="parCommandQueue">Очередь команд.</param>
   /// <param name="parWorldBounds">Границы мира.</param>
   /// <param name="parLevel">Номер уровня.</param>
   public GameSession(
     IEventBus parEventBus,
     IGameLoopRunner parGameLoopRunner,
     IGameSnapshotProvider parSnapshotProvider,
+    CommandQueue parCommandQueue,
     WorldBounds parWorldBounds,
     int parLevel)
   {
     EventBus = parEventBus;
     GameLoopRunner = parGameLoopRunner;
     SnapshotProvider = parSnapshotProvider;
+    CommandQueue = parCommandQueue;
     WorldBounds = parWorldBounds;
     Level = parLevel;
   }
@@ -45,6 +49,11 @@ public sealed class GameSession
   /// Поставщик снимков.
   /// </summary>
   public IGameSnapshotProvider SnapshotProvider { get; }
+
+  /// <summary>
+  /// Очередь команд.
+  /// </summary>
+  public CommandQueue CommandQueue { get; }
 
   /// <summary>
   /// Границы игрового мира.

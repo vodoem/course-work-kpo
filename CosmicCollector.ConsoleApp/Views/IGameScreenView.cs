@@ -12,5 +12,7 @@ public interface IGameScreenView
   /// </summary>
   /// <param name="parSnapshot">Снимок состояния игры.</param>
   /// <param name="parLevel">Номер уровня.</param>
-  void Render(GameSnapshot parSnapshot, int parLevel);
+  /// <param name="parIsPaused">Признак паузы.</param>
+  /// <param name="parCountdownValue">Текущее значение отсчёта.</param>
+  void Render(GameSnapshot parSnapshot, int parLevel, bool parIsPaused, int parCountdownValue);
 }

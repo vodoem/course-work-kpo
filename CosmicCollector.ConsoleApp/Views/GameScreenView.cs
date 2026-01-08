@@ -36,7 +36,7 @@ public sealed class GameScreenView : IGameScreenView
   }
 
   /// <inheritdoc />
-  public void Render(GameSnapshot parSnapshot, int parLevel)
+  public void Render(GameSnapshot parSnapshot, int parLevel, bool parIsPaused, int parCountdownValue)
   {
     int width = Math.Max(20, _renderer.WindowWidth);
     int height = Math.Max(10, _renderer.WindowHeight);
@@ -59,6 +59,7 @@ public sealed class GameScreenView : IGameScreenView
     DrawAsteroids(buffer, colors, mapper, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
     DrawBonuses(buffer, colors, mapper, parSnapshot.parBonuses, fieldOffsetY, fieldWidth, fieldHeight);
     DrawBlackHoles(buffer, colors, mapper, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawOverlay(buffer, colors, fieldOffsetY, fieldWidth, fieldHeight, parIsPaused, parCountdownValue);
 
     RenderBuffer(buffer, colors, width, height);
   }
@@ -366,5 +367,54 @@ public sealed class GameScreenView : IGameScreenView
 
     int left = (parWidth - parText.Length) / 2;
     return new string(' ', left) + parText;
+  }
+
+  private void DrawOverlay(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    int parOffsetY,
+    int parWidth,
+    int parHeight,
+    bool parIsPaused,
+    int parCountdownValue)
+  {
+    if (parCountdownValue > 0)
+    {
+      string text = parCountdownValue.ToString();
+      DrawOverlayText(parBuffer, parColors, parOffsetY, parWidth, parHeight, text, ConsoleColor.Yellow);
+      return;
+    }
+
+    if (parIsPaused)
+    {
+      DrawOverlayText(parBuffer, parColors, parOffsetY, parWidth, parHeight, "ПАУЗА", ConsoleColor.Yellow);
+    }
+  }
+
+  private void DrawOverlayText(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    int parOffsetY,
+    int parWidth,
+    int parHeight,
+    string parText,
+    ConsoleColor parColor)
+  {
+    int innerWidth = Math.Max(1, parWidth - 2);
+    int innerHeight = Math.Max(1, parHeight - 2);
+    int centerX = 1 + (innerWidth - parText.Length) / 2;
+    int centerY = parOffsetY + 1 + (innerHeight / 2);
+
+    for (int i = 0; i < parText.Length; i++)
+    {
+      int x = centerX + i;
+      if (x <= 0 || x >= parWidth - 1)
+      {
+        continue;
+      }
+
+      parBuffer[x, centerY] = parText[i];
+      parColors[x, centerY] = parColor;
+    }
   }
 }

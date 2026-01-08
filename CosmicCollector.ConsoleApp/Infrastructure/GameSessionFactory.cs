@@ -35,6 +35,7 @@ public sealed class GameSessionFactory : IGameSessionFactory
       eventBus,
       gameLoopRunner,
       snapshotProvider,
+      commandQueue,
       gameState.WorldBounds,
       DefaultLevel);
   }

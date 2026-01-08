@@ -110,6 +110,8 @@ public sealed class MainMenuController
             session.EventBus,
             session.SnapshotProvider,
             session.GameLoopRunner,
+            session.CommandQueue,
+            _inputReader,
             session.Level);
           gameScreenController.Run();
           _view.Render(selectedIndex);
