@@ -19,8 +19,8 @@ public sealed class GameScreenView : IGameScreenView
   private const char BonusTimeStabilizerChar = 'T';
   private const char BonusMagnetChar = 'M';
   private const char CrystalChar = '◆';
-  private const int HudHeight = 4;
-  private const double PixelsPerCell = 12.0;
+  private const int HudHeight = RenderConfig.HudHeight;
+  private const double PixelsPerCell = RenderConfig.PixelsPerCell;
   private readonly IConsoleRenderer _renderer;
   private readonly WorldBounds _worldBounds;
 
@@ -49,13 +49,16 @@ public sealed class GameScreenView : IGameScreenView
     int fieldOffsetY = HudHeight;
     int fieldWidth = width;
     int fieldHeight = Math.Max(6, height - fieldOffsetY);
+    int innerWidth = Math.Max(1, fieldWidth - 2);
+    int innerHeight = Math.Max(1, fieldHeight - 2);
+    var mapper = new WorldToScreenMapper(_worldBounds, innerWidth, innerHeight, PixelsPerCell);
 
     DrawBorder(buffer, colors, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawDrone(buffer, colors, parSnapshot.parDrone.parPosition, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawCrystals(buffer, colors, parSnapshot.parCrystals, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawAsteroids(buffer, colors, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawBonuses(buffer, colors, parSnapshot.parBonuses, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawBlackHoles(buffer, colors, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawDrone(buffer, colors, mapper, parSnapshot.parDrone.parPosition, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawCrystals(buffer, colors, mapper, parSnapshot.parCrystals, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawAsteroids(buffer, colors, mapper, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBonuses(buffer, colors, mapper, parSnapshot.parBonuses, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBlackHoles(buffer, colors, mapper, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
 
     RenderBuffer(buffer, colors, width, height);
   }
@@ -117,12 +120,13 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawDrone(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
+    WorldToScreenMapper parMapper,
     Vector2 parPosition,
     int parOffsetY,
     int parWidth,
     int parHeight)
   {
-    if (TryMapToGrid(parPosition, parOffsetY, parWidth, parHeight, out var coords))
+    if (TryMapToGrid(parMapper, parPosition, parOffsetY, parWidth, parHeight, out var coords))
     {
       parBuffer[coords.X, coords.Y] = DroneChar;
       parColors[coords.X, coords.Y] = ConsoleColor.White;
@@ -132,6 +136,7 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawCrystals(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
+    WorldToScreenMapper parMapper,
     IReadOnlyList<CrystalSnapshot> parCrystals,
     int parOffsetY,
     int parWidth,
@@ -139,7 +144,7 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var crystal in parCrystals)
     {
-      if (!TryMapToGrid(crystal.parPosition, parOffsetY, parWidth, parHeight, out var coords))
+      if (!TryMapToGrid(parMapper, crystal.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         continue;
       }
@@ -158,6 +163,7 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawAsteroids(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
+    WorldToScreenMapper parMapper,
     IReadOnlyList<AsteroidSnapshot> parAsteroids,
     int parOffsetY,
     int parWidth,
@@ -165,7 +171,7 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var asteroid in parAsteroids)
     {
-      if (TryMapToGrid(asteroid.parPosition, parOffsetY, parWidth, parHeight, out var coords))
+      if (TryMapToGrid(parMapper, asteroid.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         parBuffer[coords.X, coords.Y] = AsteroidChar;
         parColors[coords.X, coords.Y] = ConsoleColor.DarkGray;
@@ -176,6 +182,7 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawBonuses(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
+    WorldToScreenMapper parMapper,
     IReadOnlyList<BonusSnapshot> parBonuses,
     int parOffsetY,
     int parWidth,
@@ -183,7 +190,7 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var bonus in parBonuses)
     {
-      if (!TryMapToGrid(bonus.parPosition, parOffsetY, parWidth, parHeight, out var coords))
+      if (!TryMapToGrid(parMapper, bonus.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         continue;
       }
@@ -208,6 +215,7 @@ public sealed class GameScreenView : IGameScreenView
   private void DrawBlackHoles(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
+    WorldToScreenMapper parMapper,
     IReadOnlyList<BlackHoleSnapshot> parBlackHoles,
     int parOffsetY,
     int parWidth,
@@ -215,7 +223,7 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var blackHole in parBlackHoles)
     {
-      if (TryMapToGrid(blackHole.parPosition, parOffsetY, parWidth, parHeight, out var coords))
+      if (TryMapToGrid(parMapper, blackHole.parPosition, parOffsetY, parWidth, parHeight, out var coords))
       {
         parBuffer[coords.X, coords.Y] = BlackHoleChar;
         parColors[coords.X, coords.Y] = ConsoleColor.Magenta;
@@ -224,23 +232,15 @@ public sealed class GameScreenView : IGameScreenView
   }
 
   private bool TryMapToGrid(
+    WorldToScreenMapper parMapper,
     Vector2 parPosition,
     int parOffsetY,
     int parWidth,
     int parHeight,
     out (int X, int Y) parCoords)
   {
-    double worldWidth = _worldBounds.Right - _worldBounds.Left;
-    double worldHeight = _worldBounds.Bottom - _worldBounds.Top;
-
-    if (worldWidth <= 0 || worldHeight <= 0)
-    {
-      parCoords = (0, 0);
-      return false;
-    }
-
-    int gridX = MapWorldToCellX(parPosition.X, parWidth);
-    int gridY = MapWorldToCellY(parPosition.Y, parOffsetY, parHeight);
+    int gridX = 1 + parMapper.MapX(parPosition.X);
+    int gridY = parOffsetY + 1 + parMapper.MapY(parPosition.Y);
 
     if (gridX < 1 || gridX > parWidth - 2 || gridY < parOffsetY + 1 || gridY > parOffsetY + parHeight - 2)
     {
@@ -250,39 +250,6 @@ public sealed class GameScreenView : IGameScreenView
 
     parCoords = (gridX, gridY);
     return true;
-  }
-
-  private int MapWorldToCellX(double parWorldX, int parWidth)
-  {
-    double worldWidth = _worldBounds.Right - _worldBounds.Left;
-    if (worldWidth <= 0)
-    {
-      return 1;
-    }
-
-    int innerWidth = Math.Max(1, parWidth - 2);
-    double normalizedX = (parWorldX - _worldBounds.Left) / worldWidth;
-    normalizedX = Math.Clamp(normalizedX, 0, 1);
-    int cellX = (int)Math.Round((normalizedX * worldWidth) / PixelsPerCell);
-    int clamped = Math.Clamp(cellX, 0, innerWidth - 1);
-    return 1 + clamped;
-  }
-
-  private int MapWorldToCellY(double parWorldY, int parOffsetY, int parHeight)
-  {
-    int innerHeight = Math.Max(1, parHeight - 2);
-    double worldHeight = _worldBounds.Bottom - _worldBounds.Top;
-    if (worldHeight <= 0)
-    {
-      return parOffsetY + 1;
-    }
-
-    double distanceFromBottom = _worldBounds.Bottom - parWorldY;
-    double normalizedY = distanceFromBottom / worldHeight;
-    normalizedY = Math.Clamp(normalizedY, 0, 1);
-    int cellY = (int)Math.Round((normalizedY * worldHeight) / PixelsPerCell);
-    int clamped = Math.Clamp(cellY, 0, innerHeight - 1);
-    return parOffsetY + 1 + clamped;
   }
 
   private void DrawHud(
