@@ -346,9 +346,27 @@ public sealed class GameWorldUpdateServiceTests
     state.LevelTimeRemainingSec = 30;
     state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
 
-    service.Update(state, 1.0 / 60.0, 1, bus);
+    service.Update(state, 1.0, 1, bus);
 
     Xunit.Assert.Equal(35, state.LevelTimeRemainingSec);
+  }
+
+  /// <summary>
+  /// Проверяет активацию таймера уровня стабилизатором при выключенном таймере.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_TimeStabilizerActivatesTimerWhenInactive()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.Equal(65, state.LevelTimeRemainingSec);
   }
 
   /// <summary>

@@ -23,6 +23,7 @@ public sealed class GameWorldUpdateService
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
   private const double TimeStabilizerBonusSeconds = 5.0;
+  private const double TimeStabilizerBaseSeconds = 60.0;
   private const double DisorientationDurationSec = 3.0;
 
   private readonly IRandomProvider _randomProvider;
@@ -450,6 +451,10 @@ public sealed class GameWorldUpdateService
         parGameState.TimeStabilizerRemainingSec = Math.Max(
           parGameState.TimeStabilizerRemainingSec,
           parBonus.DurationSec);
+        if (!parGameState.HasLevelTimer)
+        {
+          parGameState.LevelTimeRemainingSec = TimeStabilizerBaseSeconds;
+        }
         parGameState.LevelTimeRemainingSec += TimeStabilizerBonusSeconds;
         refTimeStabilizerCollected = true;
         break;
