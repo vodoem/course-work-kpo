@@ -9,14 +9,27 @@ namespace CosmicCollector.ConsoleApp.Controllers;
 public sealed class MainMenuController
 {
   private readonly IMainMenuView _view;
+  private readonly IConsoleInputReader _inputReader;
+  private readonly IConsoleRenderer _renderer;
+  private readonly IRulesTextProvider _rulesTextProvider;
 
   /// <summary>
   /// Создаёт контроллер главного меню.
   /// </summary>
   /// <param name="parView">Представление главного меню.</param>
-  public MainMenuController(IMainMenuView parView)
+  /// <param name="parInputReader">Читатель ввода.</param>
+  /// <param name="parRenderer">Рендерер консоли.</param>
+  /// <param name="parRulesTextProvider">Поставщик текста правил.</param>
+  public MainMenuController(
+    IMainMenuView parView,
+    IConsoleInputReader parInputReader,
+    IConsoleRenderer parRenderer,
+    IRulesTextProvider parRulesTextProvider)
   {
     _view = parView;
+    _inputReader = parInputReader;
+    _renderer = parRenderer;
+    _rulesTextProvider = parRulesTextProvider;
   }
 
   /// <summary>
@@ -29,7 +42,7 @@ public sealed class MainMenuController
 
     while (true)
     {
-      ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+      ConsoleKeyInfo keyInfo = _inputReader.ReadKey();
 
       if (keyInfo.Key == ConsoleKey.UpArrow)
       {
@@ -51,8 +64,20 @@ public sealed class MainMenuController
 
         if (selectedItem.Kind == MenuItemKind.Exit)
         {
-          Console.Clear();
+          _renderer.Clear();
           return;
+        }
+
+        if (selectedItem.Kind == MenuItemKind.Rules)
+        {
+          RulesView rulesView = new RulesView(_renderer);
+          RulesController rulesController = new RulesController(
+            rulesView,
+            _inputReader,
+            _rulesTextProvider);
+          rulesController.Run();
+          _view.Render(selectedIndex);
+          continue;
         }
 
         _view.ShowNotImplemented(selectedItem.Title);

@@ -1,0 +1,31 @@
+namespace CosmicCollector.ConsoleApp.Infrastructure;
+
+/// <summary>
+/// Реализация рендерера на базе System.Console.
+/// </summary>
+public sealed class ConsoleRenderer : IConsoleRenderer
+{
+  /// <inheritdoc />
+  public void Clear()
+  {
+    Console.Clear();
+  }
+
+  /// <inheritdoc />
+  public void WriteLine(string parText)
+  {
+    Console.WriteLine(parText);
+  }
+
+  /// <inheritdoc />
+  public ConsoleKeyInfo ReadKey()
+  {
+    return Console.ReadKey(true);
+  }
+
+  /// <inheritdoc />
+  public int BufferWidth => Console.BufferWidth;
+
+  /// <inheritdoc />
+  public int BufferHeight => Console.BufferHeight;
+}
