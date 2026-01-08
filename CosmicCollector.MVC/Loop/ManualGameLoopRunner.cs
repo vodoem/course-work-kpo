@@ -1,5 +1,4 @@
 using CosmicCollector.Core.Events;
-using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
@@ -66,6 +65,12 @@ public sealed class ManualGameLoopRunner
         continue;
       }
 
+      if (command is SetMoveDirectionCommand setMoveDirectionCommand)
+      {
+        ApplyMoveCommand(setMoveDirectionCommand.DirectionX);
+        continue;
+      }
+
       if (command is MoveLeftCommand)
       {
         ApplyMoveCommand(-1);
@@ -81,13 +86,6 @@ public sealed class ManualGameLoopRunner
 
   private void ApplyMoveCommand(int parDirection)
   {
-    var snapshot = _gameState.GetSnapshot();
-    var direction = NormalizeDirection(snapshot.parDrone.parIsDisoriented, parDirection);
-    _gameState.SetDroneVelocity(new Vector2(direction * GameRules.DroneBaseSpeed, snapshot.parDrone.parVelocity.Y));
-  }
-
-  private static int NormalizeDirection(bool parIsDisoriented, int parDirection)
-  {
-    return parIsDisoriented ? -parDirection : parDirection;
+    _gameState.SetDroneMoveDirection(parDirection);
   }
 }

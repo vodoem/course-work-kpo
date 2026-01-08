@@ -112,11 +112,12 @@ public sealed class GameLoopTests
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var startX = state.Drone.Position.X;
 
-    queue.Enqueue(new MoveLeftCommand());
+    queue.Enqueue(new SetMoveDirectionCommand(-1));
     runner.TickOnce();
 
-    Xunit.Assert.True(state.Drone.Velocity.X > 0);
+    Xunit.Assert.True(state.Drone.Position.X > startX);
   }
 }

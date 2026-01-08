@@ -141,6 +141,8 @@ public sealed class GameWorldUpdateService
   {
     var droneMultiplier = parIsAcceleratorActive ? DroneAcceleratorMultiplier : 1.0;
     var drone = parGameState.DroneInternal;
+    var direction = NormalizeDirection(parGameState.IsDisoriented, parGameState.DroneMoveDirectionX);
+    drone.Velocity = new Vector2(direction * GameRules.DroneBaseSpeed, drone.Velocity.Y);
     drone.Position = drone.Position.Add(drone.Velocity.Multiply(parDt * droneMultiplier));
     ClampDroneToBounds(parGameState);
 
@@ -530,5 +532,10 @@ public sealed class GameWorldUpdateService
     }
 
     drone.Position = new Vector2(clampedX, clampedY);
+  }
+
+  private static int NormalizeDirection(bool parIsDisoriented, int parDirection)
+  {
+    return parIsDisoriented ? -parDirection : parDirection;
   }
 }

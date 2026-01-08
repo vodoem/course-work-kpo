@@ -38,6 +38,7 @@ public sealed class GameState
   private double _resumeCountdownAccumulatedSec;
   private bool _isDisoriented;
   private double _disorientationRemainingSec;
+  private int _droneMoveDirectionX;
 
   /// <summary>
   /// Инициализирует состояние игры со стандартным дроном.
@@ -562,6 +563,47 @@ public sealed class GameState
     {
       _drone.Velocity = parVelocity;
     }
+  }
+
+  /// <summary>
+  /// Устанавливает направление движения дрона по X.
+  /// </summary>
+  /// <param name="parDirectionX">Направление: -1, 0 или 1.</param>
+  public void SetDroneMoveDirection(int parDirectionX)
+  {
+    lock (_lockObject)
+    {
+      _droneMoveDirectionX = NormalizeDirection(parDirectionX);
+    }
+  }
+
+  /// <summary>
+  /// Возвращает направление движения дрона по X.
+  /// </summary>
+  public int DroneMoveDirectionX
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _droneMoveDirectionX;
+      }
+    }
+  }
+
+  private static int NormalizeDirection(int parDirectionX)
+  {
+    if (parDirectionX < 0)
+    {
+      return -1;
+    }
+
+    if (parDirectionX > 0)
+    {
+      return 1;
+    }
+
+    return 0;
   }
 
   private void StartResumeCountdownLocked()

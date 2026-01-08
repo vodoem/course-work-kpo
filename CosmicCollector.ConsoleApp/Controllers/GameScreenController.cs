@@ -5,6 +5,9 @@ using CosmicCollector.Core.Snapshots;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Loop;
+using System;
+using System.Diagnostics;
+using System.Threading;
 
 namespace CosmicCollector.ConsoleApp.Controllers;
 
@@ -18,7 +21,7 @@ public sealed class GameScreenController
   private readonly IGameSnapshotProvider _snapshotProvider;
   private readonly IGameLoopRunner _gameLoopRunner;
   private readonly CommandQueue _commandQueue;
-  private readonly IConsoleInputReader _inputReader;
+  private readonly IKeyStateProvider _keyStateProvider;
   private readonly AutoResetEvent _tickSignal = new(false);
   private readonly object _snapshotLock = new();
   private IDisposable? _gameStartedSubscription;
@@ -32,6 +35,10 @@ public sealed class GameScreenController
   private bool _isPaused;
   private int _countdownValue;
   private bool _isRunning;
+  private bool _leftHeld;
+  private bool _rightHeld;
+  private bool _pauseHeld;
+  private int _moveDirection;
   private GameSnapshot? _latestSnapshot;
 
   /// <summary>
@@ -42,7 +49,7 @@ public sealed class GameScreenController
   /// <param name="parSnapshotProvider">Поставщик снимков.</param>
   /// <param name="parGameLoopRunner">Игровой цикл.</param>
   /// <param name="parCommandQueue">Очередь команд.</param>
-  /// <param name="parInputReader">Читатель ввода.</param>
+  /// <param name="parKeyStateProvider">Поставщик состояния клавиш.</param>
   /// <param name="parLevel">Стартовый уровень.</param>
   public GameScreenController(
     IGameScreenView parView,
@@ -50,7 +57,7 @@ public sealed class GameScreenController
     IGameSnapshotProvider parSnapshotProvider,
     IGameLoopRunner parGameLoopRunner,
     CommandQueue parCommandQueue,
-    IConsoleInputReader parInputReader,
+    IKeyStateProvider parKeyStateProvider,
     int parLevel)
   {
     _view = parView;
@@ -58,7 +65,7 @@ public sealed class GameScreenController
     _snapshotProvider = parSnapshotProvider;
     _gameLoopRunner = parGameLoopRunner;
     _commandQueue = parCommandQueue;
-    _inputReader = parInputReader;
+    _keyStateProvider = parKeyStateProvider;
     _level = parLevel;
   }
 
@@ -110,6 +117,11 @@ public sealed class GameScreenController
     {
       _countdownValue = 0;
     }
+
+    if (parEvent.parIsPaused)
+    {
+      SetMoveDirection(0);
+    }
   }
 
   private void OnCountdownTick(CountdownTick parEvent)
@@ -147,35 +159,35 @@ public sealed class GameScreenController
   }
 
   /// <summary>
-  /// Обрабатывает ввод для игровых команд.
+  /// Обрабатывает состояние ввода для игровых команд.
   /// </summary>
-  /// <param name="parKeyInfo">Нажатая клавиша.</param>
-  public void HandleKey(ConsoleKeyInfo parKeyInfo)
+  /// <param name="parLeftHeld">Признак удержания влево.</param>
+  /// <param name="parRightHeld">Признак удержания вправо.</param>
+  /// <param name="parPauseHeld">Признак удержания паузы.</param>
+  public void ApplyInputState(bool parLeftHeld, bool parRightHeld, bool parPauseHeld)
   {
-    if (parKeyInfo.Key == ConsoleKey.A || parKeyInfo.Key == ConsoleKey.LeftArrow)
-    {
-      if (CanMove())
-      {
-        _commandQueue.Enqueue(new MoveLeftCommand());
-      }
-
-      return;
-    }
-
-    if (parKeyInfo.Key == ConsoleKey.D || parKeyInfo.Key == ConsoleKey.RightArrow)
-    {
-      if (CanMove())
-      {
-        _commandQueue.Enqueue(new MoveRightCommand());
-      }
-
-      return;
-    }
-
-    if (parKeyInfo.Key == ConsoleKey.P || parKeyInfo.Key == ConsoleKey.Spacebar)
+    if (parPauseHeld && !_pauseHeld)
     {
       _commandQueue.Enqueue(new TogglePauseCommand());
     }
+
+    int direction = 0;
+
+    if (parLeftHeld ^ parRightHeld)
+    {
+      direction = parLeftHeld ? -1 : 1;
+    }
+
+    if (!CanMove())
+    {
+      direction = 0;
+    }
+
+    SetMoveDirection(direction);
+
+    _leftHeld = parLeftHeld;
+    _rightHeld = parRightHeld;
+    _pauseHeld = parPauseHeld;
   }
 
   /// <summary>
@@ -198,6 +210,11 @@ public sealed class GameScreenController
     if (!parIsPaused)
     {
       _countdownValue = 0;
+    }
+
+    if (parIsPaused)
+    {
+      SetMoveDirection(0);
     }
   }
 
@@ -223,15 +240,49 @@ public sealed class GameScreenController
 
   private void ReadInputLoop()
   {
+    const int pollIntervalMs = 5;
+    var stopwatch = Stopwatch.StartNew();
+    long lastPoll = 0;
+
     while (_isRunning)
     {
-      var keyInfo = _inputReader.ReadKey();
-      HandleKey(keyInfo);
+      long elapsed = stopwatch.ElapsedMilliseconds;
+      if (elapsed - lastPoll < pollIntervalMs)
+      {
+        Thread.SpinWait(50);
+        continue;
+      }
+
+      lastPoll = elapsed;
+
+      bool leftHeld = _keyStateProvider.IsKeyDown(ConsoleKey.A) || _keyStateProvider.IsKeyDown(ConsoleKey.LeftArrow);
+      bool rightHeld = _keyStateProvider.IsKeyDown(ConsoleKey.D) || _keyStateProvider.IsKeyDown(ConsoleKey.RightArrow);
+      bool pauseHeld = _keyStateProvider.IsKeyDown(ConsoleKey.P) || _keyStateProvider.IsKeyDown(ConsoleKey.Spacebar);
+
+      ApplyInputState(leftHeld, rightHeld, pauseHeld);
     }
   }
 
   private bool CanMove()
   {
     return !_isPaused && _countdownValue <= 0;
+  }
+
+  private void SetMoveDirection(int parDirection)
+  {
+    int clamped = parDirection switch
+    {
+      < 0 => -1,
+      > 0 => 1,
+      _ => 0
+    };
+
+    if (clamped == _moveDirection)
+    {
+      return;
+    }
+
+    _moveDirection = clamped;
+    _commandQueue.Enqueue(new SetMoveDirectionCommand(clamped));
   }
 }

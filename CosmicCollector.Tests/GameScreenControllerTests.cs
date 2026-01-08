@@ -19,29 +19,30 @@ public sealed class GameScreenControllerTests
   /// Проверяет, что A/Left отправляет команду движения влево.
   /// </summary>
   [Xunit.Fact]
-  public void HandleKey_MoveLeft_EnqueuesCommand()
+  public void ApplyInputState_MoveLeft_EnqueuesCommand()
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
 
-    controller.HandleKey(new ConsoleKeyInfo('\0', ConsoleKey.A, false, false, false));
+    controller.ApplyInputState(true, false, false);
 
     var commands = queue.DrainAll();
     Xunit.Assert.Single(commands);
-    Xunit.Assert.IsType<MoveLeftCommand>(commands[0]);
+    var command = Xunit.Assert.IsType<SetMoveDirectionCommand>(commands[0]);
+    Xunit.Assert.Equal(-1, command.DirectionX);
   }
 
   /// <summary>
   /// Проверяет, что движение отключено на паузе.
   /// </summary>
   [Xunit.Fact]
-  public void HandleKey_MoveRight_IgnoredWhenPaused()
+  public void ApplyInputState_MoveRight_IgnoredWhenPaused()
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
     controller.UpdatePauseState(true);
 
-    controller.HandleKey(new ConsoleKeyInfo('\0', ConsoleKey.D, false, false, false));
+    controller.ApplyInputState(false, true, false);
 
     Xunit.Assert.Empty(queue.DrainAll());
   }
@@ -50,13 +51,13 @@ public sealed class GameScreenControllerTests
   /// Проверяет, что движение отключено во время отсчёта.
   /// </summary>
   [Xunit.Fact]
-  public void HandleKey_MoveLeft_IgnoredDuringCountdown()
+  public void ApplyInputState_MoveLeft_IgnoredDuringCountdown()
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
     controller.UpdateCountdown(2);
 
-    controller.HandleKey(new ConsoleKeyInfo('\0', ConsoleKey.A, false, false, false));
+    controller.ApplyInputState(true, false, false);
 
     Xunit.Assert.Empty(queue.DrainAll());
   }
@@ -65,12 +66,12 @@ public sealed class GameScreenControllerTests
   /// Проверяет, что P/Space отправляет команду паузы.
   /// </summary>
   [Xunit.Fact]
-  public void HandleKey_TogglePause_EnqueuesCommand()
+  public void ApplyInputState_TogglePause_EnqueuesCommand()
   {
     var queue = new CommandQueue();
     var controller = CreateController(queue);
 
-    controller.HandleKey(new ConsoleKeyInfo('\0', ConsoleKey.P, false, false, false));
+    controller.ApplyInputState(false, false, true);
 
     var commands = queue.DrainAll();
     Xunit.Assert.Single(commands);
@@ -106,7 +107,7 @@ public sealed class GameScreenControllerTests
       new TestSnapshotProvider(),
       new TestLoopRunner(),
       parQueue,
-      new TestInputReader(),
+      new TestKeyStateProvider(),
       1);
   }
 
@@ -167,11 +168,11 @@ public sealed class GameScreenControllerTests
     }
   }
 
-  private sealed class TestInputReader : IConsoleInputReader
+  private sealed class TestKeyStateProvider : IKeyStateProvider
   {
-    public ConsoleKeyInfo ReadKey()
+    public bool IsKeyDown(ConsoleKey parKey)
     {
-      return new ConsoleKeyInfo('\0', ConsoleKey.NoName, false, false, false);
+      return false;
     }
   }
 }
