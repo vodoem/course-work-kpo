@@ -11,6 +11,11 @@
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <TargetPath>rules\rules-text.md</TargetPath>
     </Content>
+    <Content Include="..\records.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>records.json</TargetPath>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\CosmicCollector.Persistence\CosmicCollector.Persistence.csproj" />
