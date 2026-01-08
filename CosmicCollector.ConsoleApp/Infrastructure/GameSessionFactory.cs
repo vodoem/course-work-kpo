@@ -22,7 +22,8 @@ public sealed class GameSessionFactory : IGameSessionFactory
     var eventBus = new EventBus();
     var commandQueue = new CommandQueue();
     var randomProvider = new DefaultRandomProvider();
-    var updateService = new GameWorldUpdateService(randomProvider, SpawnConfig.Default);
+    var spawnConfig = BuildSpawnConfig();
+    var updateService = new GameWorldUpdateService(randomProvider, spawnConfig);
     var snapshotProvider = new GameSnapshotProvider(gameState);
     InitializeDrone(gameState);
     var gameLoopRunner = new GameLoopRunner(
@@ -37,6 +38,43 @@ public sealed class GameSessionFactory : IGameSessionFactory
       snapshotProvider,
       gameState.WorldBounds,
       DefaultLevel);
+  }
+
+  private static SpawnConfig BuildSpawnConfig()
+  {
+    var defaultConfig = SpawnConfig.Default;
+    var speedMultiplier = 3.0;
+    var intervalDivider = 2;
+
+    return new SpawnConfig(
+      defaultConfig.IsEnabled,
+      defaultConfig.MaxActiveCrystals,
+      defaultConfig.MaxActiveAsteroids,
+      defaultConfig.MaxActiveBonuses,
+      defaultConfig.MaxActiveBlackHoles,
+      Math.Max(1, defaultConfig.CrystalIntervalTicks / intervalDivider),
+      Math.Max(1, defaultConfig.AsteroidIntervalTicks / intervalDivider),
+      Math.Max(1, defaultConfig.BonusIntervalTicks / intervalDivider),
+      Math.Max(1, defaultConfig.BlackHoleIntervalTicks / intervalDivider),
+      defaultConfig.IntervalDecreasePerLevel,
+      defaultConfig.MaxActiveIncreasePerLevel,
+      defaultConfig.SpawnMargin,
+      defaultConfig.SpawnGap,
+      defaultConfig.MaxSpawnAttempts,
+      defaultConfig.CrystalBounds,
+      defaultConfig.AsteroidBounds,
+      defaultConfig.BonusBounds,
+      defaultConfig.BlackHoleBounds,
+      defaultConfig.CrystalBaseSpeed * speedMultiplier,
+      defaultConfig.AsteroidBaseSpeed * speedMultiplier,
+      defaultConfig.BonusBaseSpeed * speedMultiplier,
+      defaultConfig.BlackHoleBaseSpeed * speedMultiplier,
+      defaultConfig.BlackHoleRadius,
+      defaultConfig.BlackHoleCoreRadius,
+      defaultConfig.BonusDurationSec,
+      defaultConfig.AsteroidSpeedMultiplier,
+      defaultConfig.CrystalTypeWeights,
+      defaultConfig.BonusTypeWeights);
   }
 
   private static void InitializeDrone(GameState parGameState)

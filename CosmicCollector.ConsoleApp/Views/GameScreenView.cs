@@ -260,14 +260,13 @@ public sealed class GameScreenView : IGameScreenView
     int parLevel)
   {
     string goals = "Цели: B=— G=— R=— | Цель энергии: —";
-    string timerHeader = "Таймер";
     string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
-    WriteHudLine(parBuffer, parColors, 0, parWidth, goals, timerHeader, progress);
+    string timerLine = CenterText($"{parSnapshot.parTickNo / 60.0:0.0}с", parWidth / 3);
+    WriteHudLine(parBuffer, parColors, 0, parWidth, goals, timerLine, progress);
 
     string collected = "Собрано: B=— G=— R=—";
-    string timerLine = CenterText($"{parSnapshot.parTickNo / 60.0:0.0}с", parWidth / 3);
     string progressLine = "Прогресс: B=— G=— R=—";
-    WriteHudLine(parBuffer, parColors, 1, parWidth, collected, timerLine, progressLine);
+    WriteHudLine(parBuffer, parColors, 1, parWidth, collected, string.Empty, progressLine);
   }
 
   private void WriteHudLine(
