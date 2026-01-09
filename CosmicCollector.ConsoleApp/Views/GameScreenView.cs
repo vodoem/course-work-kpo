@@ -396,12 +396,6 @@ public sealed class GameScreenView : IGameScreenView
     {
       string text = parCountdownValue.ToString();
       DrawOverlayText(parBuffer, parColors, parOffsetY, parWidth, parHeight, text, ConsoleColor.Yellow);
-      return;
-    }
-
-    if (parIsPaused)
-    {
-      DrawOverlayText(parBuffer, parColors, parOffsetY, parWidth, parHeight, "ПАУЗА", ConsoleColor.Yellow);
     }
   }
 

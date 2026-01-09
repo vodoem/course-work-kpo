@@ -160,6 +160,26 @@ public sealed class GameScreenControllerTests
     Xunit.Assert.Equal(GameEndReason.GameOver, controllerWithBus.EndReason);
   }
 
+  /// <summary>
+  /// Проверяет выход в меню через подтверждение паузы.
+  /// </summary>
+  [Xunit.Fact]
+  public void PauseMenu_ConfirmExit_SetsExitFlag()
+  {
+    var queue = new CommandQueue();
+    var controller = CreateController(queue);
+    controller.StartForTests();
+    controller.OpenPauseMenuForTests();
+
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, true, false, false, false, false));
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, true, false, false, false));
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, false, false, true, false));
+
+    Xunit.Assert.True(controller.ShouldExitGameScreen);
+    Xunit.Assert.True(controller.ExitToMenuRequested);
+    Xunit.Assert.False(controller.IsInputEnabled);
+  }
+
   private static GameScreenController CreateController(CommandQueue parQueue)
   {
     return CreateController(parQueue, new TestGameScreenView());

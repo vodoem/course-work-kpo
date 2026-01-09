@@ -26,6 +26,7 @@ public sealed class GameScreenController
   private readonly IConsoleRenderer _renderer;
   private readonly IConsoleInputReader _inputReader;
   private readonly IRecordsRepository _recordsRepository;
+  private readonly PauseMenuController _pauseMenuController;
   private readonly AutoResetEvent _tickSignal = new(false);
   private readonly object _snapshotLock = new();
   private IDisposable? _gameStartedSubscription;
@@ -46,9 +47,18 @@ public sealed class GameScreenController
   private int _moveDirection;
   private bool _shouldExitGameScreen;
   private bool _isInputEnabled = true;
+  private bool _isPauseMenuVisible;
+  private bool _exitToMenuRequested;
   private GameSnapshot? _finalSnapshot;
   private GameEndReason? _endReason;
   private GameSnapshot? _latestSnapshot;
+  private bool _menuUpHeld;
+  private bool _menuDownHeld;
+  private bool _menuEnterHeld;
+  private bool _menuEscapeHeld;
+  private bool _menuYesHeld;
+  private bool _menuNoHeld;
+  private bool _menuPauseHeld;
 
   /// <summary>
   /// Создаёт контроллер игрового экрана.
@@ -84,6 +94,7 @@ public sealed class GameScreenController
     _inputReader = parInputReader;
     _recordsRepository = parRecordsRepository;
     _level = parLevel;
+    _pauseMenuController = new PauseMenuController(new PauseMenuView(_renderer));
   }
 
   /// <summary>
@@ -92,6 +103,7 @@ public sealed class GameScreenController
   public GameEndAction Run()
   {
     _shouldExitGameScreen = false;
+    _exitToMenuRequested = false;
     _gameStartedSubscription = _eventBus.Subscribe<GameStarted>(OnGameStarted);
     _gameTickSubscription = _eventBus.Subscribe<GameTick>(OnGameTick);
     _pauseSubscription = _eventBus.Subscribe<PauseToggled>(OnPauseToggled);
@@ -117,6 +129,11 @@ public sealed class GameScreenController
 
     _gameLoopRunner.Stop();
     StopInputLoop();
+
+    if (_exitToMenuRequested)
+    {
+      return GameEndAction.ReturnToMenu;
+    }
 
     if (_finalSnapshot is null || _endReason is null)
     {
@@ -152,6 +169,12 @@ public sealed class GameScreenController
     if (parEvent.parIsPaused)
     {
       SetMoveDirection(0);
+      _isPauseMenuVisible = true;
+      _pauseMenuController.OpenMenu();
+    }
+    else
+    {
+      _isPauseMenuVisible = false;
     }
   }
 
@@ -194,6 +217,11 @@ public sealed class GameScreenController
     }
 
     _view.Render(snapshot, _level, _isPaused, _countdownValue);
+
+    if (_isPaused && _isPauseMenuVisible && _countdownValue <= 0)
+    {
+      _pauseMenuController.Render();
+    }
 
     if (!_isPaused && _countdownValue > 0)
     {
@@ -311,7 +339,13 @@ public sealed class GameScreenController
       bool rightHeld = _keyStateProvider.IsKeyDown(ConsoleKey.D) || _keyStateProvider.IsKeyDown(ConsoleKey.RightArrow);
       bool pauseHeld = _keyStateProvider.IsKeyDown(ConsoleKey.P) || _keyStateProvider.IsKeyDown(ConsoleKey.Spacebar);
 
-    ApplyInputState(leftHeld, rightHeld, pauseHeld);
+      if (_isPaused && _isPauseMenuVisible && _countdownValue <= 0)
+      {
+        HandlePauseMenuInput(pauseHeld);
+        continue;
+      }
+
+      ApplyInputState(leftHeld, rightHeld, pauseHeld);
     }
   }
 
@@ -343,6 +377,7 @@ public sealed class GameScreenController
     _isRunning = true;
     _isInputEnabled = true;
     _shouldExitGameScreen = false;
+    _exitToMenuRequested = false;
     _gameOverSubscription = _eventBus.Subscribe<GameOver>(OnGameOver);
     _levelCompletedSubscription = _eventBus.Subscribe<LevelCompleted>(OnLevelCompleted);
   }
@@ -358,6 +393,26 @@ public sealed class GameScreenController
     _endReason = parReason;
     _isInputEnabled = false;
     _shouldExitGameScreen = true;
+  }
+
+  /// <summary>
+  /// Открывает меню паузы для тестов.
+  /// </summary>
+  public void OpenPauseMenuForTests()
+  {
+    _isPaused = true;
+    _isPauseMenuVisible = true;
+    _pauseMenuController.OpenMenu();
+  }
+
+  /// <summary>
+  /// Обрабатывает ввод меню паузы для тестов.
+  /// </summary>
+  /// <param name="parInput">Ввод меню паузы.</param>
+  public void HandlePauseMenuInputForTests(PauseMenuInput parInput)
+  {
+    var action = _pauseMenuController.HandleInput(parInput);
+    HandlePauseMenuAction(action);
   }
 
   private bool CanMove()
@@ -407,4 +462,56 @@ public sealed class GameScreenController
   /// Возвращает признак выхода с игрового экрана.
   /// </summary>
   public bool ShouldExitGameScreen => _shouldExitGameScreen;
+
+  /// <summary>
+  /// Возвращает признак выхода в меню.
+  /// </summary>
+  public bool ExitToMenuRequested => _exitToMenuRequested;
+
+  private void HandlePauseMenuInput(bool parPauseHeld)
+  {
+    var input = new PauseMenuInput(
+      GetEdge(ConsoleKey.UpArrow, ref _menuUpHeld),
+      GetEdge(ConsoleKey.DownArrow, ref _menuDownHeld),
+      GetEdge(ConsoleKey.Enter, ref _menuEnterHeld),
+      GetEdge(ConsoleKey.Escape, ref _menuEscapeHeld),
+      GetEdge(ConsoleKey.Y, ref _menuYesHeld),
+      GetEdge(ConsoleKey.N, ref _menuNoHeld));
+
+    if (parPauseHeld && !_menuPauseHeld)
+    {
+      _menuPauseHeld = true;
+      HandlePauseMenuAction(PauseMenuAction.Resume);
+      return;
+    }
+    _menuPauseHeld = parPauseHeld;
+
+    var action = _pauseMenuController.HandleInput(input);
+    HandlePauseMenuAction(action);
+  }
+
+  private void HandlePauseMenuAction(PauseMenuAction parAction)
+  {
+    switch (parAction)
+    {
+      case PauseMenuAction.Resume:
+        _isPauseMenuVisible = false;
+        _commandQueue.Enqueue(new TogglePauseCommand());
+        break;
+      case PauseMenuAction.ExitToMenu:
+        _exitToMenuRequested = true;
+        _isInputEnabled = false;
+        _shouldExitGameScreen = true;
+        _tickSignal.Set();
+        break;
+    }
+  }
+
+  private bool GetEdge(ConsoleKey parKey, ref bool parWasHeld)
+  {
+    bool held = _keyStateProvider.IsKeyDown(parKey);
+    bool edge = held && !parWasHeld;
+    parWasHeld = held;
+    return edge;
+  }
 }
