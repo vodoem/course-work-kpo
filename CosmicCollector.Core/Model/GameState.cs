@@ -40,6 +40,7 @@ public sealed class GameState
   private bool _isDisoriented;
   private double _disorientationRemainingSec;
   private int _droneMoveDirectionX;
+  private bool _isInBlackHoleCore;
 
   /// <summary>
   /// Инициализирует состояние игры со стандартным дроном.
@@ -599,6 +600,27 @@ public sealed class GameState
       lock (_lockObject)
       {
         return _droneMoveDirectionX;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Признак нахождения дрона в ядре чёрной дыры.
+  /// </summary>
+  internal bool IsInBlackHoleCore
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _isInBlackHoleCore;
+      }
+    }
+    set
+    {
+      lock (_lockObject)
+      {
+        _isInBlackHoleCore = value;
       }
     }
   }

@@ -5,6 +5,7 @@ using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Randomization;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CosmicCollector.Core.Services;
 
@@ -98,6 +99,7 @@ public sealed class GameWorldUpdateService
         isMagnetActive);
       SpawnObjects(parGameState, parLevel, tickCount, parEventPublisher);
       ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
+      HandleBlackHoleCoreCollisions(parGameState, parEventPublisher);
       var timeStabilizerCollected = false;
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive, ref timeStabilizerCollected);
       RemoveOutOfBoundsObjects(parGameState, parEventPublisher);
@@ -148,7 +150,7 @@ public sealed class GameWorldUpdateService
     var droneMultiplier = parIsAcceleratorActive ? DroneAcceleratorMultiplier : 1.0;
     var drone = parGameState.DroneInternal;
     var direction = NormalizeDirection(parGameState.IsDisoriented, parGameState.DroneMoveDirectionX);
-    drone.Velocity = new Vector2(direction * GameRules.DroneBaseSpeed, drone.Velocity.Y);
+    drone.Velocity = new Vector2(direction * GameRules.DroneBaseSpeed, 0);
     drone.Position = drone.Position.Add(drone.Velocity.Multiply(parDt * droneMultiplier));
     ClampDroneToBounds(parGameState);
 
@@ -173,6 +175,7 @@ public sealed class GameWorldUpdateService
         multiplier *= TimeStabilizerMultiplier;
       }
 
+      ApplyBlackHolePull(parGameState.BlackHolesInternal, asteroid, parDt);
       var velocity = asteroid.Velocity.Multiply(multiplier);
       asteroid.Position = asteroid.Position.Add(velocity.Multiply(parDt));
     }
@@ -244,6 +247,7 @@ public sealed class GameWorldUpdateService
     IEventPublisher parEventPublisher)
   {
     var drone = parGameState.DroneInternal;
+    var isInCoreNow = false;
 
     foreach (var blackHole in parGameState.BlackHolesInternal)
     {
@@ -258,15 +262,89 @@ public sealed class GameWorldUpdateService
       }
 
       var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
-      drone.Velocity = drone.Velocity.Add(acceleration.Multiply(parDt));
-      ActivateDisorientation(parGameState, DisorientationDurationSec);
+      drone.Velocity = new Vector2(
+        drone.Velocity.X + (acceleration.X * parDt),
+        0);
 
       if (distance <= blackHole.CoreRadius)
       {
-        drone.Energy -= BlackHoleCoreDamage;
-        parEventPublisher.Publish(new DamageTaken("BlackHole", BlackHoleCoreDamage));
+        isInCoreNow = true;
       }
     }
+
+    if (isInCoreNow && !parGameState.IsInBlackHoleCore)
+    {
+      parGameState.IsInBlackHoleCore = true;
+      ActivateDisorientation(parGameState, DisorientationDurationSec);
+      drone.Energy -= BlackHoleCoreDamage;
+      parEventPublisher.Publish(new DamageTaken("BlackHole", BlackHoleCoreDamage));
+    }
+    else if (!isInCoreNow && parGameState.IsInBlackHoleCore)
+    {
+      parGameState.IsInBlackHoleCore = false;
+    }
+  }
+
+  private void HandleBlackHoleCoreCollisions(
+    GameState parGameState,
+    IEventPublisher parEventPublisher)
+  {
+    var crystalsToRemove = new List<Crystal>();
+    var asteroidsToRemove = new List<Asteroid>();
+    var bonusesToRemove = new List<Bonus>();
+
+    foreach (var blackHole in parGameState.BlackHolesInternal)
+    {
+      foreach (var crystal in parGameState.CrystalsInternal)
+      {
+        if (IsWithinCore(crystal, blackHole))
+        {
+          crystalsToRemove.Add(crystal);
+        }
+      }
+
+      foreach (var asteroid in parGameState.AsteroidsInternal)
+      {
+        if (IsWithinCore(asteroid, blackHole))
+        {
+          asteroidsToRemove.Add(asteroid);
+        }
+      }
+
+      foreach (var bonus in parGameState.BonusesInternal)
+      {
+        if (IsWithinCore(bonus, blackHole))
+        {
+          bonusesToRemove.Add(bonus);
+        }
+      }
+    }
+
+    foreach (var crystal in crystalsToRemove.Distinct())
+    {
+      parGameState.CrystalsInternal.Remove(crystal);
+      parEventPublisher.Publish(new ObjectDespawned(crystal.Id, "BlackHoleCore"));
+    }
+
+    foreach (var asteroid in asteroidsToRemove.Distinct())
+    {
+      parGameState.AsteroidsInternal.Remove(asteroid);
+      parEventPublisher.Publish(new ObjectDespawned(asteroid.Id, "BlackHoleCore"));
+    }
+
+    foreach (var bonus in bonusesToRemove.Distinct())
+    {
+      parGameState.BonusesInternal.Remove(bonus);
+      parEventPublisher.Publish(new ObjectDespawned(bonus.Id, "BlackHoleCore"));
+    }
+  }
+
+  private static bool IsWithinCore(GameObject parObject, BlackHole parBlackHole)
+  {
+    var direction = new Vector2(
+      parBlackHole.Position.X - parObject.Position.X,
+      parBlackHole.Position.Y - parObject.Position.Y);
+    return direction.Length() <= parBlackHole.CoreRadius;
   }
 
   private void HandleCollisions(
