@@ -45,10 +45,10 @@ public sealed class GameScreenController
   private bool _rightHeld;
   private bool _pauseHeld;
   private int _moveDirection;
-  private bool _shouldExitGameScreen;
-  private bool _isInputEnabled = true;
-  private bool _isPauseMenuVisible;
-  private bool _exitToMenuRequested;
+  private volatile bool _shouldExitGameScreen;
+  private volatile bool _isInputEnabled = true;
+  private volatile bool _isPauseMenuVisible;
+  private volatile bool _exitToMenuRequested;
   private GameSnapshot? _finalSnapshot;
   private GameEndReason? _endReason;
   private GameSnapshot? _latestSnapshot;
@@ -118,7 +118,7 @@ public sealed class GameScreenController
     while (_isRunning)
     {
       _tickSignal.WaitOne();
-      if (_shouldExitGameScreen)
+      if (Volatile.Read(ref _shouldExitGameScreen))
       {
         _isRunning = false;
         break;
@@ -130,7 +130,7 @@ public sealed class GameScreenController
     _gameLoopRunner.Stop();
     StopInputLoop();
 
-    if (_exitToMenuRequested)
+    if (Volatile.Read(ref _exitToMenuRequested))
     {
       return GameEndAction.ReturnToMenu;
     }
@@ -205,8 +205,8 @@ public sealed class GameScreenController
   {
     _finalSnapshot = _snapshotProvider.GetSnapshot();
     _endReason = parReason;
-    _isInputEnabled = false;
-    _shouldExitGameScreen = true;
+    Volatile.Write(ref _isInputEnabled, false);
+    Volatile.Write(ref _shouldExitGameScreen, true);
     _tickSignal.Set();
   }
 
@@ -399,8 +399,8 @@ public sealed class GameScreenController
   {
     _finalSnapshot = parSnapshot;
     _endReason = parReason;
-    _isInputEnabled = false;
-    _shouldExitGameScreen = true;
+    Volatile.Write(ref _isInputEnabled, false);
+    Volatile.Write(ref _shouldExitGameScreen, true);
   }
 
   /// <summary>
@@ -512,9 +512,10 @@ public sealed class GameScreenController
         _commandQueue.Enqueue(new TogglePauseCommand());
         break;
       case PauseMenuAction.ExitToMenu:
-        _exitToMenuRequested = true;
-        _isInputEnabled = false;
-        _shouldExitGameScreen = true;
+        Volatile.Write(ref _exitToMenuRequested, true);
+        Volatile.Write(ref _isInputEnabled, false);
+        Volatile.Write(ref _shouldExitGameScreen, true);
+        _isRunning = false;
         _tickSignal.Set();
         break;
     }
