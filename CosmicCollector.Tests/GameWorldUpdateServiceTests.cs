@@ -186,20 +186,39 @@ public sealed class GameWorldUpdateServiceTests
   [Xunit.Fact]
   public void Update_AcceleratorIncreasesScore()
   {
+    var baseScore = GetScoreWithoutAccelerator();
+    var boostedScore = GetScoreWithAccelerator();
+
+    Xunit.Assert.Equal(baseScore * 2, boostedScore);
+  }
+
+  private static int GetScoreWithoutAccelerator()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddCrystal(CreateCrystal(CrystalType.Blue));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    return state.Score;
+  }
+
+  private static int GetScoreWithAccelerator()
+  {
     var random = new FakeRandomProvider(8);
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
 
     state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
-
     service.Update(state, 1.0 / 60.0, 1, bus);
 
     state.AddCrystal(CreateCrystal(CrystalType.Blue));
-
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    Xunit.Assert.Equal(10, state.Score);
+    return state.Score;
   }
 
   /// <summary>

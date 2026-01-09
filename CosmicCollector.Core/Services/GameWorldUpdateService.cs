@@ -19,7 +19,7 @@ public sealed class GameWorldUpdateService
   private const double MagnetAttractionAcceleration = 30.0;
   private const double BlackHoleAcceleration = 30.0;
   private const int BlackHoleCoreDamage = 40;
-  private const double AcceleratorScoreMultiplier = 1.25;
+  private const double AcceleratorScoreMultiplier = 2.0;
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
   private const double TimeStabilizerBonusSeconds = 5.0;
