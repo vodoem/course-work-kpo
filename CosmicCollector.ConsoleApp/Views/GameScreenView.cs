@@ -268,11 +268,11 @@ public sealed class GameScreenView : IGameScreenView
 
     string goalsLine = $"Цели: B={parSnapshot.parLevelGoals.parRequiredBlue} " +
                        $"G={parSnapshot.parLevelGoals.parRequiredGreen} " +
-                       $"R={parSnapshot.parLevelGoals.parRequiredRed} | " +
-                       $"Прогресс: B={parSnapshot.parLevelProgress.parCollectedBlue}/{parSnapshot.parLevelGoals.parRequiredBlue} " +
-                       $"G={parSnapshot.parLevelProgress.parCollectedGreen}/{parSnapshot.parLevelGoals.parRequiredGreen} " +
-                       $"R={parSnapshot.parLevelProgress.parCollectedRed}/{parSnapshot.parLevelGoals.parRequiredRed}";
-    WriteHudLine(parBuffer, parColors, 1, parWidth, goalsLine, string.Empty, string.Empty);
+                       $"R={parSnapshot.parLevelGoals.parRequiredRed}";
+    string progressLine = $"Прогресс: B={parSnapshot.parLevelProgress.parCollectedBlue}/{parSnapshot.parLevelGoals.parRequiredBlue} " +
+                          $"G={parSnapshot.parLevelProgress.parCollectedGreen}/{parSnapshot.parLevelGoals.parRequiredGreen} " +
+                          $"R={parSnapshot.parLevelProgress.parCollectedRed}/{parSnapshot.parLevelGoals.parRequiredRed}";
+    WriteHudLine(parBuffer, parColors, 1, parWidth, goalsLine, string.Empty, progressLine);
   }
 
   private void WriteHudLine(
