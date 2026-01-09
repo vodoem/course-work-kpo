@@ -25,11 +25,7 @@ public sealed class GameState
   private double _acceleratorRemainingSec;
   private double _timeStabilizerRemainingSec;
   private double _magnetRemainingSec;
-  private double _levelTimeRemainingSec;
-  private bool _hasLevelTimer;
-  private bool _collectedBlue;
-  private bool _collectedGreen;
-  private bool _collectedRed;
+  private readonly LevelState _levelState = new();
   private bool _isLevelCompleted;
   private bool _isGameOver;
   private long _tickCount;
@@ -133,15 +129,15 @@ public sealed class GameState
     {
       lock (_lockObject)
       {
-        return _levelTimeRemainingSec;
+        return _levelState.TimeRemainingSec;
       }
     }
     set
     {
       lock (_lockObject)
       {
-        _levelTimeRemainingSec = value;
-        _hasLevelTimer = true;
+        _levelState.TimeRemainingSec = value;
+        _levelState.HasTimer = true;
       }
     }
   }
@@ -155,8 +151,83 @@ public sealed class GameState
     {
       lock (_lockObject)
       {
-        return _hasLevelTimer;
+        return _levelState.HasTimer;
       }
+    }
+  }
+
+  /// <summary>
+  /// Возвращает номер текущего уровня.
+  /// </summary>
+  public int CurrentLevel
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _levelState.CurrentLevel;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Возвращает цели уровня.
+  /// </summary>
+  public LevelGoals LevelGoals
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _levelState.Goals;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Возвращает прогресс уровня.
+  /// </summary>
+  public LevelProgress LevelProgress
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _levelState.Progress;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Признак инициализации уровня.
+  /// </summary>
+  internal bool IsLevelInitialized
+  {
+    get
+    {
+      lock (_lockObject)
+      {
+        return _levelState.IsInitialized;
+      }
+    }
+  }
+
+  /// <summary>
+  /// Инициализирует данные уровня.
+  /// </summary>
+  /// <param name="parLevel">Номер уровня.</param>
+  /// <param name="parGoals">Цели уровня.</param>
+  /// <param name="parLevelTimeSec">Время уровня в секундах.</param>
+  internal void InitializeLevel(int parLevel, LevelGoals parGoals, double parLevelTimeSec)
+  {
+    lock (_lockObject)
+    {
+      _levelState.CurrentLevel = parLevel;
+      _levelState.Goals = parGoals;
+      _levelState.Progress.Reset();
+      _levelState.TimeRemainingSec = parLevelTimeSec;
+      _levelState.HasTimer = true;
+      _levelState.IsInitialized = true;
     }
   }
 
@@ -390,8 +461,17 @@ public sealed class GameState
       return new Snapshots.GameSnapshot(
         _isPaused,
         _tickNo,
-        _hasLevelTimer,
-        _levelTimeRemainingSec,
+        _levelState.CurrentLevel,
+        new Snapshots.LevelGoalsSnapshot(
+          _levelState.Goals.RequiredBlue,
+          _levelState.Goals.RequiredGreen,
+          _levelState.Goals.RequiredRed),
+        new Snapshots.LevelProgressSnapshot(
+          _levelState.Progress.CollectedBlue,
+          _levelState.Progress.CollectedGreen,
+          _levelState.Progress.CollectedRed),
+        _levelState.HasTimer,
+        _levelState.TimeRemainingSec,
         droneSnapshot,
         crystals,
         asteroids,
@@ -494,13 +574,13 @@ public sealed class GameState
     switch (parType)
     {
       case CrystalType.Blue:
-        _collectedBlue = true;
+        _levelState.Progress.CollectedBlue++;
         break;
       case CrystalType.Green:
-        _collectedGreen = true;
+        _levelState.Progress.CollectedGreen++;
         break;
       case CrystalType.Red:
-        _collectedRed = true;
+        _levelState.Progress.CollectedRed++;
         break;
     }
   }
@@ -511,7 +591,9 @@ public sealed class GameState
   /// <returns>Истина, если все типы собраны.</returns>
   internal bool HasAllCrystalTypes()
   {
-    return _collectedBlue && _collectedGreen && _collectedRed;
+    return _levelState.Progress.CollectedBlue > 0
+      && _levelState.Progress.CollectedGreen > 0
+      && _levelState.Progress.CollectedRed > 0;
   }
 
   /// <summary>

@@ -166,6 +166,9 @@ public sealed class GameEndControllerTests
     return new GameSnapshot(
       false,
       0,
+      1,
+      new LevelGoalsSnapshot(1, 1, 1),
+      new LevelProgressSnapshot(0, 0, 0),
       parHasTimer,
       parTime,
       drone,

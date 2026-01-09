@@ -23,8 +23,10 @@ public sealed class GameSessionFactory : IGameSessionFactory
     var commandQueue = new CommandQueue();
     var randomProvider = new DefaultRandomProvider();
     var updateService = new GameWorldUpdateService(randomProvider, SpawnConfig.Default);
+    var levelService = new LevelService(new LevelConfigProvider());
     var snapshotProvider = new GameSnapshotProvider(gameState);
     InitializeDrone(gameState);
+    levelService.InitLevel(gameState);
     var gameLoopRunner = new GameLoopRunner(
       gameState,
       commandQueue,

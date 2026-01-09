@@ -259,6 +259,9 @@ public sealed class GameScreenControllerTests
     return new GameSnapshot(
       false,
       0,
+      1,
+      new LevelGoalsSnapshot(1, 1, 1),
+      new LevelProgressSnapshot(0, 0, 0),
       false,
       0,
       drone,
