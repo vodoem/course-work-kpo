@@ -545,6 +545,133 @@ public sealed class GameWorldUpdateServiceTests
   }
 
   /// <summary>
+  /// Проверяет, что чёрная дыра двигается вниз по скорости.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHole_MovesDown_WhenSpawned()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      new Vector2(0, 10),
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.True(blackHole.Position.Y > 0);
+  }
+
+  /// <summary>
+  /// Проверяет удаление чёрной дыры при выходе за нижнюю границу.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHole_Despawns_WhenOutOfBounds()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var bounds = new WorldBounds(0, 0, 100, 100);
+    var state = CreateStateWithDrone(bounds);
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      new Vector2(50, 106),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var snapshot = state.GetSnapshot();
+    Xunit.Assert.Empty(snapshot.parBlackHoles);
+    Xunit.Assert.Equal("OutOfBounds", reason);
+  }
+
+  /// <summary>
+  /// Проверяет замедление чёрной дыры стабилизатором времени.
+  /// </summary>
+  [Xunit.Fact]
+  public void TimeStabilizer_SlowsDown_BlackHole()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      new Vector2(0, 10),
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.InRange(blackHole.Position.Y, 6.49, 6.51);
+  }
+
+  /// <summary>
+  /// Проверяет притяжение кристаллов и бонусов к чёрной дыре.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHole_Pulls_Crystals_And_Bonuses_WithinRadius()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      new Vector2(100, 0),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    var bonus = new Bonus(
+      Guid.NewGuid(),
+      new Vector2(100, 0),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      BonusType.Magnet,
+      5);
+    state.AddBonus(bonus);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.True(crystal.Velocity.X < 0);
+    Xunit.Assert.True(bonus.Velocity.X < 0);
+  }
+
+  /// <summary>
   /// Проверяет, что пауза останавливает обновление мира.
   /// </summary>
   [Xunit.Fact]

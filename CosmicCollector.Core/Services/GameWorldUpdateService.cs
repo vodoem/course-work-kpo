@@ -159,6 +159,7 @@ public sealed class GameWorldUpdateService
         ApplyMagnetEffect(parGameState.DroneInternal, crystal, parDt);
       }
 
+      ApplyBlackHolePull(parGameState.BlackHolesInternal, crystal, parDt);
       var velocity = crystal.Velocity.Multiply(parSpeedMultiplier);
       crystal.Position = crystal.Position.Add(velocity.Multiply(parDt));
     }
@@ -178,8 +179,45 @@ public sealed class GameWorldUpdateService
 
     foreach (var bonus in parGameState.BonusesInternal)
     {
+      ApplyBlackHolePull(parGameState.BlackHolesInternal, bonus, parDt);
       var velocity = bonus.Velocity.Multiply(parSpeedMultiplier);
       bonus.Position = bonus.Position.Add(velocity.Multiply(parDt));
+    }
+
+    foreach (var blackHole in parGameState.BlackHolesInternal)
+    {
+      var multiplier = parSpeedMultiplier;
+
+      if (parIsTimeStabilizerActive)
+      {
+        multiplier *= TimeStabilizerMultiplier;
+      }
+
+      var velocity = blackHole.Velocity.Multiply(multiplier);
+      blackHole.Position = blackHole.Position.Add(velocity.Multiply(parDt));
+    }
+  }
+
+  private void ApplyBlackHolePull<TObject>(
+    IReadOnlyList<BlackHole> parBlackHoles,
+    TObject parObject,
+    double parDt)
+    where TObject : GameObject
+  {
+    foreach (var blackHole in parBlackHoles)
+    {
+      var direction = new Vector2(
+        blackHole.Position.X - parObject.Position.X,
+        blackHole.Position.Y - parObject.Position.Y);
+      var distance = direction.Length();
+
+      if (distance <= 0 || distance > blackHole.Radius)
+      {
+        continue;
+      }
+
+      var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
+      parObject.Velocity = parObject.Velocity.Add(acceleration.Multiply(parDt));
     }
   }
 
@@ -373,6 +411,7 @@ public sealed class GameWorldUpdateService
     var crystalsToRemove = new List<Crystal>();
     var asteroidsToRemove = new List<Asteroid>();
     var bonusesToRemove = new List<Bonus>();
+    var blackHolesToRemove = new List<BlackHole>();
 
     foreach (var crystal in parGameState.CrystalsInternal)
     {
@@ -398,6 +437,14 @@ public sealed class GameWorldUpdateService
       }
     }
 
+    foreach (var blackHole in parGameState.BlackHolesInternal)
+    {
+      if (IsBelowBottom(blackHole, bounds))
+      {
+        blackHolesToRemove.Add(blackHole);
+      }
+    }
+
     foreach (var crystal in crystalsToRemove)
     {
       parGameState.CrystalsInternal.Remove(crystal);
@@ -414,6 +461,12 @@ public sealed class GameWorldUpdateService
     {
       parGameState.BonusesInternal.Remove(bonus);
       parEventPublisher.Publish(new ObjectDespawned(bonus.Id, "OutOfBounds"));
+    }
+
+    foreach (var blackHole in blackHolesToRemove)
+    {
+      parGameState.BlackHolesInternal.Remove(blackHole);
+      parEventPublisher.Publish(new ObjectDespawned(blackHole.Id, "OutOfBounds"));
     }
   }
 
