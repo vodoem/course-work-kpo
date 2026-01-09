@@ -1,3 +1,4 @@
+using System;
 using CosmicCollector.Core.Entities;
 using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
@@ -1031,29 +1032,56 @@ public sealed class GameWorldUpdateServiceTests
   }
 
   /// <summary>
-  /// Проверяет победу при достижении RequiredScore и сборе всех типов кристаллов.
+  /// Проверяет переход на следующий уровень при достижении целей.
   /// </summary>
   [Xunit.Fact]
-  public void Update_LevelCompletedWhenScoreAndTypesMet()
+  public void Update_LevelCompleted_AdvancesLevelAndResetsProgress()
   {
     var random = new FakeRandomProvider(10);
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
     var completed = 0;
-
-    state.RequiredScore = 10;
-    state.LevelTimeRemainingSec = 100;
+    var configProvider = new LevelConfigProvider();
+    var level1 = configProvider.GetConfig(1);
+    var level2 = configProvider.GetConfig(2);
 
     bus.Subscribe<LevelCompleted>(_ => completed++);
 
-    state.AddCrystal(CreateCrystal(CrystalType.Blue));
-    state.AddCrystal(CreateCrystal(CrystalType.Green));
-    state.AddCrystal(CreateCrystal(CrystalType.Red));
+    for (int i = 0; i < level1.parRequiredBlue; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Blue));
+    }
+
+    for (int i = 0; i < level1.parRequiredGreen; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Green));
+    }
+
+    for (int i = 0; i < level1.parRequiredRed; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Red));
+    }
+
+    var points = (level1.parRequiredBlue * 10) + (level1.parRequiredGreen * 7) + (level1.parRequiredRed * 4);
+    var extraBlue = Math.Max(0, (int)Math.Ceiling((level1.parRequiredScore - points) / 10.0));
+
+    for (int i = 0; i < extraBlue; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Blue));
+    }
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    Xunit.Assert.True(state.IsLevelCompleted);
+    Xunit.Assert.Equal(2, state.CurrentLevel);
+    Xunit.Assert.Equal(level2.parRequiredBlue, state.LevelGoals.RequiredBlue);
+    Xunit.Assert.Equal(level2.parRequiredGreen, state.LevelGoals.RequiredGreen);
+    Xunit.Assert.Equal(level2.parRequiredRed, state.LevelGoals.RequiredRed);
+    Xunit.Assert.Equal(level2.parRequiredScore, state.RequiredScore);
+    Xunit.Assert.Equal(0, state.LevelProgress.CollectedBlue);
+    Xunit.Assert.Equal(0, state.LevelProgress.CollectedGreen);
+    Xunit.Assert.Equal(0, state.LevelProgress.CollectedRed);
+    Xunit.Assert.True(state.LevelTimeRemainingSec > 0);
     Xunit.Assert.Equal(1, completed);
   }
 

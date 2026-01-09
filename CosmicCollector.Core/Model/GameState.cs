@@ -218,13 +218,14 @@ public sealed class GameState
   /// <param name="parLevel">Номер уровня.</param>
   /// <param name="parGoals">Цели уровня.</param>
   /// <param name="parLevelTimeSec">Время уровня в секундах.</param>
-  internal void InitializeLevel(int parLevel, LevelGoals parGoals, double parLevelTimeSec)
+  internal void InitializeLevel(int parLevel, LevelGoals parGoals, int parRequiredScore, double parLevelTimeSec)
   {
     lock (_lockObject)
     {
       _levelState.CurrentLevel = parLevel;
       _levelState.Goals = parGoals;
       _levelState.Progress.Reset();
+      _requiredScore = parRequiredScore;
       _levelState.TimeRemainingSec = parLevelTimeSec;
       _levelState.HasTimer = true;
       _levelState.IsInitialized = true;
@@ -462,6 +463,7 @@ public sealed class GameState
         _isPaused,
         _tickNo,
         _levelState.CurrentLevel,
+        _requiredScore,
         new Snapshots.LevelGoalsSnapshot(
           _levelState.Goals.RequiredBlue,
           _levelState.Goals.RequiredGreen,

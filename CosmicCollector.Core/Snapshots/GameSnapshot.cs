@@ -8,6 +8,7 @@ namespace CosmicCollector.Core.Snapshots;
 /// <param name="parIsPaused">Признак паузы.</param>
 /// <param name="parTickNo">Номер тика.</param>
 /// <param name="parCurrentLevel">Номер текущего уровня.</param>
+/// <param name="parRequiredScore">Требуемое число очков.</param>
 /// <param name="parLevelGoals">Цели уровня.</param>
 /// <param name="parLevelProgress">Прогресс уровня.</param>
 /// <param name="parHasLevelTimer">Признак наличия таймера уровня.</param>
@@ -21,6 +22,7 @@ public sealed record GameSnapshot(
   bool parIsPaused,
   long parTickNo,
   int parCurrentLevel,
+  int parRequiredScore,
   LevelGoalsSnapshot parLevelGoals,
   LevelProgressSnapshot parLevelProgress,
   bool parHasLevelTimer,

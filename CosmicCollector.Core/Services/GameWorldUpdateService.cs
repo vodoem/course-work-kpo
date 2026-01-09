@@ -29,13 +29,14 @@ public sealed class GameWorldUpdateService
 
   private readonly IRandomProvider _randomProvider;
   private readonly SpawnSystem _spawnSystem;
+  private readonly LevelService _levelService;
 
   /// <summary>
   /// Инициализирует сервис обновления мира.
   /// </summary>
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   public GameWorldUpdateService(IRandomProvider parRandomProvider)
-    : this(parRandomProvider, SpawnConfig.Disabled)
+    : this(parRandomProvider, SpawnConfig.Disabled, new LevelService(new LevelConfigProvider()))
   {
   }
 
@@ -45,9 +46,24 @@ public sealed class GameWorldUpdateService
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   /// <param name="parSpawnConfig">Конфигурация спавна.</param>
   public GameWorldUpdateService(IRandomProvider parRandomProvider, SpawnConfig parSpawnConfig)
+    : this(parRandomProvider, parSpawnConfig, new LevelService(new LevelConfigProvider()))
+  {
+  }
+
+  /// <summary>
+  /// Инициализирует сервис обновления мира.
+  /// </summary>
+  /// <param name="parRandomProvider">Провайдер случайных значений.</param>
+  /// <param name="parSpawnConfig">Конфигурация спавна.</param>
+  /// <param name="parLevelService">Сервис уровней.</param>
+  public GameWorldUpdateService(
+    IRandomProvider parRandomProvider,
+    SpawnConfig parSpawnConfig,
+    LevelService parLevelService)
   {
     _randomProvider = parRandomProvider;
     _spawnSystem = new SpawnSystem(parRandomProvider, parSpawnConfig);
+    _levelService = parLevelService;
   }
 
   /// <summary>
@@ -70,10 +86,12 @@ public sealed class GameWorldUpdateService
 
     lock (parGameState.SyncRoot)
     {
-      if (parGameState.IsLevelCompleted || parGameState.IsGameOver)
+      if (parGameState.IsGameOver)
       {
         return;
       }
+
+      _levelService.InitLevel(parGameState);
 
       if (parGameState.IsPaused)
       {
@@ -108,8 +126,7 @@ public sealed class GameWorldUpdateService
           !timeStabilizerCollected &&
           !parGameState.IsPaused &&
           !parGameState.IsResumeCountdownActive &&
-          !parGameState.IsGameOver &&
-          !parGameState.IsLevelCompleted)
+          !parGameState.IsGameOver)
       {
         parGameState.LevelTimeRemainingSec = Math.Max(0, parGameState.LevelTimeRemainingSec - parDt);
       }
@@ -437,11 +454,22 @@ public sealed class GameWorldUpdateService
       return;
     }
 
-    if (parGameState.Score >= parGameState.RequiredScore && parGameState.HasAllCrystalTypes())
+    if (IsLevelGoalsMet(parGameState))
     {
-      parGameState.MarkLevelCompleted();
-      parEventPublisher.Publish(new LevelCompleted("ScoreAndTypes"));
+      _levelService.AdvanceLevel(parGameState);
+      parEventPublisher.Publish(new LevelCompleted("GoalsAndScore"));
     }
+  }
+
+  private static bool IsLevelGoalsMet(GameState parGameState)
+  {
+    var goals = parGameState.LevelGoals;
+    var progress = parGameState.LevelProgress;
+
+    return parGameState.Score >= parGameState.RequiredScore
+      && progress.CollectedBlue >= goals.RequiredBlue
+      && progress.CollectedGreen >= goals.RequiredGreen
+      && progress.CollectedRed >= goals.RequiredRed;
   }
 
   private void ProcessResumeCountdown(

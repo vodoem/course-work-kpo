@@ -261,14 +261,18 @@ public sealed class GameScreenView : IGameScreenView
     GameSnapshot parSnapshot,
     int parLevel)
   {
-    string goals = "Цели: B=— G=— R=— | Цель энергии: —";
-    string progress = $"Уровень: {parLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
+    string goals = $"Цель очков: {parSnapshot.parRequiredScore}";
+    string progress = $"Уровень: {parSnapshot.parCurrentLevel} | Энергия: {parSnapshot.parDrone.parEnergy} | Очки: {parSnapshot.parDrone.parScore}";
     string timerLine = GetTimerText(parSnapshot, parWidth / 3);
     WriteHudLine(parBuffer, parColors, 0, parWidth, goals, timerLine, progress);
 
-    string collected = "Собрано: B=— G=— R=—";
-    string progressLine = "Прогресс: B=— G=— R=—";
-    WriteHudLine(parBuffer, parColors, 1, parWidth, collected, string.Empty, progressLine);
+    string goalsLine = $"Цели: B={parSnapshot.parLevelGoals.parRequiredBlue} " +
+                       $"G={parSnapshot.parLevelGoals.parRequiredGreen} " +
+                       $"R={parSnapshot.parLevelGoals.parRequiredRed} | " +
+                       $"Прогресс: B={parSnapshot.parLevelProgress.parCollectedBlue}/{parSnapshot.parLevelGoals.parRequiredBlue} " +
+                       $"G={parSnapshot.parLevelProgress.parCollectedGreen}/{parSnapshot.parLevelGoals.parRequiredGreen} " +
+                       $"R={parSnapshot.parLevelProgress.parCollectedRed}/{parSnapshot.parLevelGoals.parRequiredRed}";
+    WriteHudLine(parBuffer, parColors, 1, parWidth, goalsLine, string.Empty, string.Empty);
   }
 
   private void WriteHudLine(

@@ -159,6 +159,7 @@ public sealed class GameScreenController
       _latestSnapshot = snapshot;
     }
 
+    _level = snapshot.parCurrentLevel;
     _tickSignal.Set();
   }
 
@@ -198,7 +199,7 @@ public sealed class GameScreenController
 
   private void OnLevelCompleted(LevelCompleted parEvent)
   {
-    HandleGameEnd(GameEndReason.LevelCompleted);
+    _level = _snapshotProvider.GetSnapshot().parCurrentLevel;
   }
 
   private void HandleGameEnd(GameEndReason parReason)

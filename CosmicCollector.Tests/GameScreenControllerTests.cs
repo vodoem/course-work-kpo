@@ -2,6 +2,7 @@ using System;
 using CosmicCollector.ConsoleApp.Controllers;
 using CosmicCollector.ConsoleApp.Infrastructure;
 using CosmicCollector.ConsoleApp.Views;
+using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Snapshots;
 using CosmicCollector.MVC.Commands;
@@ -161,6 +162,24 @@ public sealed class GameScreenControllerTests
   }
 
   /// <summary>
+  /// Проверяет, что LevelCompleted не завершает игру.
+  /// </summary>
+  [Xunit.Fact]
+  public void PublishLevelCompleted_DoesNotExitGame()
+  {
+    var queue = new CommandQueue();
+    var bus = new EventBus();
+    var snapshotProvider = new TestSnapshotProvider(CreateSnapshot(2));
+    var controller = CreateController(queue, new TestGameScreenView(), bus, snapshotProvider);
+    controller.InitializeForTests();
+
+    bus.Publish(new LevelCompleted("Test"));
+
+    Xunit.Assert.False(controller.ShouldExitGameScreen);
+    Xunit.Assert.Null(controller.EndReason);
+  }
+
+  /// <summary>
   /// Проверяет выход в меню через подтверждение паузы.
   /// </summary>
   [Xunit.Fact]
@@ -244,7 +263,31 @@ public sealed class GameScreenControllerTests
       1);
   }
 
+  private static GameScreenController CreateController(
+    CommandQueue parQueue,
+    TestGameScreenView parView,
+    EventBus parEventBus,
+    IGameSnapshotProvider parSnapshotProvider)
+  {
+    return new GameScreenController(
+      parView,
+      parEventBus,
+      parSnapshotProvider,
+      new TestLoopRunner(),
+      parQueue,
+      new TestKeyStateProvider(),
+      new TestConsoleRenderer(),
+      new TestInputReader(),
+      new TestRecordsRepository(),
+      1);
+  }
+
   private static GameSnapshot CreateSnapshot()
+  {
+    return CreateSnapshot(1);
+  }
+
+  private static GameSnapshot CreateSnapshot(int parLevel)
   {
     var drone = new DroneSnapshot(
       Guid.NewGuid(),
@@ -259,7 +302,8 @@ public sealed class GameScreenControllerTests
     return new GameSnapshot(
       false,
       0,
-      1,
+      parLevel,
+      10,
       new LevelGoalsSnapshot(1, 1, 1),
       new LevelProgressSnapshot(0, 0, 0),
       false,
@@ -285,9 +329,21 @@ public sealed class GameScreenControllerTests
 
   private sealed class TestSnapshotProvider : IGameSnapshotProvider
   {
+    private readonly GameSnapshot _snapshot;
+
+    public TestSnapshotProvider()
+      : this(CreateSnapshot())
+    {
+    }
+
+    public TestSnapshotProvider(GameSnapshot parSnapshot)
+    {
+      _snapshot = parSnapshot;
+    }
+
     public GameSnapshot GetSnapshot()
     {
-      return CreateSnapshot();
+      return _snapshot;
     }
   }
 

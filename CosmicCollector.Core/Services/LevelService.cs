@@ -24,7 +24,7 @@ public sealed class LevelService
   /// <param name="parGameState">Состояние игры.</param>
   public void InitLevel(GameState parGameState)
   {
-    if (parGameState.IsLevelInitialized)
+    if (parGameState.IsLevelInitialized || parGameState.HasLevelTimer)
     {
       return;
     }
@@ -38,6 +38,18 @@ public sealed class LevelService
 
     var config = _configProvider.GetConfig(level);
     var goals = new LevelGoals(config.parRequiredBlue, config.parRequiredGreen, config.parRequiredRed);
-    parGameState.InitializeLevel(level, goals, config.parLevelTimeSec);
+    parGameState.InitializeLevel(level, goals, config.parRequiredScore, config.parLevelTimeSec);
+  }
+
+  /// <summary>
+  /// Переходит к следующему уровню и сбрасывает прогресс.
+  /// </summary>
+  /// <param name="parGameState">Состояние игры.</param>
+  public void AdvanceLevel(GameState parGameState)
+  {
+    var nextLevel = parGameState.CurrentLevel + 1;
+    var config = _configProvider.GetConfig(nextLevel);
+    var goals = new LevelGoals(config.parRequiredBlue, config.parRequiredGreen, config.parRequiredRed);
+    parGameState.InitializeLevel(nextLevel, goals, config.parRequiredScore, config.parLevelTimeSec);
   }
 }

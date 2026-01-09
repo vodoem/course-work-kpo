@@ -23,6 +23,7 @@ public sealed class LevelServiceTests
     Xunit.Assert.True(state.LevelGoals.RequiredBlue > 0);
     Xunit.Assert.True(state.LevelGoals.RequiredGreen > 0);
     Xunit.Assert.True(state.LevelGoals.RequiredRed > 0);
+    Xunit.Assert.True(state.RequiredScore > 0);
   }
 
   /// <summary>
@@ -39,6 +40,7 @@ public sealed class LevelServiceTests
     var snapshot = state.GetSnapshot();
 
     Xunit.Assert.Equal(1, snapshot.parCurrentLevel);
+    Xunit.Assert.Equal(state.RequiredScore, snapshot.parRequiredScore);
     Xunit.Assert.Equal(state.LevelGoals.RequiredBlue, snapshot.parLevelGoals.parRequiredBlue);
     Xunit.Assert.Equal(state.LevelGoals.RequiredGreen, snapshot.parLevelGoals.parRequiredGreen);
     Xunit.Assert.Equal(state.LevelGoals.RequiredRed, snapshot.parLevelGoals.parRequiredRed);
