@@ -171,13 +171,49 @@ public sealed class GameScreenControllerTests
     controller.StartForTests();
     controller.OpenPauseMenuForTests();
 
-    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, true, false, false, false, false));
-    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, true, false, false, false));
-    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, false, false, true, false));
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, true, false, false, false, false), false);
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, true, false, false, false), false);
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, false, false, true, false), false);
 
     Xunit.Assert.True(controller.ShouldExitGameScreen);
     Xunit.Assert.True(controller.ExitToMenuRequested);
     Xunit.Assert.False(controller.IsInputEnabled);
+  }
+
+  /// <summary>
+  /// Проверяет отсутствие двойного TogglePause при одном нажатии.
+  /// </summary>
+  [Xunit.Fact]
+  public void PauseMenu_DoesNotResume_OnInitialPausePress()
+  {
+    var queue = new CommandQueue();
+    var controller = CreateController(queue);
+    controller.StartForTests();
+    controller.OpenPauseMenuForTests();
+
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, false, false, false, false), true);
+
+    Xunit.Assert.Empty(queue.DrainAll());
+  }
+
+  /// <summary>
+  /// Проверяет, что повторное нажатие паузы после отпускания продолжает игру.
+  /// </summary>
+  [Xunit.Fact]
+  public void PauseMenu_Resume_OnPauseKeyAfterRelease()
+  {
+    var queue = new CommandQueue();
+    var controller = CreateController(queue);
+    controller.StartForTests();
+    controller.OpenPauseMenuForTests();
+
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, false, false, false, false), true);
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, false, false, false, false), false);
+    controller.HandlePauseMenuInputForTests(new PauseMenuInput(false, false, false, false, false, false), true);
+
+    var commands = queue.DrainAll();
+    Xunit.Assert.Single(commands);
+    Xunit.Assert.IsType<TogglePauseCommand>(commands[0]);
   }
 
   private static GameScreenController CreateController(CommandQueue parQueue)

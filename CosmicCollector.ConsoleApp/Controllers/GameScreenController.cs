@@ -170,6 +170,14 @@ public sealed class GameScreenController
     {
       SetMoveDirection(0);
       _isPauseMenuVisible = true;
+      _menuPauseHeld = true;
+      _menuUpHeld = false;
+      _menuDownHeld = false;
+      _menuEnterHeld = false;
+      _menuEscapeHeld = false;
+      _menuYesHeld = false;
+      _menuNoHeld = false;
+      _pauseHeld = true;
       _pauseMenuController.OpenMenu();
     }
     else
@@ -409,10 +417,10 @@ public sealed class GameScreenController
   /// Обрабатывает ввод меню паузы для тестов.
   /// </summary>
   /// <param name="parInput">Ввод меню паузы.</param>
-  public void HandlePauseMenuInputForTests(PauseMenuInput parInput)
+  /// <param name="parPauseHeld">Признак удержания паузы.</param>
+  public void HandlePauseMenuInputForTests(PauseMenuInput parInput, bool parPauseHeld)
   {
-    var action = _pauseMenuController.HandleInput(parInput);
-    HandlePauseMenuAction(action);
+    HandlePauseMenuInputInternal(parInput, parPauseHeld);
   }
 
   private bool CanMove()
@@ -478,6 +486,11 @@ public sealed class GameScreenController
       GetEdge(ConsoleKey.Y, ref _menuYesHeld),
       GetEdge(ConsoleKey.N, ref _menuNoHeld));
 
+    HandlePauseMenuInputInternal(input, parPauseHeld);
+  }
+
+  private void HandlePauseMenuInputInternal(PauseMenuInput parInput, bool parPauseHeld)
+  {
     if (parPauseHeld && !_menuPauseHeld)
     {
       _menuPauseHeld = true;
@@ -486,7 +499,7 @@ public sealed class GameScreenController
     }
     _menuPauseHeld = parPauseHeld;
 
-    var action = _pauseMenuController.HandleInput(input);
+    var action = _pauseMenuController.HandleInput(parInput);
     HandlePauseMenuAction(action);
   }
 
