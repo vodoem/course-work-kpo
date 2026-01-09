@@ -5,6 +5,7 @@ using CosmicCollector.Core.Snapshots;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Loop;
+using CosmicCollector.Persistence.Records;
 using System;
 using System.Diagnostics;
 using System.Threading;
@@ -24,6 +25,7 @@ public sealed class GameScreenController
   private readonly IKeyStateProvider _keyStateProvider;
   private readonly IConsoleRenderer _renderer;
   private readonly IConsoleInputReader _inputReader;
+  private readonly IRecordsRepository _recordsRepository;
   private readonly AutoResetEvent _tickSignal = new(false);
   private readonly object _snapshotLock = new();
   private IDisposable? _gameStartedSubscription;
@@ -69,6 +71,7 @@ public sealed class GameScreenController
     IKeyStateProvider parKeyStateProvider,
     IConsoleRenderer parRenderer,
     IConsoleInputReader parInputReader,
+    IRecordsRepository parRecordsRepository,
     int parLevel)
   {
     _view = parView;
@@ -79,6 +82,7 @@ public sealed class GameScreenController
     _keyStateProvider = parKeyStateProvider;
     _renderer = parRenderer;
     _inputReader = parInputReader;
+    _recordsRepository = parRecordsRepository;
     _level = parLevel;
   }
 
@@ -120,7 +124,7 @@ public sealed class GameScreenController
     }
 
     GameEndView view = new GameEndView(_renderer);
-    GameEndController controller = new GameEndController(view, _inputReader);
+    GameEndController controller = new GameEndController(view, _inputReader, _recordsRepository);
     return controller.Run(_endReason.Value, _finalSnapshot, _level);
   }
 

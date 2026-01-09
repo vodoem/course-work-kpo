@@ -119,6 +119,7 @@ public sealed class MainMenuController
               keyStateProvider,
               _renderer,
               _inputReader,
+              _recordsRepository,
               session.Level);
             action = gameScreenController.Run();
           }

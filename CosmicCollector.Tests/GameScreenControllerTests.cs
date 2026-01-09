@@ -7,6 +7,7 @@ using CosmicCollector.Core.Snapshots;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Loop;
+using CosmicCollector.Persistence.Records;
 
 namespace CosmicCollector.Tests;
 
@@ -183,6 +184,7 @@ public sealed class GameScreenControllerTests
       new TestKeyStateProvider(),
       new TestConsoleRenderer(),
       new TestInputReader(),
+      new TestRecordsRepository(),
       1);
   }
 
@@ -303,5 +305,21 @@ public sealed class GameScreenControllerTests
     public int WindowWidth => 80;
 
     public int WindowHeight => 25;
+  }
+
+  private sealed class TestRecordsRepository : IRecordsRepository
+  {
+    public IReadOnlyList<RecordEntry> LoadAll()
+    {
+      return Array.Empty<RecordEntry>();
+    }
+
+    public void SaveAll(IReadOnlyList<RecordEntry> parRecords)
+    {
+    }
+
+    public void Add(RecordEntry parRecord)
+    {
+    }
   }
 }
