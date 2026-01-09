@@ -10,4 +10,9 @@ public interface IConsoleInputReader
   /// </summary>
   /// <returns>Сведения о нажатой клавише.</returns>
   ConsoleKeyInfo ReadKey();
+
+  /// <summary>
+  /// Очищает буфер ввода.
+  /// </summary>
+  void ClearBuffer();
 }

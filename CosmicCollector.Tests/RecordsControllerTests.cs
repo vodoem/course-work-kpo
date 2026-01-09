@@ -128,5 +128,9 @@ public sealed class RecordsControllerTests
       ConsoleKey key = _keys.Dequeue();
       return new ConsoleKeyInfo('\0', key, false, false, false);
     }
+
+    public void ClearBuffer()
+    {
+    }
   }
 }

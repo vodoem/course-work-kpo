@@ -317,6 +317,10 @@ public sealed class GameScreenControllerTests
     {
       return new ConsoleKeyInfo('\0', ConsoleKey.NoName, false, false, false);
     }
+
+    public void ClearBuffer()
+    {
+    }
   }
 
   private sealed class TestConsoleRenderer : IConsoleRenderer

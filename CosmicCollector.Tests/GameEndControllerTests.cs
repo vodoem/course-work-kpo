@@ -193,6 +193,10 @@ public sealed class GameEndControllerTests
 
       return _keys.Dequeue();
     }
+
+    public void ClearBuffer()
+    {
+    }
   }
 
   private sealed class TestGameEndView : IGameEndView

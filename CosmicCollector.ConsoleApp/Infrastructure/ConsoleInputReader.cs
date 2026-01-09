@@ -10,4 +10,13 @@ public sealed class ConsoleInputReader : IConsoleInputReader
   {
     return Console.ReadKey(true);
   }
+
+  /// <inheritdoc />
+  public void ClearBuffer()
+  {
+    while (Console.KeyAvailable)
+    {
+      Console.ReadKey(true);
+    }
+  }
 }

@@ -124,6 +124,7 @@ public sealed class MainMenuController
             action = gameScreenController.Run();
           }
 
+          _inputReader.ClearBuffer();
           _view.Render(selectedIndex);
           continue;
         }

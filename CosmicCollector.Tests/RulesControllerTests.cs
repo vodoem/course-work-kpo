@@ -112,5 +112,9 @@ public sealed class RulesControllerTests
       ConsoleKey key = _keys.Dequeue();
       return new ConsoleKeyInfo('\0', key, false, false, false);
     }
+
+    public void ClearBuffer()
+    {
+    }
   }
 }
