@@ -79,6 +79,9 @@ public sealed class PauseMenuControllerTests
 
   private sealed class TestPauseMenuView : IPauseMenuView
   {
+    /// <summary>
+    /// Проверяет сценарий Render.
+    /// </summary>
     public void Render(PauseMenuMode parMode, PauseMenuOption[] parOptions, int parSelectedIndex)
     {
     }

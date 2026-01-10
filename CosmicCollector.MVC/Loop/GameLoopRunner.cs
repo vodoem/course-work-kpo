@@ -81,6 +81,9 @@ public sealed class GameLoopRunner : IGameLoopRunner
     Stop();
   }
 
+  /// <summary>
+  /// Выполняет RunLoop.
+  /// </summary>
   private void RunLoop()
   {
     var stopwatch = Stopwatch.StartNew();
@@ -106,6 +109,9 @@ public sealed class GameLoopRunner : IGameLoopRunner
     }
   }
 
+  /// <summary>
+  /// Выполняет ProcessCommands.
+  /// </summary>
   private void ProcessCommands()
   {
     var commands = _commandQueue.DrainAll();
@@ -138,11 +144,17 @@ public sealed class GameLoopRunner : IGameLoopRunner
     }
   }
 
+  /// <summary>
+  /// Выполняет ApplyMoveCommand.
+  /// </summary>
   private void ApplyMoveCommand(int parDirection)
   {
     _gameState.SetDroneMoveDirection(parDirection);
   }
 
+  /// <summary>
+  /// Выполняет IsRunning.
+  /// </summary>
   private bool IsRunning()
   {
     lock (_stateLock)

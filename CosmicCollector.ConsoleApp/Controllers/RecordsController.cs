@@ -104,12 +104,18 @@ public sealed class RecordsController
     Render();
   }
 
+  /// <summary>
+  /// Выполняет ClampStartIndex.
+  /// </summary>
   private int ClampStartIndex(int parValue)
   {
     int maxStart = Math.Max(0, _records.Count - Math.Max(1, _view.PageSize));
     return Math.Clamp(parValue, 0, maxStart);
   }
 
+  /// <summary>
+  /// Выполняет Render.
+  /// </summary>
   private void Render()
   {
     _view.Render(_records, _startIndex);

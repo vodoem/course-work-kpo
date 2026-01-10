@@ -49,6 +49,9 @@ public sealed class ManualGameLoopRunner
     _eventBus.Publish(new GameTick(StepSeconds, tickNo));
   }
 
+  /// <summary>
+  /// Выполняет ProcessCommands.
+  /// </summary>
   private void ProcessCommands()
   {
     var commands = _commandQueue.DrainAll();
@@ -81,6 +84,9 @@ public sealed class ManualGameLoopRunner
     }
   }
 
+  /// <summary>
+  /// Выполняет ApplyMoveCommand.
+  /// </summary>
   private void ApplyMoveCommand(int parDirection)
   {
     _gameState.SetDroneMoveDirection(parDirection);

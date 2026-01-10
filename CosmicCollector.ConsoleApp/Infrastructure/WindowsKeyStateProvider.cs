@@ -21,6 +21,9 @@ public sealed class WindowsKeyStateProvider : IKeyStateProvider
     return (state & 0x8000) != 0;
   }
 
+  /// <summary>
+  /// Выполняет MapToVirtualKey.
+  /// </summary>
   private static int MapToVirtualKey(ConsoleKey parKey)
   {
     return parKey switch
@@ -36,6 +39,9 @@ public sealed class WindowsKeyStateProvider : IKeyStateProvider
     };
   }
 
+  /// <summary>
+  /// Выполняет GetAsyncKeyState.
+  /// </summary>
   [DllImport("user32.dll")]
   private static extern short GetAsyncKeyState(int parVirtualKey);
 }

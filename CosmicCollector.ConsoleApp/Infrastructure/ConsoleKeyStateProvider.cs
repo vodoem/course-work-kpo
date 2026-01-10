@@ -18,6 +18,9 @@ public sealed class ConsoleKeyStateProvider : IKeyStateProvider
     }
   }
 
+  /// <summary>
+  /// Выполняет CaptureKeys.
+  /// </summary>
   private void CaptureKeys()
   {
     while (Console.KeyAvailable)

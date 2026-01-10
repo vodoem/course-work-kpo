@@ -60,6 +60,9 @@ public sealed class RecordsView : IRecordsView
   /// <inheritdoc />
   public int PageSize => Math.Max(1, _renderer.BufferHeight - 6);
 
+  /// <summary>
+  /// Выполняет FillEmptyLines.
+  /// </summary>
   private void FillEmptyLines(int parCount)
   {
     for (int i = 0; i < parCount; i++)
@@ -68,6 +71,9 @@ public sealed class RecordsView : IRecordsView
     }
   }
 
+  /// <summary>
+  /// Выполняет TrimValue.
+  /// </summary>
   private static string TrimValue(string parValue, int parMaxLength)
   {
     if (parValue.Length <= parMaxLength)

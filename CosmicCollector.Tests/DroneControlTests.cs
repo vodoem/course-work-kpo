@@ -95,6 +95,9 @@ public sealed class DroneControlTests
     Xunit.Assert.Equal(10, state.LevelTimeRemainingSec);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateState.
+  /// </summary>
   private static GameState CreateState()
   {
     return new GameState(
@@ -102,6 +105,9 @@ public sealed class DroneControlTests
       new WorldBounds(0, 0, 800, 600));
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateService.
+  /// </summary>
   private static GameWorldUpdateService CreateService()
   {
     return new GameWorldUpdateService(new FakeRandomProvider(1));

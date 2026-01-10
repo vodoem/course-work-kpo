@@ -81,6 +81,9 @@ public sealed class RecordsRepositoryTests
     }
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateTempDirectory.
+  /// </summary>
   private static string CreateTempDirectory()
   {
     var directory = Path.Combine(Path.GetTempPath(), "cc-tests", Guid.NewGuid().ToString("N"));

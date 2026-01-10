@@ -193,6 +193,9 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.Equal(baseScore * 2, boostedScore);
   }
 
+  /// <summary>
+  /// Проверяет сценарий GetScoreWithoutAccelerator.
+  /// </summary>
   private static int GetScoreWithoutAccelerator()
   {
     var random = new FakeRandomProvider(8);
@@ -206,6 +209,9 @@ public sealed class GameWorldUpdateServiceTests
     return state.Score;
   }
 
+  /// <summary>
+  /// Проверяет сценарий GetScoreWithAccelerator.
+  /// </summary>
   private static int GetScoreWithAccelerator()
   {
     var random = new FakeRandomProvider(8);
@@ -1360,6 +1366,9 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.Equal(0, state.DisorientationRemainingSec);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateStateWithDrone.
+  /// </summary>
   private static GameState CreateStateWithDrone()
   {
     var drone = new Drone(
@@ -1372,6 +1381,9 @@ public sealed class GameWorldUpdateServiceTests
     return new GameState(drone, new WorldBounds(0, 0, 800, 600));
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateStateWithDrone.
+  /// </summary>
   private static GameState CreateStateWithDrone(WorldBounds parBounds)
   {
     var drone = new Drone(
@@ -1384,6 +1396,9 @@ public sealed class GameWorldUpdateServiceTests
     return new GameState(drone, parBounds);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateCrystal.
+  /// </summary>
   private static Crystal CreateCrystal(CrystalType parType)
   {
     return new Crystal(
@@ -1394,6 +1409,9 @@ public sealed class GameWorldUpdateServiceTests
       parType);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateCrystalAtX.
+  /// </summary>
   private static Crystal CreateCrystalAtX(double parX)
   {
     return new Crystal(
@@ -1404,6 +1422,9 @@ public sealed class GameWorldUpdateServiceTests
       CrystalType.Blue);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateBonus.
+  /// </summary>
   private static Bonus CreateBonus(BonusType parType, double parDurationSec)
   {
     return new Bonus(

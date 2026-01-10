@@ -69,6 +69,9 @@ public sealed class GameEndView : IGameEndView
     _renderer.WriteLine("Enter/Esc — в меню, R — заново");
   }
 
+  /// <summary>
+  /// Выполняет RenderHighScoreBlock.
+  /// </summary>
   private void RenderHighScoreBlock(
     string parPlayerName,
     bool parIsSaved,
@@ -112,6 +115,9 @@ public sealed class GameEndView : IGameEndView
     _renderer.WriteLine("Enter/Esc — в меню, R — заново");
   }
 
+  /// <summary>
+  /// Выполняет TrimValue.
+  /// </summary>
   private static string TrimValue(string parValue, int parMaxLength)
   {
     if (parValue.Length <= parMaxLength)

@@ -102,12 +102,18 @@ public sealed class RulesController
     Render();
   }
 
+  /// <summary>
+  /// Выполняет ClampStartLine.
+  /// </summary>
   private int ClampStartLine(int parValue)
   {
     int maxStart = Math.Max(0, _lines.Length - Math.Max(1, _view.PageSize));
     return Math.Clamp(parValue, 0, maxStart);
   }
 
+  /// <summary>
+  /// Выполняет Render.
+  /// </summary>
   private void Render()
   {
     _view.Render(_lines, _startLine);

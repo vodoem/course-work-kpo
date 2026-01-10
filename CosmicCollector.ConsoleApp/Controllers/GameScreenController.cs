@@ -145,11 +145,17 @@ public sealed class GameScreenController
     return controller.Run(_endReason.Value, _finalSnapshot, _level);
   }
 
+  /// <summary>
+  /// Выполняет OnGameStarted.
+  /// </summary>
   private void OnGameStarted(GameStarted parEvent)
   {
     _level = parEvent.parLevel;
   }
 
+  /// <summary>
+  /// Выполняет OnGameTick.
+  /// </summary>
   private void OnGameTick(GameTick parEvent)
   {
     var snapshot = _snapshotProvider.GetSnapshot();
@@ -163,6 +169,9 @@ public sealed class GameScreenController
     _tickSignal.Set();
   }
 
+  /// <summary>
+  /// Выполняет OnPauseToggled.
+  /// </summary>
   private void OnPauseToggled(PauseToggled parEvent)
   {
     _isPaused = parEvent.parIsPaused;
@@ -187,21 +196,33 @@ public sealed class GameScreenController
     }
   }
 
+  /// <summary>
+  /// Выполняет OnCountdownTick.
+  /// </summary>
   private void OnCountdownTick(CountdownTick parEvent)
   {
     _countdownValue = parEvent.parValue;
   }
 
+  /// <summary>
+  /// Выполняет OnGameOver.
+  /// </summary>
   private void OnGameOver(GameOver parEvent)
   {
     HandleGameEnd(GameEndReason.GameOver);
   }
 
+  /// <summary>
+  /// Выполняет OnLevelCompleted.
+  /// </summary>
   private void OnLevelCompleted(LevelCompleted parEvent)
   {
     _level = _snapshotProvider.GetSnapshot().parCurrentLevel;
   }
 
+  /// <summary>
+  /// Выполняет HandleGameEnd.
+  /// </summary>
   private void HandleGameEnd(GameEndReason parReason)
   {
     _finalSnapshot = _snapshotProvider.GetSnapshot();
@@ -211,6 +232,9 @@ public sealed class GameScreenController
     _tickSignal.Set();
   }
 
+  /// <summary>
+  /// Выполняет RenderLatestSnapshot.
+  /// </summary>
   private void RenderLatestSnapshot()
   {
     GameSnapshot? snapshot;
@@ -312,6 +336,9 @@ public sealed class GameScreenController
     _view.Render(parSnapshot, _level, _isPaused, _countdownValue);
   }
 
+  /// <summary>
+  /// Выполняет StartInputLoop.
+  /// </summary>
   private void StartInputLoop()
   {
     _isRunning = true;
@@ -324,6 +351,9 @@ public sealed class GameScreenController
     _inputThread.Start();
   }
 
+  /// <summary>
+  /// Выполняет ReadInputLoop.
+  /// </summary>
   private void ReadInputLoop()
   {
     const int pollIntervalMs = 5;
@@ -358,6 +388,9 @@ public sealed class GameScreenController
     }
   }
 
+  /// <summary>
+  /// Выполняет StopInputLoop.
+  /// </summary>
   private void StopInputLoop()
   {
     if (_inputCancellation is null)
@@ -426,11 +459,17 @@ public sealed class GameScreenController
     HandlePauseMenuInputInternal(parInput, parPauseHeld);
   }
 
+  /// <summary>
+  /// Выполняет CanMove.
+  /// </summary>
   private bool CanMove()
   {
     return !_isPaused && _countdownValue <= 0;
   }
 
+  /// <summary>
+  /// Выполняет SetMoveDirection.
+  /// </summary>
   private void SetMoveDirection(int parDirection)
   {
     int clamped = parDirection switch
@@ -479,6 +518,9 @@ public sealed class GameScreenController
   /// </summary>
   public bool ExitToMenuRequested => Volatile.Read(ref _exitToMenuRequestedFlag) == 1;
 
+  /// <summary>
+  /// Выполняет HandlePauseMenuInput.
+  /// </summary>
   private void HandlePauseMenuInput(bool parPauseHeld)
   {
     var input = new PauseMenuInput(
@@ -492,6 +534,9 @@ public sealed class GameScreenController
     HandlePauseMenuInputInternal(input, parPauseHeld);
   }
 
+  /// <summary>
+  /// Выполняет HandlePauseMenuInputInternal.
+  /// </summary>
   private void HandlePauseMenuInputInternal(PauseMenuInput parInput, bool parPauseHeld)
   {
     if (parPauseHeld && !_menuPauseHeld)
@@ -506,6 +551,9 @@ public sealed class GameScreenController
     HandlePauseMenuAction(action);
   }
 
+  /// <summary>
+  /// Выполняет HandlePauseMenuAction.
+  /// </summary>
   private void HandlePauseMenuAction(PauseMenuAction parAction)
   {
     switch (parAction)
@@ -524,6 +572,9 @@ public sealed class GameScreenController
     }
   }
 
+  /// <summary>
+  /// Выполняет GetEdge.
+  /// </summary>
   private bool GetEdge(ConsoleKey parKey, ref bool parWasHeld)
   {
     bool held = _keyStateProvider.IsKeyDown(parKey);

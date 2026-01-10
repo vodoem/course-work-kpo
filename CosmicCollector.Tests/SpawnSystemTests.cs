@@ -279,6 +279,9 @@ public sealed class SpawnSystemTests
     Xunit.Assert.Equal(1, factory.CrystalCreatedCount);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateGameState.
+  /// </summary>
   private static GameState CreateGameState(WorldBounds parBounds)
   {
     var drone = new Drone(
@@ -291,6 +294,9 @@ public sealed class SpawnSystemTests
     return new GameState(drone, parBounds);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateConfig.
+  /// </summary>
   private static SpawnConfig CreateConfig(Action<SpawnConfigBuilder>? parConfigure = null)
   {
     var builder = new SpawnConfigBuilder();
@@ -324,6 +330,9 @@ public sealed class SpawnSystemTests
     public IReadOnlyList<WeightedOption<CrystalType>>? CrystalWeights { get; set; }
     public IReadOnlyList<WeightedOption<BonusType>>? BonusWeights { get; set; }
 
+    /// <summary>
+    /// Проверяет сценарий Build.
+    /// </summary>
     public SpawnConfig Build()
     {
       return new SpawnConfig(
@@ -362,17 +371,26 @@ public sealed class SpawnSystemTests
   {
     public int CrystalCreatedCount { get; private set; }
 
+    /// <summary>
+    /// Проверяет сценарий CreateCrystal.
+    /// </summary>
     public Crystal CreateCrystal(Guid parId, Vector2 parPosition, Vector2 parVelocity, Aabb parBounds, CrystalType parType)
     {
       CrystalCreatedCount++;
       return new Crystal(parId, parPosition, parVelocity, parBounds, parType);
     }
 
+    /// <summary>
+    /// Проверяет сценарий CreateAsteroid.
+    /// </summary>
     public Asteroid CreateAsteroid(Guid parId, Vector2 parPosition, Vector2 parVelocity, Aabb parBounds)
     {
       return new Asteroid(parId, parPosition, parVelocity, parBounds);
     }
 
+    /// <summary>
+    /// Проверяет сценарий CreateBonus.
+    /// </summary>
     public Bonus CreateBonus(
       Guid parId,
       Vector2 parPosition,
@@ -384,6 +402,9 @@ public sealed class SpawnSystemTests
       return new Bonus(parId, parPosition, parVelocity, parBounds, parType, parDurationSec);
     }
 
+    /// <summary>
+    /// Проверяет сценарий CreateBlackHole.
+    /// </summary>
     public BlackHole CreateBlackHole(
       Guid parId,
       Vector2 parPosition,

@@ -135,6 +135,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет UpdateBonusTimers.
+  /// </summary>
   private void UpdateBonusTimers(GameState parGameState, double parDt)
   {
     parGameState.AcceleratorRemainingSec = Math.Max(0, parGameState.AcceleratorRemainingSec - parDt);
@@ -142,6 +145,9 @@ public sealed class GameWorldUpdateService
     parGameState.MagnetRemainingSec = Math.Max(0, parGameState.MagnetRemainingSec - parDt);
   }
 
+  /// <summary>
+  /// Выполняет SpawnObjects.
+  /// </summary>
   private void SpawnObjects(
     GameState parGameState,
     int parLevel,
@@ -156,6 +162,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет UpdateObjectPositions.
+  /// </summary>
   private void UpdateObjectPositions(
     GameState parGameState,
     double parDt,
@@ -218,6 +227,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет ApplyBlackHolePull<TObject>.
+  /// </summary>
   private void ApplyBlackHolePull<TObject>(
     IReadOnlyList<BlackHole> parBlackHoles,
     TObject parObject,
@@ -241,6 +253,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет ApplyMagnetEffect.
+  /// </summary>
   private void ApplyMagnetEffect(Drone parDrone, Crystal parCrystal, double parDt)
   {
     var direction = new Vector2(
@@ -258,6 +273,9 @@ public sealed class GameWorldUpdateService
     parCrystal.Velocity = normalized.Multiply(acceleratedSpeed);
   }
 
+  /// <summary>
+  /// Выполняет ApplyBlackHoleInfluence.
+  /// </summary>
   private void ApplyBlackHoleInfluence(
     GameState parGameState,
     double parDt,
@@ -302,6 +320,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет HandleBlackHoleCoreCollisions.
+  /// </summary>
   private void HandleBlackHoleCoreCollisions(
     GameState parGameState,
     IEventPublisher parEventPublisher)
@@ -356,6 +377,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет IsWithinCore.
+  /// </summary>
   private static bool IsWithinCore(GameObject parObject, BlackHole parBlackHole)
   {
     var direction = new Vector2(
@@ -364,6 +388,9 @@ public sealed class GameWorldUpdateService
     return direction.Length() <= parBlackHole.CoreRadius;
   }
 
+  /// <summary>
+  /// Выполняет HandleCollisions.
+  /// </summary>
   private void HandleCollisions(
     GameState parGameState,
     IEventPublisher parEventPublisher,
@@ -438,6 +465,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет CheckEndConditions.
+  /// </summary>
   private void CheckEndConditions(GameState parGameState, IEventPublisher parEventPublisher)
   {
     if (parGameState.HasLevelTimer && parGameState.LevelTimeRemainingSec <= 0)
@@ -461,6 +491,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет IsLevelGoalsMet.
+  /// </summary>
   private static bool IsLevelGoalsMet(GameState parGameState)
   {
     var goals = parGameState.LevelGoals;
@@ -472,6 +505,9 @@ public sealed class GameWorldUpdateService
       && progress.CollectedRed >= goals.RequiredRed;
   }
 
+  /// <summary>
+  /// Выполняет ProcessResumeCountdown.
+  /// </summary>
   private void ProcessResumeCountdown(
     GameState parGameState,
     double parDt,
@@ -509,6 +545,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет RemoveOutOfBoundsObjects.
+  /// </summary>
   private void RemoveOutOfBoundsObjects(GameState parGameState, IEventPublisher parEventPublisher)
   {
     var bounds = parGameState.WorldBounds;
@@ -574,6 +613,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет IsBelowBottom.
+  /// </summary>
   private static bool IsBelowBottom(GameObject parObject, WorldBounds parWorldBounds)
   {
     var halfHeight = parObject.Bounds.Height / 2.0;
@@ -581,6 +623,9 @@ public sealed class GameWorldUpdateService
     return top > parWorldBounds.Bottom;
   }
 
+  /// <summary>
+  /// Выполняет GetCrystalPoints.
+  /// </summary>
   private int GetCrystalPoints(CrystalType parType)
   {
     return parType switch
@@ -592,6 +637,9 @@ public sealed class GameWorldUpdateService
     };
   }
 
+  /// <summary>
+  /// Выполняет ActivateBonus.
+  /// </summary>
   private void ActivateBonus(
     GameState parGameState,
     Bonus parBonus,
@@ -623,6 +671,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет ActivateDisorientation.
+  /// </summary>
   private void ActivateDisorientation(GameState parGameState, double parDurationSec)
   {
     if (parDurationSec <= 0)
@@ -636,6 +687,9 @@ public sealed class GameWorldUpdateService
       parDurationSec);
   }
 
+  /// <summary>
+  /// Выполняет UpdateDisorientation.
+  /// </summary>
   private void UpdateDisorientation(GameState parGameState, double parDt)
   {
     if (!parGameState.IsDisoriented)
@@ -655,6 +709,9 @@ public sealed class GameWorldUpdateService
     parGameState.DisorientationRemainingSec = remaining;
   }
 
+  /// <summary>
+  /// Выполняет Intersects.
+  /// </summary>
   private static bool Intersects(GameObject parLeft, GameObject parRight, double parSoftMargin)
   {
     var halfWidthLeft = parLeft.Bounds.Width / 2.0;
@@ -669,6 +726,9 @@ public sealed class GameWorldUpdateService
       && deltaY <= (halfHeightLeft + halfHeightRight + parSoftMargin);
   }
 
+  /// <summary>
+  /// Выполняет ClampDroneToBounds.
+  /// </summary>
   private static void ClampDroneToBounds(GameState parGameState)
   {
     var drone = parGameState.DroneInternal;
@@ -703,6 +763,9 @@ public sealed class GameWorldUpdateService
     drone.Position = new Vector2(clampedX, clampedY);
   }
 
+  /// <summary>
+  /// Выполняет NormalizeDirection.
+  /// </summary>
   private static int NormalizeDirection(bool parIsDisoriented, int parDirection)
   {
     return parIsDisoriented ? -parDirection : parDirection;

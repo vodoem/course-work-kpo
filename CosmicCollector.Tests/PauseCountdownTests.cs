@@ -103,6 +103,9 @@ public sealed class PauseCountdownTests
     Xunit.Assert.True(state.IsPaused);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateState.
+  /// </summary>
   private static GameState CreateState()
   {
     return new GameState(
@@ -110,6 +113,9 @@ public sealed class PauseCountdownTests
       new WorldBounds(0, 0, 800, 600));
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateService.
+  /// </summary>
   private static GameWorldUpdateService CreateService()
   {
     return new GameWorldUpdateService(new FakeRandomProvider(1));

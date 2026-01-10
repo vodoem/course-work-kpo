@@ -71,6 +71,9 @@ public sealed class RecordsControllerTests
 
   private sealed class TestRecordsView : IRecordsView
   {
+    /// <summary>
+    /// Проверяет сценарий TestRecordsView.
+    /// </summary>
     public TestRecordsView(int pageSize)
     {
       PageSize = pageSize;
@@ -80,6 +83,9 @@ public sealed class RecordsControllerTests
 
     public int PageSize { get; }
 
+    /// <summary>
+    /// Проверяет сценарий Render.
+    /// </summary>
     public void Render(IReadOnlyList<RecordEntry> parRecords, int parStartIndex)
     {
       RenderCalls++;
@@ -90,20 +96,32 @@ public sealed class RecordsControllerTests
   {
     private readonly IReadOnlyList<RecordEntry> _records;
 
+    /// <summary>
+    /// Проверяет сценарий TestRecordsRepository.
+    /// </summary>
     public TestRecordsRepository(IReadOnlyList<RecordEntry> parRecords)
     {
       _records = parRecords;
     }
 
+    /// <summary>
+    /// Проверяет сценарий LoadAll.
+    /// </summary>
     public IReadOnlyList<RecordEntry> LoadAll()
     {
       return _records;
     }
 
+    /// <summary>
+    /// Проверяет сценарий SaveAll.
+    /// </summary>
     public void SaveAll(IReadOnlyList<RecordEntry> parRecords)
     {
     }
 
+    /// <summary>
+    /// Проверяет сценарий Add.
+    /// </summary>
     public void Add(RecordEntry parRecord)
     {
     }
@@ -113,11 +131,17 @@ public sealed class RecordsControllerTests
   {
     private readonly Queue<ConsoleKey> _keys;
 
+    /// <summary>
+    /// Проверяет сценарий TestInputReader.
+    /// </summary>
     public TestInputReader(IEnumerable<ConsoleKey> parKeys)
     {
       _keys = new Queue<ConsoleKey>(parKeys);
     }
 
+    /// <summary>
+    /// Проверяет сценарий ReadKey.
+    /// </summary>
     public ConsoleKeyInfo ReadKey()
     {
       if (_keys.Count == 0)
@@ -129,6 +153,9 @@ public sealed class RecordsControllerTests
       return new ConsoleKeyInfo('\0', key, false, false, false);
     }
 
+    /// <summary>
+    /// Проверяет сценарий ClearBuffer.
+    /// </summary>
     public void ClearBuffer()
     {
     }

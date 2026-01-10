@@ -151,6 +151,9 @@ public sealed class GameEndControllerTests
     Xunit.Assert.Equal(16, repository.AddedRecords[0].parPlayerName.Length);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateSnapshot.
+  /// </summary>
   private static GameSnapshot CreateSnapshot(int parScore, int parEnergy, bool parHasTimer, double parTime)
   {
     var drone = new DroneSnapshot(
@@ -183,11 +186,17 @@ public sealed class GameEndControllerTests
   {
     private readonly Queue<ConsoleKeyInfo> _keys;
 
+    /// <summary>
+    /// Проверяет сценарий TestInputReader.
+    /// </summary>
     public TestInputReader(IEnumerable<ConsoleKeyInfo> parKeys)
     {
       _keys = new Queue<ConsoleKeyInfo>(parKeys);
     }
 
+    /// <summary>
+    /// Проверяет сценарий ReadKey.
+    /// </summary>
     public ConsoleKeyInfo ReadKey()
     {
       if (_keys.Count == 0)
@@ -198,6 +207,9 @@ public sealed class GameEndControllerTests
       return _keys.Dequeue();
     }
 
+    /// <summary>
+    /// Проверяет сценарий ClearBuffer.
+    /// </summary>
     public void ClearBuffer()
     {
     }
@@ -215,6 +227,9 @@ public sealed class GameEndControllerTests
     public bool LastIsSaved { get; private set; }
     public int TopRecordsCount { get; private set; }
 
+    /// <summary>
+    /// Проверяет сценарий Render.
+    /// </summary>
     public void Render(
       GameEndReason parReason,
       GameSnapshot parSnapshot,
@@ -241,26 +256,41 @@ public sealed class GameEndControllerTests
     private readonly IReadOnlyList<RecordEntry> _records;
     public List<RecordEntry> AddedRecords { get; } = new();
 
+    /// <summary>
+    /// Проверяет сценарий TestRecordsRepository.
+    /// </summary>
     public TestRecordsRepository(IReadOnlyList<RecordEntry> parRecords)
     {
       _records = parRecords;
     }
 
+    /// <summary>
+    /// Проверяет сценарий LoadAll.
+    /// </summary>
     public IReadOnlyList<RecordEntry> LoadAll()
     {
       return _records;
     }
 
+    /// <summary>
+    /// Проверяет сценарий SaveAll.
+    /// </summary>
     public void SaveAll(IReadOnlyList<RecordEntry> parRecords)
     {
     }
 
+    /// <summary>
+    /// Проверяет сценарий Add.
+    /// </summary>
     public void Add(RecordEntry parRecord)
     {
       AddedRecords.Add(parRecord);
     }
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateFullRepository.
+  /// </summary>
   private static IRecordsRepository CreateFullRepository()
   {
     var records = new List<RecordEntry>();
@@ -272,11 +302,17 @@ public sealed class GameEndControllerTests
     return new TestRecordsRepository(records);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateKey.
+  /// </summary>
   private static ConsoleKeyInfo CreateKey(ConsoleKey parKey)
   {
     return new ConsoleKeyInfo('\0', parKey, false, false, false);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateCharKey.
+  /// </summary>
   private static ConsoleKeyInfo CreateCharKey(char parChar)
   {
     var key = char.ToUpperInvariant(parChar) switch

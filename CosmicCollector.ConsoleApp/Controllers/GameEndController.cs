@@ -117,6 +117,9 @@ public sealed class GameEndController
     }
   }
 
+  /// <summary>
+  /// Выполняет Render.
+  /// </summary>
   private void Render(
     GameEndReason parReason,
     GameSnapshot parSnapshot,
@@ -136,6 +139,9 @@ public sealed class GameEndController
       parTopRecords);
   }
 
+  /// <summary>
+  /// Выполняет IsValidName.
+  /// </summary>
   private static bool IsValidName(string parValue)
   {
     if (parValue.Length == 0 || parValue.Length > MaxNameLength)
@@ -146,11 +152,17 @@ public sealed class GameEndController
     return parValue.All(IsAllowedChar);
   }
 
+  /// <summary>
+  /// Выполняет IsAllowedChar.
+  /// </summary>
   private static bool IsAllowedChar(char parChar)
   {
     return char.IsLetterOrDigit(parChar) || parChar == ' ' || parChar == '_' || parChar == '-';
   }
 
+  /// <summary>
+  /// Выполняет IsHighScore.
+  /// </summary>
   private static bool IsHighScore(IReadOnlyList<RecordEntry> parRecords, int parScore, int parLevel)
   {
     if (parRecords.Count < MaxRecords)
@@ -172,6 +184,9 @@ public sealed class GameEndController
     return parScore == worst.parScore && parLevel > worst.parLevel;
   }
 
+  /// <summary>
+  /// Выполняет GetTopRecords.
+  /// </summary>
   private static IReadOnlyList<RecordEntry> GetTopRecords(IReadOnlyList<RecordEntry> parRecords)
   {
     return parRecords

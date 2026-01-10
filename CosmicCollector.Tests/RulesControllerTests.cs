@@ -63,6 +63,9 @@ public sealed class RulesControllerTests
 
   private sealed class TestRulesView : IRulesView
   {
+    /// <summary>
+    /// Проверяет сценарий TestRulesView.
+    /// </summary>
     public TestRulesView(int pageSize)
     {
       PageSize = pageSize;
@@ -72,6 +75,9 @@ public sealed class RulesControllerTests
 
     public int PageSize { get; }
 
+    /// <summary>
+    /// Проверяет сценарий Render.
+    /// </summary>
     public void Render(string[] parLines, int parStartLine)
     {
       RenderCalls++;
@@ -82,11 +88,17 @@ public sealed class RulesControllerTests
   {
     private readonly string[] _lines;
 
+    /// <summary>
+    /// Проверяет сценарий TestRulesTextProvider.
+    /// </summary>
     public TestRulesTextProvider(string[] parLines)
     {
       _lines = parLines;
     }
 
+    /// <summary>
+    /// Проверяет сценарий GetLines.
+    /// </summary>
     public string[] GetLines()
     {
       return _lines;
@@ -97,11 +109,17 @@ public sealed class RulesControllerTests
   {
     private readonly Queue<ConsoleKey> _keys;
 
+    /// <summary>
+    /// Проверяет сценарий TestInputReader.
+    /// </summary>
     public TestInputReader(IEnumerable<ConsoleKey> parKeys)
     {
       _keys = new Queue<ConsoleKey>(parKeys);
     }
 
+    /// <summary>
+    /// Проверяет сценарий ReadKey.
+    /// </summary>
     public ConsoleKeyInfo ReadKey()
     {
       if (_keys.Count == 0)
@@ -113,6 +131,9 @@ public sealed class RulesControllerTests
       return new ConsoleKeyInfo('\0', key, false, false, false);
     }
 
+    /// <summary>
+    /// Проверяет сценарий ClearBuffer.
+    /// </summary>
     public void ClearBuffer()
     {
     }

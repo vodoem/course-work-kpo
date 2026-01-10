@@ -36,6 +36,9 @@ public sealed class PauseMenuView : IPauseMenuView
     RenderMenu(parOptions, parSelectedIndex, width, centerY);
   }
 
+  /// <summary>
+  /// Выполняет RenderMenu.
+  /// </summary>
   private void RenderMenu(PauseMenuOption[] parOptions, int parSelectedIndex, int parWidth, int parCenterY)
   {
     _renderer.SetForegroundColor(ConsoleColor.Yellow);
@@ -51,6 +54,9 @@ public sealed class PauseMenuView : IPauseMenuView
     _renderer.ResetColor();
   }
 
+  /// <summary>
+  /// Выполняет RenderConfirm.
+  /// </summary>
   private void RenderConfirm(int parWidth, int parCenterY)
   {
     _renderer.SetForegroundColor(ConsoleColor.Yellow);
@@ -58,6 +64,9 @@ public sealed class PauseMenuView : IPauseMenuView
     _renderer.ResetColor();
   }
 
+  /// <summary>
+  /// Выполняет WriteCentered.
+  /// </summary>
   private void WriteCentered(int parRow, int parWidth, string parText)
   {
     int clampedRow = Math.Max(0, parRow);
@@ -67,6 +76,9 @@ public sealed class PauseMenuView : IPauseMenuView
     _renderer.Write(text);
   }
 
+  /// <summary>
+  /// Выполняет GetOptionTitle.
+  /// </summary>
   private static string GetOptionTitle(PauseMenuOption parOption)
   {
     return parOption switch

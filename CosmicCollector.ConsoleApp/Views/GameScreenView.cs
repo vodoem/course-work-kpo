@@ -65,6 +65,9 @@ public sealed class GameScreenView : IGameScreenView
     RenderBuffer(buffer, colors, width, height);
   }
 
+  /// <summary>
+  /// Выполняет CreateBuffer.
+  /// </summary>
   private char[,] CreateBuffer(int parWidth, int parHeight)
   {
     var buffer = new char[parWidth, parHeight];
@@ -80,6 +83,9 @@ public sealed class GameScreenView : IGameScreenView
     return buffer;
   }
 
+  /// <summary>
+  /// Выполняет CreateColorBuffer.
+  /// </summary>
   private ConsoleColor[,] CreateColorBuffer(int parWidth, int parHeight, ConsoleColor parDefault)
   {
     var colors = new ConsoleColor[parWidth, parHeight];
@@ -95,6 +101,9 @@ public sealed class GameScreenView : IGameScreenView
     return colors;
   }
 
+  /// <summary>
+  /// Выполняет DrawBorder.
+  /// </summary>
   private void DrawBorder(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -119,6 +128,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет DrawDrone.
+  /// </summary>
   private void DrawDrone(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -135,6 +147,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет DrawCrystals.
+  /// </summary>
   private void DrawCrystals(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -162,6 +177,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет DrawAsteroids.
+  /// </summary>
   private void DrawAsteroids(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -181,6 +199,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет DrawBonuses.
+  /// </summary>
   private void DrawBonuses(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -214,6 +235,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет DrawBlackHoles.
+  /// </summary>
   private void DrawBlackHoles(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -233,6 +257,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет TryMapToGrid.
+  /// </summary>
   private bool TryMapToGrid(
     WorldToScreenMapper parMapper,
     Vector2 parPosition,
@@ -254,6 +281,9 @@ public sealed class GameScreenView : IGameScreenView
     return true;
   }
 
+  /// <summary>
+  /// Выполняет DrawHud.
+  /// </summary>
   private void DrawHud(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -275,6 +305,9 @@ public sealed class GameScreenView : IGameScreenView
     WriteHudLine(parBuffer, parColors, 1, parWidth, goalsLine, string.Empty, progressLine);
   }
 
+  /// <summary>
+  /// Выполняет WriteHudLine.
+  /// </summary>
   private void WriteHudLine(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -290,6 +323,9 @@ public sealed class GameScreenView : IGameScreenView
     WriteText(parBuffer, parColors, parRow, parWidth, parRight, third * 2, parWidth - (third * 2), ConsoleColor.White);
   }
 
+  /// <summary>
+  /// Выполняет WriteText.
+  /// </summary>
   private void WriteText(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -313,6 +349,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет RenderBuffer.
+  /// </summary>
   private void RenderBuffer(char[,] parBuffer, ConsoleColor[,] parColors, int parWidth, int parHeight)
   {
     var builder = new StringBuilder(parWidth);
@@ -342,6 +381,9 @@ public sealed class GameScreenView : IGameScreenView
     _renderer.ResetColor();
   }
 
+  /// <summary>
+  /// Выполняет FlushLine.
+  /// </summary>
   private void FlushLine(StringBuilder parBuilder, ConsoleColor? parColor)
   {
     if (parBuilder.Length == 0)
@@ -358,6 +400,9 @@ public sealed class GameScreenView : IGameScreenView
     parBuilder.Clear();
   }
 
+  /// <summary>
+  /// Выполняет CenterText.
+  /// </summary>
   private static string CenterText(string parText, int parWidth)
   {
     if (parWidth <= 0)
@@ -374,6 +419,9 @@ public sealed class GameScreenView : IGameScreenView
     return new string(' ', left) + parText;
   }
 
+  /// <summary>
+  /// Выполняет GetTimerText.
+  /// </summary>
   private static string GetTimerText(GameSnapshot parSnapshot, int parWidth)
   {
     string text = "—";
@@ -387,6 +435,9 @@ public sealed class GameScreenView : IGameScreenView
     return CenterText(text, parWidth);
   }
 
+  /// <summary>
+  /// Выполняет DrawOverlay.
+  /// </summary>
   private void DrawOverlay(
     char[,] parBuffer,
     ConsoleColor[,] parColors,
@@ -403,6 +454,9 @@ public sealed class GameScreenView : IGameScreenView
     }
   }
 
+  /// <summary>
+  /// Выполняет DrawOverlayText.
+  /// </summary>
   private void DrawOverlayText(
     char[,] parBuffer,
     ConsoleColor[,] parColors,

@@ -42,6 +42,9 @@ public sealed class GameSessionFactory : IGameSessionFactory
       DefaultLevel);
   }
 
+  /// <summary>
+  /// Выполняет InitializeDrone.
+  /// </summary>
   private static void InitializeDrone(GameState parGameState)
   {
     var drone = parGameState.Drone;

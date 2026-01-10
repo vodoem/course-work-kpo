@@ -54,6 +54,9 @@ public sealed class SpawnSystem
     return results;
   }
 
+  /// <summary>
+  /// Выполняет TrySpawnCrystal.
+  /// </summary>
   private void TrySpawnCrystal(
     GameState parGameState,
     int parLevel,
@@ -84,6 +87,9 @@ public sealed class SpawnSystem
     parResults.Add(new SpawnedObject(nameof(Crystal), crystal.Id));
   }
 
+  /// <summary>
+  /// Выполняет TrySpawnAsteroid.
+  /// </summary>
   private void TrySpawnAsteroid(
     GameState parGameState,
     int parLevel,
@@ -114,6 +120,9 @@ public sealed class SpawnSystem
     parResults.Add(new SpawnedObject(nameof(Asteroid), asteroid.Id));
   }
 
+  /// <summary>
+  /// Выполняет TrySpawnBonus.
+  /// </summary>
   private void TrySpawnBonus(
     GameState parGameState,
     int parLevel,
@@ -150,6 +159,9 @@ public sealed class SpawnSystem
     parResults.Add(new SpawnedObject(nameof(Bonus), bonus.Id));
   }
 
+  /// <summary>
+  /// Выполняет TrySpawnBlackHole.
+  /// </summary>
   private void TrySpawnBlackHole(
     GameState parGameState,
     int parLevel,
@@ -185,6 +197,9 @@ public sealed class SpawnSystem
     parResults.Add(new SpawnedObject(nameof(BlackHole), blackHole.Id));
   }
 
+  /// <summary>
+  /// Выполняет IsTickForSpawn.
+  /// </summary>
   private bool IsTickForSpawn(long parTickCount, int parBaseInterval, int parLevel)
   {
     if (parBaseInterval <= 0)
@@ -196,17 +211,26 @@ public sealed class SpawnSystem
     return parTickCount % interval == 0;
   }
 
+  /// <summary>
+  /// Выполняет GetScaledMaxActive.
+  /// </summary>
   private int GetScaledMaxActive(int parBaseMax, int parLevel)
   {
     return parBaseMax + ((parLevel - 1) * _config.MaxActiveIncreasePerLevel);
   }
 
+  /// <summary>
+  /// Выполняет GetScaledSpeed.
+  /// </summary>
   private double GetScaledSpeed(double parBaseSpeed, int parLevel)
   {
     var multiplier = 1.0 + (0.015 * (parLevel - 1));
     return parBaseSpeed * multiplier;
   }
 
+  /// <summary>
+  /// Выполняет TryFindSpawnPosition.
+  /// </summary>
   private bool TryFindSpawnPosition(GameState parGameState, Aabb parBounds, out Vector2 parPosition)
   {
     var halfWidth = parBounds.Width / 2.0;
@@ -248,6 +272,9 @@ public sealed class SpawnSystem
     return false;
   }
 
+  /// <summary>
+  /// Выполняет HasCollision.
+  /// </summary>
   private bool HasCollision(GameState parGameState, Vector2 parPosition, Aabb parBounds)
   {
     if (Intersects(parPosition, parBounds, parGameState.DroneInternal.Position, parGameState.DroneInternal.Bounds))
@@ -290,6 +317,9 @@ public sealed class SpawnSystem
     return false;
   }
 
+  /// <summary>
+  /// Выполняет Intersects.
+  /// </summary>
   private static bool Intersects(Vector2 parLeftPosition, Aabb parLeftBounds, Vector2 parRightPosition, Aabb parRightBounds)
   {
     var halfWidthLeft = parLeftBounds.Width / 2.0;
@@ -304,6 +334,9 @@ public sealed class SpawnSystem
       && deltaY <= (halfHeightLeft + halfHeightRight);
   }
 
+  /// <summary>
+  /// Выполняет PickWeighted<T>.
+  /// </summary>
   private T PickWeighted<T>(IReadOnlyList<WeightedOption<T>> parWeights)
   {
     if (parWeights.Count == 0)

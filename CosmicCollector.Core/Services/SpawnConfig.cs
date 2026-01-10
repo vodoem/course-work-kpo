@@ -59,6 +59,9 @@ public sealed class SpawnConfig
         new(BonusType.Magnet, 1)
       });
 
+  /// <summary>
+  /// Инициализирует новый экземпляр класса SpawnConfig.
+  /// </summary>
   private SpawnConfig()
   {
     IsEnabled = false;

@@ -709,6 +709,9 @@ public sealed class GameState
     }
   }
 
+  /// <summary>
+  /// Выполняет NormalizeDirection.
+  /// </summary>
   private static int NormalizeDirection(int parDirectionX)
   {
     if (parDirectionX < 0)
@@ -724,6 +727,9 @@ public sealed class GameState
     return 0;
   }
 
+  /// <summary>
+  /// Выполняет StartResumeCountdownLocked.
+  /// </summary>
   private void StartResumeCountdownLocked()
   {
     if (_isResumeCountdownActive)
@@ -737,6 +743,9 @@ public sealed class GameState
     _resumeCountdownAccumulatedSec = 0;
   }
 
+  /// <summary>
+  /// Выполняет StopResumeCountdown.
+  /// </summary>
   internal void StopResumeCountdown()
   {
     _isResumeCountdownActive = false;
