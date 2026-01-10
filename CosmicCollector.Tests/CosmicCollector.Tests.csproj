@@ -14,5 +14,6 @@
     <ProjectReference Include="..\CosmicCollector.Core\CosmicCollector.Core.csproj" />
     <ProjectReference Include="..\CosmicCollector.MVC\CosmicCollector.MVC.csproj" />
     <ProjectReference Include="..\CosmicCollector.Persistence\CosmicCollector.Persistence.csproj" />
+    <ProjectReference Include="..\CosmicCollector.ConsoleApp\CosmicCollector.ConsoleApp.csproj" />
   </ItemGroup>
 </Project>

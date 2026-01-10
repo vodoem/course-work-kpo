@@ -1,0 +1,75 @@
+namespace CosmicCollector.ConsoleApp.Infrastructure;
+
+/// <summary>
+/// Абстракция для отрисовки в консоли.
+/// </summary>
+public interface IConsoleRenderer
+{
+  /// <summary>
+  /// Очищает экран.
+  /// </summary>
+  void Clear();
+
+  /// <summary>
+  /// Пишет строку.
+  /// </summary>
+  /// <param name="parText">Текст строки.</param>
+  void WriteLine(string parText);
+
+  /// <summary>
+  /// Читает нажатие клавиши.
+  /// </summary>
+  /// <returns>Сведения о нажатой клавише.</returns>
+  ConsoleKeyInfo ReadKey();
+
+  /// <summary>
+  /// Устанавливает позицию курсора.
+  /// </summary>
+  /// <param name="parLeft">Колонка.</param>
+  /// <param name="parTop">Строка.</param>
+  void SetCursorPosition(int parLeft, int parTop);
+
+  /// <summary>
+  /// Пишет текст без перевода строки.
+  /// </summary>
+  /// <param name="parText">Текст.</param>
+  void Write(string parText);
+
+  /// <summary>
+  /// Устанавливает цвет текста.
+  /// </summary>
+  /// <param name="parColor">Цвет текста.</param>
+  void SetForegroundColor(ConsoleColor parColor);
+
+  /// <summary>
+  /// Сбрасывает цвет текста.
+  /// </summary>
+  void ResetColor();
+
+  /// <summary>
+  /// Устанавливает размер буфера консоли.
+  /// </summary>
+  /// <param name="parWidth">Ширина буфера.</param>
+  /// <param name="parHeight">Высота буфера.</param>
+  void SetBufferSize(int parWidth, int parHeight);
+
+  /// <summary>
+  /// Возвращает ширину буфера.
+  /// </summary>
+  int BufferWidth { get; }
+
+  /// <summary>
+  /// Возвращает высоту буфера.
+  /// </summary>
+  int BufferHeight { get; }
+
+  /// <summary>
+  /// Возвращает ширину окна.
+  /// </summary>
+  int WindowWidth { get; }
+
+  /// <summary>
+  /// Возвращает высоту окна.
+  /// </summary>
+  int WindowHeight { get; }
+}

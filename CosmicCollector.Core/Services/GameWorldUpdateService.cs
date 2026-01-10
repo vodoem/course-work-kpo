@@ -5,6 +5,7 @@ using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Randomization;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace CosmicCollector.Core.Services;
 
@@ -19,21 +20,23 @@ public sealed class GameWorldUpdateService
   private const double MagnetAttractionAcceleration = 30.0;
   private const double BlackHoleAcceleration = 30.0;
   private const int BlackHoleCoreDamage = 40;
-  private const double AcceleratorScoreMultiplier = 1.25;
+  private const double AcceleratorScoreMultiplier = 2.0;
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
   private const double TimeStabilizerBonusSeconds = 5.0;
+  private const double TimeStabilizerBaseSeconds = 60.0;
   private const double DisorientationDurationSec = 3.0;
 
   private readonly IRandomProvider _randomProvider;
   private readonly SpawnSystem _spawnSystem;
+  private readonly LevelService _levelService;
 
   /// <summary>
   /// Инициализирует сервис обновления мира.
   /// </summary>
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   public GameWorldUpdateService(IRandomProvider parRandomProvider)
-    : this(parRandomProvider, SpawnConfig.Disabled)
+    : this(parRandomProvider, SpawnConfig.Disabled, new LevelService(new LevelConfigProvider()))
   {
   }
 
@@ -43,9 +46,24 @@ public sealed class GameWorldUpdateService
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   /// <param name="parSpawnConfig">Конфигурация спавна.</param>
   public GameWorldUpdateService(IRandomProvider parRandomProvider, SpawnConfig parSpawnConfig)
+    : this(parRandomProvider, parSpawnConfig, new LevelService(new LevelConfigProvider()))
+  {
+  }
+
+  /// <summary>
+  /// Инициализирует сервис обновления мира.
+  /// </summary>
+  /// <param name="parRandomProvider">Провайдер случайных значений.</param>
+  /// <param name="parSpawnConfig">Конфигурация спавна.</param>
+  /// <param name="parLevelService">Сервис уровней.</param>
+  public GameWorldUpdateService(
+    IRandomProvider parRandomProvider,
+    SpawnConfig parSpawnConfig,
+    LevelService parLevelService)
   {
     _randomProvider = parRandomProvider;
     _spawnSystem = new SpawnSystem(parRandomProvider, parSpawnConfig);
+    _levelService = parLevelService;
   }
 
   /// <summary>
@@ -68,10 +86,12 @@ public sealed class GameWorldUpdateService
 
     lock (parGameState.SyncRoot)
     {
-      if (parGameState.IsLevelCompleted || parGameState.IsGameOver)
+      if (parGameState.IsGameOver)
       {
         return;
       }
+
+      _levelService.InitLevel(parGameState);
 
       if (parGameState.IsPaused)
       {
@@ -97,11 +117,16 @@ public sealed class GameWorldUpdateService
         isMagnetActive);
       SpawnObjects(parGameState, parLevel, tickCount, parEventPublisher);
       ApplyBlackHoleInfluence(parGameState, parDt, parEventPublisher);
+      HandleBlackHoleCoreCollisions(parGameState, parEventPublisher);
       var timeStabilizerCollected = false;
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive, ref timeStabilizerCollected);
       RemoveOutOfBoundsObjects(parGameState, parEventPublisher);
 
-      if (parGameState.HasLevelTimer && !timeStabilizerCollected)
+      if (parGameState.HasLevelTimer &&
+          !timeStabilizerCollected &&
+          !parGameState.IsPaused &&
+          !parGameState.IsResumeCountdownActive &&
+          !parGameState.IsGameOver)
       {
         parGameState.LevelTimeRemainingSec = Math.Max(0, parGameState.LevelTimeRemainingSec - parDt);
       }
@@ -110,6 +135,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет UpdateBonusTimers.
+  /// </summary>
   private void UpdateBonusTimers(GameState parGameState, double parDt)
   {
     parGameState.AcceleratorRemainingSec = Math.Max(0, parGameState.AcceleratorRemainingSec - parDt);
@@ -117,6 +145,9 @@ public sealed class GameWorldUpdateService
     parGameState.MagnetRemainingSec = Math.Max(0, parGameState.MagnetRemainingSec - parDt);
   }
 
+  /// <summary>
+  /// Выполняет SpawnObjects.
+  /// </summary>
   private void SpawnObjects(
     GameState parGameState,
     int parLevel,
@@ -131,6 +162,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет UpdateObjectPositions.
+  /// </summary>
   private void UpdateObjectPositions(
     GameState parGameState,
     double parDt,
@@ -141,6 +175,8 @@ public sealed class GameWorldUpdateService
   {
     var droneMultiplier = parIsAcceleratorActive ? DroneAcceleratorMultiplier : 1.0;
     var drone = parGameState.DroneInternal;
+    var direction = NormalizeDirection(parGameState.IsDisoriented, parGameState.DroneMoveDirectionX);
+    drone.Velocity = new Vector2(direction * GameRules.DroneBaseSpeed, 0);
     drone.Position = drone.Position.Add(drone.Velocity.Multiply(parDt * droneMultiplier));
     ClampDroneToBounds(parGameState);
 
@@ -151,6 +187,7 @@ public sealed class GameWorldUpdateService
         ApplyMagnetEffect(parGameState.DroneInternal, crystal, parDt);
       }
 
+      ApplyBlackHolePull(parGameState.BlackHolesInternal, crystal, parDt);
       var velocity = crystal.Velocity.Multiply(parSpeedMultiplier);
       crystal.Position = crystal.Position.Add(velocity.Multiply(parDt));
     }
@@ -164,17 +201,61 @@ public sealed class GameWorldUpdateService
         multiplier *= TimeStabilizerMultiplier;
       }
 
+      ApplyBlackHolePull(parGameState.BlackHolesInternal, asteroid, parDt);
       var velocity = asteroid.Velocity.Multiply(multiplier);
       asteroid.Position = asteroid.Position.Add(velocity.Multiply(parDt));
     }
 
     foreach (var bonus in parGameState.BonusesInternal)
     {
+      ApplyBlackHolePull(parGameState.BlackHolesInternal, bonus, parDt);
       var velocity = bonus.Velocity.Multiply(parSpeedMultiplier);
       bonus.Position = bonus.Position.Add(velocity.Multiply(parDt));
     }
+
+    foreach (var blackHole in parGameState.BlackHolesInternal)
+    {
+      var multiplier = parSpeedMultiplier;
+
+      if (parIsTimeStabilizerActive)
+      {
+        multiplier *= TimeStabilizerMultiplier;
+      }
+
+      var velocity = blackHole.Velocity.Multiply(multiplier);
+      blackHole.Position = blackHole.Position.Add(velocity.Multiply(parDt));
+    }
   }
 
+  /// <summary>
+  /// Выполняет ApplyBlackHolePull<TObject>.
+  /// </summary>
+  private void ApplyBlackHolePull<TObject>(
+    IReadOnlyList<BlackHole> parBlackHoles,
+    TObject parObject,
+    double parDt)
+    where TObject : GameObject
+  {
+    foreach (var blackHole in parBlackHoles)
+    {
+      var direction = new Vector2(
+        blackHole.Position.X - parObject.Position.X,
+        blackHole.Position.Y - parObject.Position.Y);
+      var distance = direction.Length();
+
+      if (distance <= 0 || distance > blackHole.Radius)
+      {
+        continue;
+      }
+
+      var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
+      parObject.Velocity = parObject.Velocity.Add(acceleration.Multiply(parDt));
+    }
+  }
+
+  /// <summary>
+  /// Выполняет ApplyMagnetEffect.
+  /// </summary>
   private void ApplyMagnetEffect(Drone parDrone, Crystal parCrystal, double parDt)
   {
     var direction = new Vector2(
@@ -192,12 +273,16 @@ public sealed class GameWorldUpdateService
     parCrystal.Velocity = normalized.Multiply(acceleratedSpeed);
   }
 
+  /// <summary>
+  /// Выполняет ApplyBlackHoleInfluence.
+  /// </summary>
   private void ApplyBlackHoleInfluence(
     GameState parGameState,
     double parDt,
     IEventPublisher parEventPublisher)
   {
     var drone = parGameState.DroneInternal;
+    var isInCoreNow = false;
 
     foreach (var blackHole in parGameState.BlackHolesInternal)
     {
@@ -212,17 +297,100 @@ public sealed class GameWorldUpdateService
       }
 
       var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
-      drone.Velocity = drone.Velocity.Add(acceleration.Multiply(parDt));
-      ActivateDisorientation(parGameState, DisorientationDurationSec);
+      drone.Velocity = new Vector2(
+        drone.Velocity.X + (acceleration.X * parDt),
+        0);
 
       if (distance <= blackHole.CoreRadius)
       {
-        drone.Energy -= BlackHoleCoreDamage;
-        parEventPublisher.Publish(new DamageTaken("BlackHole", BlackHoleCoreDamage));
+        isInCoreNow = true;
       }
+    }
+
+    if (isInCoreNow && !parGameState.IsInBlackHoleCore)
+    {
+      parGameState.IsInBlackHoleCore = true;
+      ActivateDisorientation(parGameState, DisorientationDurationSec);
+      drone.Energy -= BlackHoleCoreDamage;
+      parEventPublisher.Publish(new DamageTaken("BlackHole", BlackHoleCoreDamage));
+    }
+    else if (!isInCoreNow && parGameState.IsInBlackHoleCore)
+    {
+      parGameState.IsInBlackHoleCore = false;
     }
   }
 
+  /// <summary>
+  /// Выполняет HandleBlackHoleCoreCollisions.
+  /// </summary>
+  private void HandleBlackHoleCoreCollisions(
+    GameState parGameState,
+    IEventPublisher parEventPublisher)
+  {
+    var crystalsToRemove = new List<Crystal>();
+    var asteroidsToRemove = new List<Asteroid>();
+    var bonusesToRemove = new List<Bonus>();
+
+    foreach (var blackHole in parGameState.BlackHolesInternal)
+    {
+      foreach (var crystal in parGameState.CrystalsInternal)
+      {
+        if (IsWithinCore(crystal, blackHole))
+        {
+          crystalsToRemove.Add(crystal);
+        }
+      }
+
+      foreach (var asteroid in parGameState.AsteroidsInternal)
+      {
+        if (IsWithinCore(asteroid, blackHole))
+        {
+          asteroidsToRemove.Add(asteroid);
+        }
+      }
+
+      foreach (var bonus in parGameState.BonusesInternal)
+      {
+        if (IsWithinCore(bonus, blackHole))
+        {
+          bonusesToRemove.Add(bonus);
+        }
+      }
+    }
+
+    foreach (var crystal in crystalsToRemove.Distinct())
+    {
+      parGameState.CrystalsInternal.Remove(crystal);
+      parEventPublisher.Publish(new ObjectDespawned(crystal.Id, "BlackHoleCore"));
+    }
+
+    foreach (var asteroid in asteroidsToRemove.Distinct())
+    {
+      parGameState.AsteroidsInternal.Remove(asteroid);
+      parEventPublisher.Publish(new ObjectDespawned(asteroid.Id, "BlackHoleCore"));
+    }
+
+    foreach (var bonus in bonusesToRemove.Distinct())
+    {
+      parGameState.BonusesInternal.Remove(bonus);
+      parEventPublisher.Publish(new ObjectDespawned(bonus.Id, "BlackHoleCore"));
+    }
+  }
+
+  /// <summary>
+  /// Выполняет IsWithinCore.
+  /// </summary>
+  private static bool IsWithinCore(GameObject parObject, BlackHole parBlackHole)
+  {
+    var direction = new Vector2(
+      parBlackHole.Position.X - parObject.Position.X,
+      parBlackHole.Position.Y - parObject.Position.Y);
+    return direction.Length() <= parBlackHole.CoreRadius;
+  }
+
+  /// <summary>
+  /// Выполняет HandleCollisions.
+  /// </summary>
   private void HandleCollisions(
     GameState parGameState,
     IEventPublisher parEventPublisher,
@@ -297,6 +465,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет CheckEndConditions.
+  /// </summary>
   private void CheckEndConditions(GameState parGameState, IEventPublisher parEventPublisher)
   {
     if (parGameState.HasLevelTimer && parGameState.LevelTimeRemainingSec <= 0)
@@ -313,13 +484,30 @@ public sealed class GameWorldUpdateService
       return;
     }
 
-    if (parGameState.Score >= parGameState.RequiredScore && parGameState.HasAllCrystalTypes())
+    if (IsLevelGoalsMet(parGameState))
     {
-      parGameState.MarkLevelCompleted();
-      parEventPublisher.Publish(new LevelCompleted("ScoreAndTypes"));
+      _levelService.AdvanceLevel(parGameState);
+      parEventPublisher.Publish(new LevelCompleted("GoalsAndScore"));
     }
   }
 
+  /// <summary>
+  /// Выполняет IsLevelGoalsMet.
+  /// </summary>
+  private static bool IsLevelGoalsMet(GameState parGameState)
+  {
+    var goals = parGameState.LevelGoals;
+    var progress = parGameState.LevelProgress;
+
+    return parGameState.Score >= parGameState.RequiredScore
+      && progress.CollectedBlue >= goals.RequiredBlue
+      && progress.CollectedGreen >= goals.RequiredGreen
+      && progress.CollectedRed >= goals.RequiredRed;
+  }
+
+  /// <summary>
+  /// Выполняет ProcessResumeCountdown.
+  /// </summary>
   private void ProcessResumeCountdown(
     GameState parGameState,
     double parDt,
@@ -330,39 +518,43 @@ public sealed class GameWorldUpdateService
       return;
     }
 
+    if (parGameState.IsResumeCountdownJustStarted)
+    {
+      var startValue = parGameState.ResumeCountdownValue;
+      parEventPublisher.Publish(new CountdownTick(startValue));
+      parGameState.IsResumeCountdownJustStarted = false;
+    }
+
     parGameState.ResumeCountdownAccumulatedSec += parDt;
 
     while (parGameState.ResumeCountdownAccumulatedSec >= 1.0 && parGameState.IsResumeCountdownActive)
     {
       parGameState.ResumeCountdownAccumulatedSec -= 1.0;
-      var value = parGameState.ResumeCountdownValue;
-
-      if (value <= 0)
-      {
-        parGameState.StopResumeCountdown();
-        break;
-      }
-
-      parEventPublisher.Publish(new CountdownTick(value));
-      value--;
+      var value = parGameState.ResumeCountdownValue - 1;
       parGameState.ResumeCountdownValue = value;
 
-      if (value == 0)
+      if (value <= 0)
       {
         parGameState.StopResumeCountdown();
         parGameState.SetPaused(false);
         parEventPublisher.Publish(new PauseToggled(false));
         break;
       }
+
+      parEventPublisher.Publish(new CountdownTick(value));
     }
   }
 
+  /// <summary>
+  /// Выполняет RemoveOutOfBoundsObjects.
+  /// </summary>
   private void RemoveOutOfBoundsObjects(GameState parGameState, IEventPublisher parEventPublisher)
   {
     var bounds = parGameState.WorldBounds;
     var crystalsToRemove = new List<Crystal>();
     var asteroidsToRemove = new List<Asteroid>();
     var bonusesToRemove = new List<Bonus>();
+    var blackHolesToRemove = new List<BlackHole>();
 
     foreach (var crystal in parGameState.CrystalsInternal)
     {
@@ -388,6 +580,14 @@ public sealed class GameWorldUpdateService
       }
     }
 
+    foreach (var blackHole in parGameState.BlackHolesInternal)
+    {
+      if (IsBelowBottom(blackHole, bounds))
+      {
+        blackHolesToRemove.Add(blackHole);
+      }
+    }
+
     foreach (var crystal in crystalsToRemove)
     {
       parGameState.CrystalsInternal.Remove(crystal);
@@ -405,8 +605,17 @@ public sealed class GameWorldUpdateService
       parGameState.BonusesInternal.Remove(bonus);
       parEventPublisher.Publish(new ObjectDespawned(bonus.Id, "OutOfBounds"));
     }
+
+    foreach (var blackHole in blackHolesToRemove)
+    {
+      parGameState.BlackHolesInternal.Remove(blackHole);
+      parEventPublisher.Publish(new ObjectDespawned(blackHole.Id, "OutOfBounds"));
+    }
   }
 
+  /// <summary>
+  /// Выполняет IsBelowBottom.
+  /// </summary>
   private static bool IsBelowBottom(GameObject parObject, WorldBounds parWorldBounds)
   {
     var halfHeight = parObject.Bounds.Height / 2.0;
@@ -414,6 +623,9 @@ public sealed class GameWorldUpdateService
     return top > parWorldBounds.Bottom;
   }
 
+  /// <summary>
+  /// Выполняет GetCrystalPoints.
+  /// </summary>
   private int GetCrystalPoints(CrystalType parType)
   {
     return parType switch
@@ -425,6 +637,9 @@ public sealed class GameWorldUpdateService
     };
   }
 
+  /// <summary>
+  /// Выполняет ActivateBonus.
+  /// </summary>
   private void ActivateBonus(
     GameState parGameState,
     Bonus parBonus,
@@ -441,6 +656,10 @@ public sealed class GameWorldUpdateService
         parGameState.TimeStabilizerRemainingSec = Math.Max(
           parGameState.TimeStabilizerRemainingSec,
           parBonus.DurationSec);
+        if (!parGameState.HasLevelTimer)
+        {
+          parGameState.LevelTimeRemainingSec = TimeStabilizerBaseSeconds;
+        }
         parGameState.LevelTimeRemainingSec += TimeStabilizerBonusSeconds;
         refTimeStabilizerCollected = true;
         break;
@@ -452,6 +671,9 @@ public sealed class GameWorldUpdateService
     }
   }
 
+  /// <summary>
+  /// Выполняет ActivateDisorientation.
+  /// </summary>
   private void ActivateDisorientation(GameState parGameState, double parDurationSec)
   {
     if (parDurationSec <= 0)
@@ -465,6 +687,9 @@ public sealed class GameWorldUpdateService
       parDurationSec);
   }
 
+  /// <summary>
+  /// Выполняет UpdateDisorientation.
+  /// </summary>
   private void UpdateDisorientation(GameState parGameState, double parDt)
   {
     if (!parGameState.IsDisoriented)
@@ -484,6 +709,9 @@ public sealed class GameWorldUpdateService
     parGameState.DisorientationRemainingSec = remaining;
   }
 
+  /// <summary>
+  /// Выполняет Intersects.
+  /// </summary>
   private static bool Intersects(GameObject parLeft, GameObject parRight, double parSoftMargin)
   {
     var halfWidthLeft = parLeft.Bounds.Width / 2.0;
@@ -498,6 +726,9 @@ public sealed class GameWorldUpdateService
       && deltaY <= (halfHeightLeft + halfHeightRight + parSoftMargin);
   }
 
+  /// <summary>
+  /// Выполняет ClampDroneToBounds.
+  /// </summary>
   private static void ClampDroneToBounds(GameState parGameState)
   {
     var drone = parGameState.DroneInternal;
@@ -530,5 +761,13 @@ public sealed class GameWorldUpdateService
     }
 
     drone.Position = new Vector2(clampedX, clampedY);
+  }
+
+  /// <summary>
+  /// Выполняет NormalizeDirection.
+  /// </summary>
+  private static int NormalizeDirection(bool parIsDisoriented, int parDirection)
+  {
+    return parIsDisoriented ? -parDirection : parDirection;
   }
 }

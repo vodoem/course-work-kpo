@@ -1,5 +1,4 @@
 using CosmicCollector.Core.Events;
-using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
@@ -44,15 +43,15 @@ public sealed class ManualGameLoopRunner
   {
     ProcessCommands();
 
-    if (!_gameState.IsPaused)
-    {
-      _updateCallback?.Invoke(StepSeconds);
-    }
+    _updateCallback?.Invoke(StepSeconds);
 
     var tickNo = _gameState.AdvanceTick();
     _eventBus.Publish(new GameTick(StepSeconds, tickNo));
   }
 
+  /// <summary>
+  /// Выполняет ProcessCommands.
+  /// </summary>
   private void ProcessCommands()
   {
     var commands = _commandQueue.DrainAll();
@@ -63,6 +62,12 @@ public sealed class ManualGameLoopRunner
       {
         var isPaused = _gameState.TogglePause();
         _eventBus.Publish(new PauseToggled(isPaused));
+        continue;
+      }
+
+      if (command is SetMoveDirectionCommand setMoveDirectionCommand)
+      {
+        ApplyMoveCommand(setMoveDirectionCommand.DirectionX);
         continue;
       }
 
@@ -79,15 +84,11 @@ public sealed class ManualGameLoopRunner
     }
   }
 
+  /// <summary>
+  /// Выполняет ApplyMoveCommand.
+  /// </summary>
   private void ApplyMoveCommand(int parDirection)
   {
-    var snapshot = _gameState.GetSnapshot();
-    var direction = NormalizeDirection(snapshot.parDrone.parIsDisoriented, parDirection);
-    _gameState.SetDroneVelocity(new Vector2(direction * GameRules.DroneBaseSpeed, snapshot.parDrone.parVelocity.Y));
-  }
-
-  private static int NormalizeDirection(bool parIsDisoriented, int parDirection)
-  {
-    return parIsDisoriented ? -parDirection : parDirection;
+    _gameState.SetDroneMoveDirection(parDirection);
   }
 }

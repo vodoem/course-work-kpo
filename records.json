@@ -1,0 +1,41 @@
+{
+  "formatVersion": 1,
+  "records": [
+    {
+      "playerName": "Алексей",
+      "score": 1200,
+      "level": 7,
+      "timestampUtc": "2024-12-01T10:00:00Z"
+    },
+    {
+      "playerName": "Мария",
+      "score": 980,
+      "level": 6,
+      "timestampUtc": "2024-11-20T18:30:00Z"
+    },
+    {
+      "playerName": "Илья",
+      "score": 760,
+      "level": 5,
+      "timestampUtc": "2024-11-05T09:15:00Z"
+    },
+    {
+      "playerName": "Ольга",
+      "score": 540,
+      "level": 4,
+      "timestampUtc": "2024-10-22T14:45:00Z"
+    },
+    {
+      "playerName": "Дмитрий",
+      "score": 310,
+      "level": 2,
+      "timestampUtc": "2024-10-10T08:05:00Z"
+    },
+    {
+      "playerName": "Анна",
+      "score": 150,
+      "level": 1,
+      "timestampUtc": "2024-10-01T12:00:00Z"
+    }
+  ]
+}

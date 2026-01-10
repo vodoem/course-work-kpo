@@ -39,6 +39,9 @@ public sealed class EventBus : IEventBus
     return new Subscription<TEvent>(this, parHandler);
   }
 
+  /// <summary>
+  /// Выполняет Unsubscribe<TEvent>.
+  /// </summary>
   internal void Unsubscribe<TEvent>(Action<TEvent> parHandler) where TEvent : IGameEvent
   {
     lock (_lockObject)
@@ -57,6 +60,9 @@ public sealed class EventBus : IEventBus
     }
   }
 
+  /// <summary>
+  /// Выполняет PublishInternal.
+  /// </summary>
   private void PublishInternal(Type parEventType, IGameEvent parEvent)
   {
     List<Delegate>? handlersCopy;

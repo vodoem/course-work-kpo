@@ -25,10 +25,10 @@ public sealed class SpawnConfig
       3,
       3,
       1,
+      30,
+      45,
       60,
       90,
-      120,
-      180,
       0,
       0,
       4,
@@ -38,11 +38,11 @@ public sealed class SpawnConfig
       new Aabb(12, 12),
       new Aabb(8, 8),
       new Aabb(14, 14),
-      2,
-      3,
-      2,
-      0,
-      220,
+      120,
+      150,
+      120,
+      120,
+      220.0 / 1.5,
       40,
       5,
       1.3,
@@ -59,6 +59,9 @@ public sealed class SpawnConfig
         new(BonusType.Magnet, 1)
       });
 
+  /// <summary>
+  /// Инициализирует новый экземпляр класса SpawnConfig.
+  /// </summary>
   private SpawnConfig()
   {
     IsEnabled = false;
