@@ -487,8 +487,6 @@ public sealed class GameWorldUpdateService
       var startValue = parGameState.ResumeCountdownValue;
       parEventPublisher.Publish(new CountdownTick(startValue));
       parGameState.IsResumeCountdownJustStarted = false;
-      parGameState.ResumeCountdownAccumulatedSec = 0;
-      return;
     }
 
     parGameState.ResumeCountdownAccumulatedSec += parDt;

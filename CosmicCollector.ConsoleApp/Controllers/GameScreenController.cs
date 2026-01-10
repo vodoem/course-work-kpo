@@ -45,10 +45,10 @@ public sealed class GameScreenController
   private bool _rightHeld;
   private bool _pauseHeld;
   private int _moveDirection;
-  private volatile bool _shouldExitGameScreen;
-  private volatile bool _isInputEnabled = true;
-  private volatile bool _isPauseMenuVisible;
-  private volatile bool _exitToMenuRequested;
+  private int _shouldExitGameScreenFlag;
+  private int _isInputEnabledFlag = 1;
+  private int _isPauseMenuVisibleFlag;
+  private int _exitToMenuRequestedFlag;
   private GameSnapshot? _finalSnapshot;
   private GameEndReason? _endReason;
   private GameSnapshot? _latestSnapshot;
@@ -102,8 +102,8 @@ public sealed class GameScreenController
   /// </summary>
   public GameEndAction Run()
   {
-    _shouldExitGameScreen = false;
-    _exitToMenuRequested = false;
+    Volatile.Write(ref _shouldExitGameScreenFlag, 0);
+    Volatile.Write(ref _exitToMenuRequestedFlag, 0);
     _gameStartedSubscription = _eventBus.Subscribe<GameStarted>(OnGameStarted);
     _gameTickSubscription = _eventBus.Subscribe<GameTick>(OnGameTick);
     _pauseSubscription = _eventBus.Subscribe<PauseToggled>(OnPauseToggled);
@@ -118,7 +118,7 @@ public sealed class GameScreenController
     while (_isRunning)
     {
       _tickSignal.WaitOne();
-      if (Volatile.Read(ref _shouldExitGameScreen))
+      if (Volatile.Read(ref _shouldExitGameScreenFlag) == 1)
       {
         _isRunning = false;
         break;
@@ -130,7 +130,7 @@ public sealed class GameScreenController
     _gameLoopRunner.Stop();
     StopInputLoop();
 
-    if (Volatile.Read(ref _exitToMenuRequested))
+    if (Volatile.Read(ref _exitToMenuRequestedFlag) == 1)
     {
       return GameEndAction.ReturnToMenu;
     }
@@ -170,7 +170,7 @@ public sealed class GameScreenController
     if (parEvent.parIsPaused)
     {
       SetMoveDirection(0);
-      _isPauseMenuVisible = true;
+      Volatile.Write(ref _isPauseMenuVisibleFlag, 1);
       _menuPauseHeld = true;
       _menuUpHeld = false;
       _menuDownHeld = false;
@@ -183,7 +183,7 @@ public sealed class GameScreenController
     }
     else
     {
-      _isPauseMenuVisible = false;
+      Volatile.Write(ref _isPauseMenuVisibleFlag, 0);
     }
   }
 
@@ -206,8 +206,8 @@ public sealed class GameScreenController
   {
     _finalSnapshot = _snapshotProvider.GetSnapshot();
     _endReason = parReason;
-    Volatile.Write(ref _isInputEnabled, false);
-    Volatile.Write(ref _shouldExitGameScreen, true);
+    Volatile.Write(ref _isInputEnabledFlag, 0);
+    Volatile.Write(ref _shouldExitGameScreenFlag, 1);
     _tickSignal.Set();
   }
 
@@ -227,7 +227,7 @@ public sealed class GameScreenController
 
     _view.Render(snapshot, _level, _isPaused, _countdownValue);
 
-    if (_isPaused && _isPauseMenuVisible && _countdownValue <= 0)
+    if (_isPaused && Volatile.Read(ref _isPauseMenuVisibleFlag) == 1 && _countdownValue <= 0)
     {
       _pauseMenuController.Render();
     }
@@ -246,7 +246,7 @@ public sealed class GameScreenController
   /// <param name="parPauseHeld">Признак удержания паузы.</param>
   public void ApplyInputState(bool parLeftHeld, bool parRightHeld, bool parPauseHeld)
   {
-    if (!_isInputEnabled)
+    if (Volatile.Read(ref _isInputEnabledFlag) == 0)
     {
       return;
     }
@@ -331,7 +331,7 @@ public sealed class GameScreenController
     long lastPoll = 0;
 
     while (_isRunning &&
-           !_shouldExitGameScreen &&
+           Volatile.Read(ref _shouldExitGameScreenFlag) == 0 &&
            _inputCancellation is not null &&
            !_inputCancellation.IsCancellationRequested)
     {
@@ -348,7 +348,7 @@ public sealed class GameScreenController
       bool rightHeld = _keyStateProvider.IsKeyDown(ConsoleKey.D) || _keyStateProvider.IsKeyDown(ConsoleKey.RightArrow);
       bool pauseHeld = _keyStateProvider.IsKeyDown(ConsoleKey.P) || _keyStateProvider.IsKeyDown(ConsoleKey.Spacebar);
 
-      if (_isPaused && _isPauseMenuVisible && _countdownValue <= 0)
+      if (_isPaused && Volatile.Read(ref _isPauseMenuVisibleFlag) == 1 && _countdownValue <= 0)
       {
         HandlePauseMenuInput(pauseHeld);
         continue;
@@ -375,7 +375,7 @@ public sealed class GameScreenController
   public void StartForTests()
   {
     _isRunning = true;
-    _isInputEnabled = true;
+    Volatile.Write(ref _isInputEnabledFlag, 1);
   }
 
   /// <summary>
@@ -384,9 +384,9 @@ public sealed class GameScreenController
   public void InitializeForTests()
   {
     _isRunning = true;
-    _isInputEnabled = true;
-    _shouldExitGameScreen = false;
-    _exitToMenuRequested = false;
+    Volatile.Write(ref _isInputEnabledFlag, 1);
+    Volatile.Write(ref _shouldExitGameScreenFlag, 0);
+    Volatile.Write(ref _exitToMenuRequestedFlag, 0);
     _gameOverSubscription = _eventBus.Subscribe<GameOver>(OnGameOver);
     _levelCompletedSubscription = _eventBus.Subscribe<LevelCompleted>(OnLevelCompleted);
   }
@@ -400,8 +400,9 @@ public sealed class GameScreenController
   {
     _finalSnapshot = parSnapshot;
     _endReason = parReason;
-    Volatile.Write(ref _isInputEnabled, false);
-    Volatile.Write(ref _shouldExitGameScreen, true);
+    Volatile.Write(ref _isInputEnabledFlag, 0);
+    Volatile.Write(ref _shouldExitGameScreenFlag, 1);
+    _isRunning = false;
   }
 
   /// <summary>
@@ -410,7 +411,8 @@ public sealed class GameScreenController
   public void OpenPauseMenuForTests()
   {
     _isPaused = true;
-    _isPauseMenuVisible = true;
+    Volatile.Write(ref _isPauseMenuVisibleFlag, 1);
+    _menuPauseHeld = true;
     _pauseMenuController.OpenMenu();
   }
 
@@ -455,7 +457,7 @@ public sealed class GameScreenController
   /// <summary>
   /// Возвращает признак активного ввода.
   /// </summary>
-  public bool IsInputEnabled => _isInputEnabled;
+  public bool IsInputEnabled => Volatile.Read(ref _isInputEnabledFlag) == 1;
 
   /// <summary>
   /// Возвращает финальный снимок.
@@ -470,12 +472,12 @@ public sealed class GameScreenController
   /// <summary>
   /// Возвращает признак выхода с игрового экрана.
   /// </summary>
-  public bool ShouldExitGameScreen => _shouldExitGameScreen;
+  public bool ShouldExitGameScreen => Volatile.Read(ref _shouldExitGameScreenFlag) == 1;
 
   /// <summary>
   /// Возвращает признак выхода в меню.
   /// </summary>
-  public bool ExitToMenuRequested => _exitToMenuRequested;
+  public bool ExitToMenuRequested => Volatile.Read(ref _exitToMenuRequestedFlag) == 1;
 
   private void HandlePauseMenuInput(bool parPauseHeld)
   {
@@ -509,13 +511,13 @@ public sealed class GameScreenController
     switch (parAction)
     {
       case PauseMenuAction.Resume:
-        _isPauseMenuVisible = false;
+        Volatile.Write(ref _isPauseMenuVisibleFlag, 0);
         _commandQueue.Enqueue(new TogglePauseCommand());
         break;
       case PauseMenuAction.ExitToMenu:
-        Volatile.Write(ref _exitToMenuRequested, true);
-        Volatile.Write(ref _isInputEnabled, false);
-        Volatile.Write(ref _shouldExitGameScreen, true);
+        Volatile.Write(ref _exitToMenuRequestedFlag, 1);
+        Volatile.Write(ref _isInputEnabledFlag, 0);
+        Volatile.Write(ref _shouldExitGameScreenFlag, 1);
         _isRunning = false;
         _tickSignal.Set();
         break;

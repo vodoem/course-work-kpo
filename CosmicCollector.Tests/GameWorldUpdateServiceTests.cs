@@ -238,11 +238,11 @@ public sealed class GameWorldUpdateServiceTests
     service.Update(state, 1.0 / 60.0, 1, bus);
 
     state.Drone.Position = Vector2.Zero;
-    state.Drone.Velocity = new Vector2(10, 0);
+    state.SetDroneMoveDirection(1);
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.InRange(state.Drone.Position.X, 15.99, 16.01);
+    Xunit.Assert.InRange(state.Drone.Position.X, 6.39, 6.41);
   }
 
   /// <summary>
@@ -257,7 +257,7 @@ public sealed class GameWorldUpdateServiceTests
     var bus = new EventBus();
 
     state.Drone.Position = Vector2.Zero;
-    state.Drone.Velocity = new Vector2(GameRules.DroneBaseSpeed, 0);
+    state.SetDroneMoveDirection(1);
 
     service.Update(state, 1.0, 1, bus);
 
@@ -279,7 +279,7 @@ public sealed class GameWorldUpdateServiceTests
     service.Update(state, 1.0 / 60.0, 1, bus);
 
     state.Drone.Position = Vector2.Zero;
-    state.Drone.Velocity = new Vector2(GameRules.DroneBaseSpeed, 0);
+    state.SetDroneMoveDirection(1);
 
     service.Update(state, 1.0, 1, bus);
 

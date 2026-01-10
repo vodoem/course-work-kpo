@@ -50,6 +50,11 @@ public sealed class ConsoleRenderer : IConsoleRenderer
   /// <inheritdoc />
   public void SetBufferSize(int parWidth, int parHeight)
   {
+    if (!OperatingSystem.IsWindows())
+    {
+      return;
+    }
+
     try
     {
       Console.SetBufferSize(parWidth, parHeight);
