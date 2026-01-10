@@ -366,9 +366,12 @@ public sealed class GameWorldUpdateServiceTests
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
-    var config = new LevelConfigProvider().GetConfig(1);
+    var configProvider = new LevelConfigProvider();
+    var levelService = new LevelService(configProvider);
+    var config = configProvider.GetConfig(1);
     const double timeStabilizerBonus = 5;
 
+    levelService.InitLevel(state);
     state.LevelTimeRemainingSec = config.parLevelTimeSec;
     state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
 
