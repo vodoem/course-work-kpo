@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Services;
@@ -82,6 +81,9 @@ public sealed class GameLoopRunner : IGameLoopRunner
     Stop();
   }
 
+  /// <summary>
+  /// Выполняет RunLoop.
+  /// </summary>
   private void RunLoop()
   {
     var stopwatch = Stopwatch.StartNew();
@@ -92,10 +94,7 @@ public sealed class GameLoopRunner : IGameLoopRunner
 
       ProcessCommands();
 
-      if (!_gameState.IsPaused)
-      {
-        _updateCallback?.Invoke(StepSeconds);
-      }
+      _updateCallback?.Invoke(StepSeconds);
 
       var tickNo = _gameState.AdvanceTick();
       _eventBus.Publish(new GameTick(StepSeconds, tickNo));
@@ -110,6 +109,9 @@ public sealed class GameLoopRunner : IGameLoopRunner
     }
   }
 
+  /// <summary>
+  /// Выполняет ProcessCommands.
+  /// </summary>
   private void ProcessCommands()
   {
     var commands = _commandQueue.DrainAll();
@@ -120,6 +122,12 @@ public sealed class GameLoopRunner : IGameLoopRunner
       {
         var isPaused = _gameState.TogglePause();
         _eventBus.Publish(new PauseToggled(isPaused));
+        continue;
+      }
+
+      if (command is SetMoveDirectionCommand setMoveDirectionCommand)
+      {
+        ApplyMoveCommand(setMoveDirectionCommand.DirectionX);
         continue;
       }
 
@@ -136,18 +144,17 @@ public sealed class GameLoopRunner : IGameLoopRunner
     }
   }
 
+  /// <summary>
+  /// Выполняет ApplyMoveCommand.
+  /// </summary>
   private void ApplyMoveCommand(int parDirection)
   {
-    var snapshot = _gameState.GetSnapshot();
-    var direction = NormalizeDirection(snapshot.parDrone.parIsDisoriented, parDirection);
-    _gameState.SetDroneVelocity(new Vector2(direction * GameRules.DroneBaseSpeed, snapshot.parDrone.parVelocity.Y));
+    _gameState.SetDroneMoveDirection(parDirection);
   }
 
-  private static int NormalizeDirection(bool parIsDisoriented, int parDirection)
-  {
-    return parIsDisoriented ? -parDirection : parDirection;
-  }
-
+  /// <summary>
+  /// Выполняет IsRunning.
+  /// </summary>
   private bool IsRunning()
   {
     lock (_stateLock)

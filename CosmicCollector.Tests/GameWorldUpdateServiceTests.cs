@@ -1,3 +1,4 @@
+using System;
 using CosmicCollector.Core.Entities;
 using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
@@ -186,20 +187,45 @@ public sealed class GameWorldUpdateServiceTests
   [Xunit.Fact]
   public void Update_AcceleratorIncreasesScore()
   {
+    var baseScore = GetScoreWithoutAccelerator();
+    var boostedScore = GetScoreWithAccelerator();
+
+    Xunit.Assert.Equal(baseScore * 2, boostedScore);
+  }
+
+  /// <summary>
+  /// Проверяет сценарий GetScoreWithoutAccelerator.
+  /// </summary>
+  private static int GetScoreWithoutAccelerator()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddCrystal(CreateCrystal(CrystalType.Blue));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    return state.Score;
+  }
+
+  /// <summary>
+  /// Проверяет сценарий GetScoreWithAccelerator.
+  /// </summary>
+  private static int GetScoreWithAccelerator()
+  {
     var random = new FakeRandomProvider(8);
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
 
     state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
-
     service.Update(state, 1.0 / 60.0, 1, bus);
 
     state.AddCrystal(CreateCrystal(CrystalType.Blue));
-
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    Xunit.Assert.Equal(10, state.Score);
+    return state.Score;
   }
 
   /// <summary>
@@ -212,17 +238,19 @@ public sealed class GameWorldUpdateServiceTests
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
+    const double acceleratorMultiplier = 1.6;
 
     state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
     state.Drone.Position = Vector2.Zero;
-    state.Drone.Velocity = new Vector2(10, 0);
+    state.SetDroneMoveDirection(1);
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.InRange(state.Drone.Position.X, 15.99, 16.01);
+    var expected = GameRules.DroneBaseSpeed * acceleratorMultiplier;
+    Xunit.Assert.InRange(state.Drone.Position.X, expected - 0.01, expected + 0.01);
   }
 
   /// <summary>
@@ -237,11 +265,11 @@ public sealed class GameWorldUpdateServiceTests
     var bus = new EventBus();
 
     state.Drone.Position = Vector2.Zero;
-    state.Drone.Velocity = new Vector2(GameRules.DroneBaseSpeed, 0);
+    state.SetDroneMoveDirection(1);
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.InRange(state.Drone.Position.X, 3.99, 4.01);
+    Xunit.Assert.InRange(state.Drone.Position.X, GameRules.DroneBaseSpeed - 0.01, GameRules.DroneBaseSpeed + 0.01);
   }
 
   /// <summary>
@@ -254,16 +282,18 @@ public sealed class GameWorldUpdateServiceTests
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
+    const double acceleratorMultiplier = 1.6;
 
     state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
     service.Update(state, 1.0 / 60.0, 1, bus);
 
     state.Drone.Position = Vector2.Zero;
-    state.Drone.Velocity = new Vector2(GameRules.DroneBaseSpeed, 0);
+    state.SetDroneMoveDirection(1);
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.InRange(state.Drone.Position.X, 6.39, 6.41);
+    var expected = GameRules.DroneBaseSpeed * acceleratorMultiplier;
+    Xunit.Assert.InRange(state.Drone.Position.X, expected - 0.01, expected + 0.01);
   }
 
   /// <summary>
@@ -342,13 +372,36 @@ public sealed class GameWorldUpdateServiceTests
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
+    var configProvider = new LevelConfigProvider();
+    var levelService = new LevelService(configProvider);
+    var config = configProvider.GetConfig(1);
+    const double timeStabilizerBonus = 5;
 
-    state.LevelTimeRemainingSec = 30;
+    levelService.InitLevel(state);
+    state.LevelTimeRemainingSec = config.parLevelTimeSec;
     state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
 
-    service.Update(state, 1.0 / 60.0, 1, bus);
+    service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.Equal(35, state.LevelTimeRemainingSec);
+    Xunit.Assert.Equal(config.parLevelTimeSec + timeStabilizerBonus, state.LevelTimeRemainingSec);
+  }
+
+  /// <summary>
+  /// Проверяет активацию таймера уровня стабилизатором при выключенном таймере.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_TimeStabilizerActivatesTimerWhenInactive()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.Equal(65, state.LevelTimeRemainingSec);
   }
 
   /// <summary>
@@ -508,6 +561,354 @@ public sealed class GameWorldUpdateServiceTests
   }
 
   /// <summary>
+  /// Проверяет, что чёрная дыра двигается вниз по скорости.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHole_MovesDown_WhenSpawned()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      new Vector2(0, 10),
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.True(blackHole.Position.Y > 0);
+  }
+
+  /// <summary>
+  /// Проверяет удаление чёрной дыры при выходе за нижнюю границу.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHole_Despawns_WhenOutOfBounds()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var bounds = new WorldBounds(0, 0, 100, 100);
+    var state = CreateStateWithDrone(bounds);
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      new Vector2(50, 106),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var snapshot = state.GetSnapshot();
+    Xunit.Assert.Empty(snapshot.parBlackHoles);
+    Xunit.Assert.Equal("OutOfBounds", reason);
+  }
+
+  /// <summary>
+  /// Проверяет замедление чёрной дыры стабилизатором времени.
+  /// </summary>
+  [Xunit.Fact]
+  public void TimeStabilizer_SlowsDown_BlackHole()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      new Vector2(0, 10),
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.InRange(blackHole.Position.Y, 6.49, 6.51);
+  }
+
+  /// <summary>
+  /// Проверяет притяжение кристаллов и бонусов к чёрной дыре.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHole_Pulls_Crystals_And_Bonuses_WithinRadius()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40);
+    state.AddBlackHole(blackHole);
+
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      new Vector2(100, 0),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    var bonus = new Bonus(
+      Guid.NewGuid(),
+      new Vector2(100, 0),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      BonusType.Magnet,
+      5);
+    state.AddBonus(bonus);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.True(crystal.Velocity.X < 0);
+    Xunit.Assert.True(bonus.Velocity.X < 0);
+  }
+
+  /// <summary>
+  /// Проверяет отсутствие притяжения за пределами уменьшенного радиуса.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHole_DoesNotPull_WhenOutsideReducedRadius()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var reducedRadius = 220.0 / 1.5;
+
+    var blackHole = new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      reducedRadius,
+      40);
+    state.AddBlackHole(blackHole);
+
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      new Vector2(180, 0),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    service.Update(state, 1.0, 1, bus);
+
+    Xunit.Assert.Equal(0, crystal.Velocity.X);
+  }
+
+  /// <summary>
+  /// Проверяет, что дезориентация не активируется вне ядра.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_BlackHoleDoesNotDisorientOutsideCore()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(100, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.False(state.IsDisoriented);
+  }
+
+  /// <summary>
+  /// Проверяет, что урон от ядра не применяется многократно.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_BlackHoleDoesNotRepeatDamageInsideCore()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(10, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Equal(60, state.Drone.Energy);
+  }
+
+  /// <summary>
+  /// Проверяет отсутствие вертикальной скорости после влияния чёрной дыры.
+  /// </summary>
+  [Xunit.Fact]
+  public void Update_BlackHoleDoesNotChangeDroneVerticalVelocity()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+
+    state.Drone.Position = new Vector2(10, 0);
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    service.Update(state, 1.0, 1, bus);
+    Xunit.Assert.Equal(0, state.Drone.Velocity.Y);
+
+    state.Drone.Position = new Vector2(1000, 0);
+    service.Update(state, 1.0, 1, bus);
+    Xunit.Assert.Equal(0, state.Drone.Velocity.Y);
+  }
+
+  /// <summary>
+  /// Проверяет удаление кристалла при касании ядра чёрной дыры.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHoleCore_RemovesCrystal()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    var crystal = new Crystal(
+      Guid.NewGuid(),
+      new Vector2(10, 0),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      CrystalType.Blue);
+    state.AddCrystal(crystal);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Empty(state.GetSnapshot().parCrystals);
+    Xunit.Assert.Equal("BlackHoleCore", reason);
+  }
+
+  /// <summary>
+  /// Проверяет удаление бонуса при касании ядра чёрной дыры.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHoleCore_RemovesBonus()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    var bonus = new Bonus(
+      Guid.NewGuid(),
+      new Vector2(10, 0),
+      Vector2.Zero,
+      new Aabb(10, 10),
+      BonusType.Magnet,
+      5);
+    state.AddBonus(bonus);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Empty(state.GetSnapshot().parBonuses);
+    Xunit.Assert.Equal("BlackHoleCore", reason);
+  }
+
+  /// <summary>
+  /// Проверяет удаление астероида при касании ядра чёрной дыры.
+  /// </summary>
+  [Xunit.Fact]
+  public void BlackHoleCore_RemovesAsteroid()
+  {
+    var random = new FakeRandomProvider(8);
+    var service = new GameWorldUpdateService(random);
+    var state = CreateStateWithDrone();
+    var bus = new EventBus();
+    var reason = string.Empty;
+
+    bus.Subscribe<ObjectDespawned>(evt => reason = evt.parReason);
+
+    state.AddBlackHole(new BlackHole(
+      Guid.NewGuid(),
+      Vector2.Zero,
+      Vector2.Zero,
+      new Aabb(10, 10),
+      220,
+      40));
+
+    var asteroid = new Asteroid(
+      Guid.NewGuid(),
+      new Vector2(10, 0),
+      Vector2.Zero,
+      new Aabb(10, 10));
+    state.AddAsteroid(asteroid);
+
+    service.Update(state, 1.0 / 60.0, 1, bus);
+
+    Xunit.Assert.Empty(state.GetSnapshot().parAsteroids);
+    Xunit.Assert.Equal("BlackHoleCore", reason);
+  }
+
+  /// <summary>
   /// Проверяет, что пауза останавливает обновление мира.
   /// </summary>
   [Xunit.Fact]
@@ -646,29 +1047,56 @@ public sealed class GameWorldUpdateServiceTests
   }
 
   /// <summary>
-  /// Проверяет победу при достижении RequiredScore и сборе всех типов кристаллов.
+  /// Проверяет переход на следующий уровень при достижении целей.
   /// </summary>
   [Xunit.Fact]
-  public void Update_LevelCompletedWhenScoreAndTypesMet()
+  public void Update_LevelCompleted_AdvancesLevelAndResetsProgress()
   {
     var random = new FakeRandomProvider(10);
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
     var completed = 0;
-
-    state.RequiredScore = 10;
-    state.LevelTimeRemainingSec = 100;
+    var configProvider = new LevelConfigProvider();
+    var level1 = configProvider.GetConfig(1);
+    var level2 = configProvider.GetConfig(2);
 
     bus.Subscribe<LevelCompleted>(_ => completed++);
 
-    state.AddCrystal(CreateCrystal(CrystalType.Blue));
-    state.AddCrystal(CreateCrystal(CrystalType.Green));
-    state.AddCrystal(CreateCrystal(CrystalType.Red));
+    for (int i = 0; i < level1.parRequiredBlue; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Blue));
+    }
+
+    for (int i = 0; i < level1.parRequiredGreen; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Green));
+    }
+
+    for (int i = 0; i < level1.parRequiredRed; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Red));
+    }
+
+    var points = (level1.parRequiredBlue * 10) + (level1.parRequiredGreen * 7) + (level1.parRequiredRed * 4);
+    var extraBlue = Math.Max(0, (int)Math.Ceiling((level1.parRequiredScore - points) / 10.0));
+
+    for (int i = 0; i < extraBlue; i++)
+    {
+      state.AddCrystal(CreateCrystal(CrystalType.Blue));
+    }
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    Xunit.Assert.True(state.IsLevelCompleted);
+    Xunit.Assert.Equal(2, state.CurrentLevel);
+    Xunit.Assert.Equal(level2.parRequiredBlue, state.LevelGoals.RequiredBlue);
+    Xunit.Assert.Equal(level2.parRequiredGreen, state.LevelGoals.RequiredGreen);
+    Xunit.Assert.Equal(level2.parRequiredRed, state.LevelGoals.RequiredRed);
+    Xunit.Assert.Equal(level2.parRequiredScore, state.RequiredScore);
+    Xunit.Assert.Equal(0, state.LevelProgress.CollectedBlue);
+    Xunit.Assert.Equal(0, state.LevelProgress.CollectedGreen);
+    Xunit.Assert.Equal(0, state.LevelProgress.CollectedRed);
+    Xunit.Assert.True(state.LevelTimeRemainingSec > 0);
     Xunit.Assert.Equal(1, completed);
   }
 
@@ -938,6 +1366,9 @@ public sealed class GameWorldUpdateServiceTests
     Xunit.Assert.Equal(0, state.DisorientationRemainingSec);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateStateWithDrone.
+  /// </summary>
   private static GameState CreateStateWithDrone()
   {
     var drone = new Drone(
@@ -950,6 +1381,9 @@ public sealed class GameWorldUpdateServiceTests
     return new GameState(drone, new WorldBounds(0, 0, 800, 600));
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateStateWithDrone.
+  /// </summary>
   private static GameState CreateStateWithDrone(WorldBounds parBounds)
   {
     var drone = new Drone(
@@ -962,6 +1396,9 @@ public sealed class GameWorldUpdateServiceTests
     return new GameState(drone, parBounds);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateCrystal.
+  /// </summary>
   private static Crystal CreateCrystal(CrystalType parType)
   {
     return new Crystal(
@@ -972,6 +1409,9 @@ public sealed class GameWorldUpdateServiceTests
       parType);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateCrystalAtX.
+  /// </summary>
   private static Crystal CreateCrystalAtX(double parX)
   {
     return new Crystal(
@@ -982,6 +1422,9 @@ public sealed class GameWorldUpdateServiceTests
       CrystalType.Blue);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateBonus.
+  /// </summary>
   private static Bonus CreateBonus(BonusType parType, double parDurationSec)
   {
     return new Bonus(
