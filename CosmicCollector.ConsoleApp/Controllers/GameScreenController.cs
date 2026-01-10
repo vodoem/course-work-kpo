@@ -346,7 +346,7 @@ public sealed class GameScreenController
 
       bool leftHeld = _keyStateProvider.IsKeyDown(ConsoleKey.A) || _keyStateProvider.IsKeyDown(ConsoleKey.LeftArrow);
       bool rightHeld = _keyStateProvider.IsKeyDown(ConsoleKey.D) || _keyStateProvider.IsKeyDown(ConsoleKey.RightArrow);
-      bool pauseHeld = _keyStateProvider.IsKeyDown(ConsoleKey.P) || _keyStateProvider.IsKeyDown(ConsoleKey.Spacebar);
+      bool pauseHeld = _keyStateProvider.IsKeyDown(ConsoleKey.P);
 
       if (_isPaused && Volatile.Read(ref _isPauseMenuVisibleFlag) == 1 && _countdownValue <= 0)
       {

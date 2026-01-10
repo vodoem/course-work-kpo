@@ -109,7 +109,9 @@ public sealed class MainMenuController
           {
             GameSession session = _gameSessionFactory.Create();
             GameScreenView gameScreenView = new GameScreenView(_renderer, session.WorldBounds);
-            IKeyStateProvider keyStateProvider = new WindowsKeyStateProvider();
+            IKeyStateProvider keyStateProvider = OperatingSystem.IsWindows()
+              ? new WindowsKeyStateProvider()
+              : new ConsoleKeyStateProvider();
             GameScreenController gameScreenController = new GameScreenController(
               gameScreenView,
               session.EventBus,
