@@ -232,6 +232,7 @@ public sealed class GameWorldUpdateServiceTests
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
+    const double acceleratorMultiplier = 1.6;
 
     state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
 
@@ -242,7 +243,8 @@ public sealed class GameWorldUpdateServiceTests
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.InRange(state.Drone.Position.X, 6.39, 6.41);
+    var expected = GameRules.DroneBaseSpeed * acceleratorMultiplier;
+    Xunit.Assert.InRange(state.Drone.Position.X, expected - 0.01, expected + 0.01);
   }
 
   /// <summary>
@@ -261,7 +263,7 @@ public sealed class GameWorldUpdateServiceTests
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.InRange(state.Drone.Position.X, 3.99, 4.01);
+    Xunit.Assert.InRange(state.Drone.Position.X, GameRules.DroneBaseSpeed - 0.01, GameRules.DroneBaseSpeed + 0.01);
   }
 
   /// <summary>
@@ -274,6 +276,7 @@ public sealed class GameWorldUpdateServiceTests
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
+    const double acceleratorMultiplier = 1.6;
 
     state.AddBonus(CreateBonus(BonusType.Accelerator, 5));
     service.Update(state, 1.0 / 60.0, 1, bus);
@@ -283,7 +286,8 @@ public sealed class GameWorldUpdateServiceTests
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.InRange(state.Drone.Position.X, 6.39, 6.41);
+    var expected = GameRules.DroneBaseSpeed * acceleratorMultiplier;
+    Xunit.Assert.InRange(state.Drone.Position.X, expected - 0.01, expected + 0.01);
   }
 
   /// <summary>
@@ -362,13 +366,15 @@ public sealed class GameWorldUpdateServiceTests
     var service = new GameWorldUpdateService(random);
     var state = CreateStateWithDrone();
     var bus = new EventBus();
+    var config = new LevelConfigProvider().GetConfig(1);
+    const double timeStabilizerBonus = 5;
 
-    state.LevelTimeRemainingSec = 30;
+    state.LevelTimeRemainingSec = config.parLevelTimeSec;
     state.AddBonus(CreateBonus(BonusType.TimeStabilizer, 5));
 
     service.Update(state, 1.0, 1, bus);
 
-    Xunit.Assert.Equal(35, state.LevelTimeRemainingSec);
+    Xunit.Assert.Equal(config.parLevelTimeSec + timeStabilizerBonus, state.LevelTimeRemainingSec);
   }
 
   /// <summary>
