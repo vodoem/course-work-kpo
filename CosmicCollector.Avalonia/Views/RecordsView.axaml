@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
              x:Class="CosmicCollector.Avalonia.Views.RecordsView">
   <Grid RowDefinitions="Auto,*,Auto"
         Margin="24">
@@ -19,37 +20,37 @@
         <Style Selector="TextBlock">
           <Setter Property="Foreground" Value="Black" />
         </Style>
-        <Style Selector="DataGrid">
+        <Style Selector="dg|DataGrid">
           <Setter Property="Foreground" Value="Black" />
         </Style>
-        <Style Selector="DataGridColumnHeader">
+        <Style Selector="dg|DataGridColumnHeader">
           <Setter Property="Foreground" Value="Black" />
         </Style>
-        <Style Selector="DataGridCell">
+        <Style Selector="dg|DataGridCell">
           <Setter Property="Foreground" Value="Black" />
         </Style>
       </Border.Styles>
-      <DataGrid ItemsSource="{Binding Records}"
-                AutoGenerateColumns="False"
-                HeadersVisibility="Column"
-                GridLinesVisibility="None"
-                VerticalScrollBarVisibility="Visible"
-                HorizontalScrollBarVisibility="Disabled">
-        <DataGrid.Columns>
-          <DataGridTextColumn Header="№"
-                              Binding="{Binding Position}"
-                              Width="Auto" />
-          <DataGridTextColumn Header="Имя"
-                              Binding="{Binding PlayerName}"
-                              Width="*" />
-          <DataGridTextColumn Header="Очки"
-                              Binding="{Binding Score}"
-                              Width="Auto" />
-          <DataGridTextColumn Header="Уровень"
-                              Binding="{Binding Level}"
-                              Width="Auto" />
-        </DataGrid.Columns>
-      </DataGrid>
+      <dg:DataGrid ItemsSource="{Binding Records}"
+                   AutoGenerateColumns="False"
+                   HeadersVisibility="Column"
+                   GridLinesVisibility="None"
+                   VerticalScrollBarVisibility="Visible"
+                   HorizontalScrollBarVisibility="Disabled">
+        <dg:DataGrid.Columns>
+          <dg:DataGridTextColumn Header="№"
+                                 Binding="{Binding Position}"
+                                 Width="Auto" />
+          <dg:DataGridTextColumn Header="Имя"
+                                 Binding="{Binding PlayerName}"
+                                 Width="*" />
+          <dg:DataGridTextColumn Header="Очки"
+                                 Binding="{Binding Score}"
+                                 Width="Auto" />
+          <dg:DataGridTextColumn Header="Уровень"
+                                 Binding="{Binding Level}"
+                                 Width="Auto" />
+        </dg:DataGrid.Columns>
+      </dg:DataGrid>
     </Border>
     <Button Grid.Row="2"
             Content="Главное меню"

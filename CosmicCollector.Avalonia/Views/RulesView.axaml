@@ -27,9 +27,10 @@
           <TextBlock Text="Описание игры и правила"
                      FontSize="18"
                      FontWeight="Bold" />
-          <md:MarkdownScrollViewer Markdown="{Binding DescriptionText}"
-                                   VerticalScrollBarVisibility="Visible"
-                                   HorizontalScrollBarVisibility="Disabled" />
+          <ScrollViewer VerticalScrollBarVisibility="Visible"
+                        HorizontalScrollBarVisibility="Disabled">
+            <md:MarkdownScrollViewer Markdown="{Binding DescriptionText}" />
+          </ScrollViewer>
         </StackPanel>
       </Border>
       <Border Grid.Column="1"
@@ -48,9 +49,10 @@
           <TextBlock Text="Клавиши управления"
                      FontSize="18"
                      FontWeight="Bold" />
-          <md:MarkdownScrollViewer Markdown="{Binding ControlsText}"
-                                   VerticalScrollBarVisibility="Visible"
-                                   HorizontalScrollBarVisibility="Disabled" />
+          <ScrollViewer VerticalScrollBarVisibility="Visible"
+                        HorizontalScrollBarVisibility="Disabled">
+            <md:MarkdownScrollViewer Markdown="{Binding ControlsText}" />
+          </ScrollViewer>
         </StackPanel>
       </Border>
     </Grid>
