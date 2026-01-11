@@ -17,7 +17,6 @@
     <PackageReference Include="Avalonia.Controls.DataGrid" Version="11.0.6" />
     <PackageReference Include="Avalonia.Fonts.Inter" Version="11.0.6" />
     <PackageReference Include="Avalonia.Themes.Fluent" Version="11.0.6" />
-    <PackageReference Include="Markdown.Avalonia" Version="11.0.6" />
   </ItemGroup>
 
   <ItemGroup>

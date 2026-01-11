@@ -22,6 +22,7 @@
         </Style>
         <Style Selector="dg|DataGrid">
           <Setter Property="Foreground" Value="Black" />
+          <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="dg|DataGridColumnHeader">
           <Setter Property="Foreground" Value="Black" />
@@ -30,12 +31,18 @@
           <Setter Property="Foreground" Value="Black" />
         </Style>
       </Border.Styles>
+      <TextBlock Text="Нет записей"
+                 HorizontalAlignment="Center"
+                 VerticalAlignment="Center"
+                 FontSize="16"
+                 IsVisible="{Binding NoRecords}" />
       <dg:DataGrid ItemsSource="{Binding Records}"
                    AutoGenerateColumns="False"
                    HeadersVisibility="Column"
                    GridLinesVisibility="None"
                    VerticalScrollBarVisibility="Visible"
-                   HorizontalScrollBarVisibility="Disabled">
+                   HorizontalScrollBarVisibility="Disabled"
+                   IsVisible="{Binding HasRecords}">
         <dg:DataGrid.Columns>
           <dg:DataGridTextColumn Header="№"
                                  Binding="{Binding Position}"
@@ -48,6 +55,9 @@
                                  Width="Auto" />
           <dg:DataGridTextColumn Header="Уровень"
                                  Binding="{Binding Level}"
+                                 Width="Auto" />
+          <dg:DataGridTextColumn Header="Время"
+                                 Binding="{Binding Time}"
                                  Width="Auto" />
         </dg:DataGrid.Columns>
       </dg:DataGrid>

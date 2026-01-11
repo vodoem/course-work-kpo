@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 using CosmicCollector.Avalonia.Commands;
@@ -21,6 +23,8 @@ public sealed class RecordsViewModel : ViewModelBase
   {
     var recordsRepository = new RecordsRepository(AppDataPaths.GetRecordsFilePath());
     Records = BuildRecordsList(recordsRepository.LoadAll());
+    HasRecords = Records.Count > 0;
+    NoRecords = !HasRecords;
     BackCommand = new NavigateCommand(parBackNavigation);
   }
 
@@ -28,6 +32,16 @@ public sealed class RecordsViewModel : ViewModelBase
   /// Коллекция строк таблицы рекордов.
   /// </summary>
   public IReadOnlyList<RecordsRowViewModel> Records { get; }
+
+  /// <summary>
+  /// Признак наличия записей.
+  /// </summary>
+  public bool HasRecords { get; }
+
+  /// <summary>
+  /// Признак отсутствия записей.
+  /// </summary>
+  public bool NoRecords { get; }
 
   /// <summary>
   /// Команда возврата в главное меню.
@@ -43,7 +57,18 @@ public sealed class RecordsViewModel : ViewModelBase
         index + 1,
         record.parPlayerName,
         record.parScore,
-        record.parLevel))
+        record.parLevel,
+        FormatTimestamp(record.parTimestampUtc)))
       .ToList();
+  }
+
+  private static string FormatTimestamp(string parTimestampUtc)
+  {
+    if (DateTime.TryParse(parTimestampUtc, CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal, out var value))
+    {
+      return value.ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);
+    }
+
+    return parTimestampUtc;
   }
 }

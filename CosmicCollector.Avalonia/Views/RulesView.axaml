@@ -1,6 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:md="clr-namespace:Markdown.Avalonia;assembly=Markdown.Avalonia"
              x:Class="CosmicCollector.Avalonia.Views.RulesView">
   <Grid RowDefinitions="Auto,*,Auto"
         Margin="24">
@@ -26,7 +25,22 @@
                      FontWeight="Bold" />
           <ScrollViewer VerticalScrollBarVisibility="Visible"
                         HorizontalScrollBarVisibility="Disabled">
-            <md:MarkdownScrollViewer Markdown="{Binding DescriptionText}" />
+            <ItemsControl ItemsSource="{Binding DescriptionBlocks}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="4" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Text}"
+                             TextWrapping="Wrap"
+                             FontSize="{Binding FontSize}"
+                             FontWeight="{Binding FontWeight}"
+                             Margin="{Binding Margin}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </ScrollViewer>
         </StackPanel>
       </Border>
@@ -45,7 +59,22 @@
                      FontWeight="Bold" />
           <ScrollViewer VerticalScrollBarVisibility="Visible"
                         HorizontalScrollBarVisibility="Disabled">
-            <md:MarkdownScrollViewer Markdown="{Binding ControlsText}" />
+            <ItemsControl ItemsSource="{Binding ControlsBlocks}">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="4" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <TextBlock Text="{Binding Text}"
+                             TextWrapping="Wrap"
+                             FontSize="{Binding FontSize}"
+                             FontWeight="{Binding FontWeight}"
+                             Margin="{Binding Margin}" />
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
           </ScrollViewer>
         </StackPanel>
       </Border>

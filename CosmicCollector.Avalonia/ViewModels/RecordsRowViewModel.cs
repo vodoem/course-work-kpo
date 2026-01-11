@@ -12,12 +12,14 @@ public sealed class RecordsRowViewModel
   /// <param name="parPlayerName">Имя игрока.</param>
   /// <param name="parScore">Очки.</param>
   /// <param name="parLevel">Уровень.</param>
-  public RecordsRowViewModel(int parPosition, string parPlayerName, int parScore, int parLevel)
+  /// <param name="parTime">Время записи.</param>
+  public RecordsRowViewModel(int parPosition, string parPlayerName, int parScore, int parLevel, string parTime)
   {
     Position = parPosition;
     PlayerName = parPlayerName;
     Score = parScore;
     Level = parLevel;
+    Time = parTime;
   }
 
   /// <summary>
@@ -39,4 +41,9 @@ public sealed class RecordsRowViewModel
   /// Уровень.
   /// </summary>
   public int Level { get; }
+
+  /// <summary>
+  /// Время записи.
+  /// </summary>
+  public string Time { get; }
 }
