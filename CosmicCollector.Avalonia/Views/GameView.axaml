@@ -2,25 +2,26 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CosmicCollector.Avalonia.Views.GameView">
   <Grid>
-    <StackPanel HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                Spacing="12"
-                MaxWidth="600">
-      <TextBlock Text="Игровой экран"
-                 FontSize="24"
-                 FontWeight="Bold"
-                 HorizontalAlignment="Center" />
-      <TextBlock Text="Уровень: {Binding CurrentLevel}" TextAlignment="Center" />
-      <TextBlock Text="Очки: {Binding Score}" TextAlignment="Center" />
-      <TextBlock Text="Энергия: {Binding Energy}" TextAlignment="Center" />
-      <TextBlock Text="Цель очков: {Binding RequiredScore}" TextAlignment="Center" />
-      <TextBlock Text="{Binding TimerText}" TextAlignment="Center" />
-      <TextBlock Text="{Binding BlueProgressText}" TextAlignment="Center" />
-      <TextBlock Text="{Binding GreenProgressText}" TextAlignment="Center" />
-      <TextBlock Text="{Binding RedProgressText}" TextAlignment="Center" />
-      <TextBlock Text="Пауза: {Binding IsPaused}" TextAlignment="Center" />
-      <TextBlock Text="Отсчёт: {Binding CountdownValue}" TextAlignment="Center" />
-      <Button Content="В меню" Command="{Binding BackToMenuCommand}" Width="200" />
-    </StackPanel>
+    <Border Width="520"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center">
+      <StackPanel HorizontalAlignment="Center"
+                  Spacing="12">
+        <TextBlock Text="Игровой экран"
+                   FontSize="24"
+                   FontWeight="Bold" />
+        <TextBlock Text="Уровень: {Binding CurrentLevel}" />
+        <TextBlock Text="Очки: {Binding Score}" />
+        <TextBlock Text="Энергия: {Binding Energy}" />
+        <TextBlock Text="Цель очков: {Binding RequiredScore}" />
+        <TextBlock Text="{Binding TimerText}" />
+        <TextBlock Text="{Binding BlueProgressText}" />
+        <TextBlock Text="{Binding GreenProgressText}" />
+        <TextBlock Text="{Binding RedProgressText}" />
+        <TextBlock Text="Пауза: {Binding IsPaused}" />
+        <TextBlock Text="Отсчёт: {Binding CountdownValue}" />
+        <Button Content="В меню" Command="{Binding BackToMenuCommand}" />
+      </StackPanel>
+    </Border>
   </Grid>
 </UserControl>
