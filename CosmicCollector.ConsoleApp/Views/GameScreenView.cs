@@ -13,17 +13,26 @@ namespace CosmicCollector.ConsoleApp.Views;
 public sealed class GameScreenView : IGameScreenView
 {
   private const char BorderChar = '#';
-  private const char DroneChar = '▲';
-  private const char AsteroidChar = '*';
-  private const char BlackHoleChar = 'O';
-  private const char BonusAcceleratorChar = 'A';
-  private const char BonusTimeStabilizerChar = 'T';
-  private const char BonusMagnetChar = 'M';
-  private const char CrystalChar = '♦';
+  private const char DroneFillChar = '░';
+  private const char DroneGlyphChar = '▲';
+  private const char CrystalFillChar = '░';
+  private const char CrystalBlueGlyphChar = '♦';
+  private const char CrystalGreenGlyphChar = '♣';
+  private const char CrystalRedGlyphChar = '♥';
+  private const char AsteroidFillChar = '▒';
+  private const char AsteroidGlyphChar = '●';
+  private const char BonusFillChar = '░';
+  private const char BonusAcceleratorGlyphChar = 'A';
+  private const char BonusTimeStabilizerGlyphChar = 'T';
+  private const char BonusMagnetGlyphChar = 'M';
+  private const char BlackHoleCoreFillChar = '▓';
+  private const char BlackHoleCoreGlyphChar = '●';
+  private const char BlackHoleFieldChar = '·';
   private const int HudHeight = RenderConfig.HudHeight;
   private const double PixelsPerCell = RenderConfig.PixelsPerCell;
   private readonly IConsoleRenderer _renderer;
   private readonly WorldBounds _worldBounds;
+  private readonly ConsoleSpritePainter _spritePainter;
 
   /// <summary>
   /// Создаёт представление игрового экрана.
@@ -34,6 +43,7 @@ public sealed class GameScreenView : IGameScreenView
   {
     _renderer = parRenderer;
     _worldBounds = parWorldBounds;
+    _spritePainter = new ConsoleSpritePainter(PixelsPerCell);
   }
 
   /// <inheritdoc />
@@ -55,11 +65,12 @@ public sealed class GameScreenView : IGameScreenView
     var mapper = new WorldToScreenMapper(_worldBounds, innerWidth, innerHeight, PixelsPerCell);
 
     DrawBorder(buffer, colors, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawDrone(buffer, colors, mapper, parSnapshot.parDrone.parPosition, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawBlackHoleFields(buffer, colors, mapper, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
     DrawCrystals(buffer, colors, mapper, parSnapshot.parCrystals, fieldOffsetY, fieldWidth, fieldHeight);
-    DrawAsteroids(buffer, colors, mapper, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
     DrawBonuses(buffer, colors, mapper, parSnapshot.parBonuses, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawAsteroids(buffer, colors, mapper, parSnapshot.parAsteroids, fieldOffsetY, fieldWidth, fieldHeight);
     DrawBlackHoles(buffer, colors, mapper, parSnapshot.parBlackHoles, fieldOffsetY, fieldWidth, fieldHeight);
+    DrawDrone(buffer, colors, mapper, parSnapshot.parDrone, fieldOffsetY, fieldWidth, fieldHeight);
     DrawOverlay(buffer, colors, fieldOffsetY, fieldWidth, fieldHeight, parIsPaused, parCountdownValue);
 
     RenderBuffer(buffer, colors, width, height);
@@ -135,16 +146,20 @@ public sealed class GameScreenView : IGameScreenView
     char[,] parBuffer,
     ConsoleColor[,] parColors,
     WorldToScreenMapper parMapper,
-    Vector2 parPosition,
+    DroneSnapshot parDrone,
     int parOffsetY,
     int parWidth,
     int parHeight)
   {
-    if (TryMapToGrid(parMapper, parPosition, parOffsetY, parWidth, parHeight, out var coords))
-    {
-      parBuffer[coords.X, coords.Y] = DroneChar;
-      parColors[coords.X, coords.Y] = ConsoleColor.White;
-    }
+    var rect = _spritePainter.MapAabbToCellRect(
+      parMapper,
+      parDrone.parPosition,
+      parDrone.parBounds,
+      parOffsetY,
+      parWidth,
+      parHeight);
+    _spritePainter.DrawFilledRect(parBuffer, parColors, rect, DroneFillChar, ConsoleColor.Gray);
+    _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, DroneGlyphChar, ConsoleColor.White);
   }
 
   /// <summary>
@@ -161,19 +176,29 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var crystal in parCrystals)
     {
-      if (!TryMapToGrid(parMapper, crystal.parPosition, parOffsetY, parWidth, parHeight, out var coords))
-      {
-        continue;
-      }
-
-      parBuffer[coords.X, coords.Y] = CrystalChar;
-      parColors[coords.X, coords.Y] = crystal.parType switch
+      var rect = _spritePainter.MapAabbToCellRect(
+        parMapper,
+        crystal.parPosition,
+        crystal.parBounds,
+        parOffsetY,
+        parWidth,
+        parHeight);
+      var glyphColor = crystal.parType switch
       {
         CrystalType.Blue => ConsoleColor.Cyan,
         CrystalType.Green => ConsoleColor.Green,
         CrystalType.Red => ConsoleColor.Red,
         _ => ConsoleColor.Cyan
       };
+      var glyphChar = crystal.parType switch
+      {
+        CrystalType.Blue => CrystalBlueGlyphChar,
+        CrystalType.Green => CrystalGreenGlyphChar,
+        CrystalType.Red => CrystalRedGlyphChar,
+        _ => CrystalBlueGlyphChar
+      };
+      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, CrystalFillChar, ConsoleColor.Gray);
+      _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, glyphChar, glyphColor);
     }
   }
 
@@ -191,11 +216,15 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var asteroid in parAsteroids)
     {
-      if (TryMapToGrid(parMapper, asteroid.parPosition, parOffsetY, parWidth, parHeight, out var coords))
-      {
-        parBuffer[coords.X, coords.Y] = AsteroidChar;
-        parColors[coords.X, coords.Y] = ConsoleColor.DarkGray;
-      }
+      var rect = _spritePainter.MapAabbToCellRect(
+        parMapper,
+        asteroid.parPosition,
+        asteroid.parBounds,
+        parOffsetY,
+        parWidth,
+        parHeight);
+      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, AsteroidFillChar, ConsoleColor.DarkGray);
+      _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, AsteroidGlyphChar, ConsoleColor.DarkGray);
     }
   }
 
@@ -213,25 +242,92 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var bonus in parBonuses)
     {
-      if (!TryMapToGrid(parMapper, bonus.parPosition, parOffsetY, parWidth, parHeight, out var coords))
-      {
-        continue;
-      }
-
-      parBuffer[coords.X, coords.Y] = bonus.parType switch
-      {
-        BonusType.Accelerator => BonusAcceleratorChar,
-        BonusType.TimeStabilizer => BonusTimeStabilizerChar,
-        BonusType.Magnet => BonusMagnetChar,
-        _ => BonusAcceleratorChar
-      };
-      parColors[coords.X, coords.Y] = bonus.parType switch
+      var rect = _spritePainter.MapAabbToCellRect(
+        parMapper,
+        bonus.parPosition,
+        bonus.parBounds,
+        parOffsetY,
+        parWidth,
+        parHeight);
+      var glyphColor = bonus.parType switch
       {
         BonusType.Accelerator => ConsoleColor.Yellow,
-        BonusType.TimeStabilizer => ConsoleColor.White,
-        BonusType.Magnet => ConsoleColor.DarkGreen,
+        BonusType.TimeStabilizer => ConsoleColor.Magenta,
+        BonusType.Magnet => ConsoleColor.Cyan,
         _ => ConsoleColor.Yellow
       };
+      var glyphChar = bonus.parType switch
+      {
+        BonusType.Accelerator => BonusAcceleratorGlyphChar,
+        BonusType.TimeStabilizer => BonusTimeStabilizerGlyphChar,
+        BonusType.Magnet => BonusMagnetGlyphChar,
+        _ => BonusAcceleratorGlyphChar
+      };
+      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, BonusFillChar, ConsoleColor.Gray);
+      _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, glyphChar, glyphColor);
+    }
+  }
+
+  /// <summary>
+  /// Выполняет DrawBlackHoleFields.
+  /// </summary>
+  private void DrawBlackHoleFields(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    WorldToScreenMapper parMapper,
+    IReadOnlyList<BlackHoleSnapshot> parBlackHoles,
+    int parOffsetY,
+    int parWidth,
+    int parHeight)
+  {
+    foreach (var blackHole in parBlackHoles)
+    {
+      DrawBlackHoleField(parBuffer, parColors, parMapper, blackHole, parOffsetY, parWidth, parHeight);
+    }
+  }
+
+  /// <summary>
+  /// Выполняет DrawBlackHoleField.
+  /// </summary>
+  private void DrawBlackHoleField(
+    char[,] parBuffer,
+    ConsoleColor[,] parColors,
+    WorldToScreenMapper parMapper,
+    BlackHoleSnapshot parBlackHole,
+    int parOffsetY,
+    int parWidth,
+    int parHeight)
+  {
+    int centerX = 1 + parMapper.MapX(parBlackHole.parPosition.X);
+    int centerY = parOffsetY + 1 + parMapper.MapY(parBlackHole.parPosition.Y);
+    int radiusCells = (int)Math.Round(parBlackHole.parRadius / PixelsPerCell);
+
+    if (radiusCells < 1)
+    {
+      return;
+    }
+
+    int minX = Math.Max(1, centerX - radiusCells);
+    int maxX = Math.Min(parWidth - 2, centerX + radiusCells);
+    int minY = Math.Max(parOffsetY + 1, centerY - radiusCells);
+    int maxY = Math.Min(parOffsetY + parHeight - 2, centerY + radiusCells);
+    int radiusSquared = radiusCells * radiusCells;
+
+    for (int y = minY; y <= maxY; y++)
+    {
+      int dy = y - centerY;
+      for (int x = minX; x <= maxX; x++)
+      {
+        int dx = x - centerX;
+        int distanceSquared = (dx * dx) + (dy * dy);
+        int delta = Math.Abs(distanceSquared - radiusSquared);
+
+        if (delta <= radiusCells && ((x + y) % 2 == 0))
+        {
+          parBuffer[x, y] = BlackHoleFieldChar;
+          parColors[x, y] = ConsoleColor.DarkMagenta;
+        }
+      }
     }
   }
 
@@ -249,36 +345,16 @@ public sealed class GameScreenView : IGameScreenView
   {
     foreach (var blackHole in parBlackHoles)
     {
-      if (TryMapToGrid(parMapper, blackHole.parPosition, parOffsetY, parWidth, parHeight, out var coords))
-      {
-        parBuffer[coords.X, coords.Y] = BlackHoleChar;
-        parColors[coords.X, coords.Y] = ConsoleColor.Magenta;
-      }
+      var rect = _spritePainter.MapAabbToCellRect(
+        parMapper,
+        blackHole.parPosition,
+        blackHole.parBounds,
+        parOffsetY,
+        parWidth,
+        parHeight);
+      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, BlackHoleCoreFillChar, ConsoleColor.DarkMagenta);
+      _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, BlackHoleCoreGlyphChar, ConsoleColor.DarkMagenta);
     }
-  }
-
-  /// <summary>
-  /// Выполняет TryMapToGrid.
-  /// </summary>
-  private bool TryMapToGrid(
-    WorldToScreenMapper parMapper,
-    Vector2 parPosition,
-    int parOffsetY,
-    int parWidth,
-    int parHeight,
-    out (int X, int Y) parCoords)
-  {
-    int gridX = 1 + parMapper.MapX(parPosition.X);
-    int gridY = parOffsetY + 1 + parMapper.MapY(parPosition.Y);
-
-    if (gridX < 1 || gridX > parWidth - 2 || gridY < parOffsetY + 1 || gridY > parOffsetY + parHeight - 2)
-    {
-      parCoords = (0, 0);
-      return false;
-    }
-
-    parCoords = (gridX, gridY);
-    return true;
   }
 
   /// <summary>
