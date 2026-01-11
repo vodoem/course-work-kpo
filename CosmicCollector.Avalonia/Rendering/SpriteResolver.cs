@@ -1,5 +1,4 @@
 using System;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -13,25 +12,13 @@ namespace CosmicCollector.Avalonia.Rendering;
 /// </summary>
 public sealed class SpriteResolver
 {
-  private readonly IAssetLoader _assetLoader;
   private readonly Uri _baseUri;
 
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="SpriteResolver"/>.
   /// </summary>
   public SpriteResolver()
-    : this(AvaloniaLocator.Current.GetService<IAssetLoader>() ??
-           throw new InvalidOperationException("AssetLoader недоступен."))
   {
-  }
-
-  /// <summary>
-  /// Инициализирует новый экземпляр <see cref="SpriteResolver"/>.
-  /// </summary>
-  /// <param name="parAssetLoader">Загрузчик ассетов.</param>
-  public SpriteResolver(IAssetLoader parAssetLoader)
-  {
-    _assetLoader = parAssetLoader;
     _baseUri = new Uri("avares://CosmicCollector.Avalonia/Assets/Sprites/");
   }
 
@@ -54,7 +41,7 @@ public sealed class SpriteResolver
 
     try
     {
-      using var stream = _assetLoader.Open(spriteUri);
+      using var stream = AssetLoader.Open(spriteUri);
       outBitmap = new Bitmap(stream);
       return true;
     }
