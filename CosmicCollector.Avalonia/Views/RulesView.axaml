@@ -1,23 +1,48 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CosmicCollector.Avalonia.Views.RulesView">
-  <Grid>
-    <Border Width="520"
+  <Grid RowDefinitions="Auto,*,Auto"
+        Margin="24">
+    <TextBlock Text="Правила"
+               FontSize="24"
+               FontWeight="Bold"
+               HorizontalAlignment="Left" />
+    <Grid Grid.Row="1"
+          ColumnDefinitions="*,*"
+          ColumnSpacing="24"
+          Margin="0,16,0,0">
+      <Border Background="#E6E6E6"
+              CornerRadius="16"
+              Padding="16">
+        <ScrollViewer VerticalScrollBarVisibility="Visible">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Описание игры и правила"
+                       FontSize="18"
+                       FontWeight="Bold" />
+            <TextBlock Text="{Binding DescriptionText}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+      <Border Grid.Column="1"
+              Background="#E6E6E6"
+              CornerRadius="16"
+              Padding="16">
+        <ScrollViewer VerticalScrollBarVisibility="Visible">
+          <StackPanel Spacing="12">
+            <TextBlock Text="Клавиши управления"
+                       FontSize="18"
+                       FontWeight="Bold" />
+            <TextBlock Text="{Binding ControlsText}"
+                       TextWrapping="Wrap" />
+          </StackPanel>
+        </ScrollViewer>
+      </Border>
+    </Grid>
+    <Button Grid.Row="2"
+            Content="Главное меню"
+            Command="{Binding BackCommand}"
             HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-      <StackPanel HorizontalAlignment="Center"
-                  Spacing="12">
-        <TextBlock Text="Правила"
-                   FontSize="24"
-                   FontWeight="Bold"
-                   HorizontalAlignment="Center"
-                   TextAlignment="Center" />
-        <TextBlock Text="TODO: правила из ТЗ будут добавлены позже."
-                   TextWrapping="Wrap"
-                   HorizontalAlignment="Center"
-                   TextAlignment="Center" />
-        <Button Content="Назад" Command="{Binding BackCommand}" />
-      </StackPanel>
-    </Border>
+            Margin="0,16,0,0" />
   </Grid>
 </UserControl>
