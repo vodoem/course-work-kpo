@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
@@ -26,7 +27,7 @@ public sealed partial class GameSceneControl : UserControl
   public GameSceneControl()
   {
     InitializeComponent();
-    this.GetObservable(ItemsProperty).Subscribe(OnItemsChanged);
+    this.GetObservable(ItemsProperty).Subscribe(new ItemsObserver(this));
   }
 
   /// <summary>
@@ -41,6 +42,29 @@ public sealed partial class GameSceneControl : UserControl
   private void OnItemsChanged(IReadOnlyList<RenderItem>? items)
   {
     UpdateScene();
+  }
+
+  private sealed class ItemsObserver : IObserver<IReadOnlyList<RenderItem>?>
+  {
+    private readonly GameSceneControl _owner;
+
+    public ItemsObserver(GameSceneControl owner)
+    {
+      _owner = owner;
+    }
+
+    public void OnNext(IReadOnlyList<RenderItem>? value)
+    {
+      _owner.OnItemsChanged(value);
+    }
+
+    public void OnError(Exception error)
+    {
+    }
+
+    public void OnCompleted()
+    {
+    }
   }
 
   private void UpdateScene()
