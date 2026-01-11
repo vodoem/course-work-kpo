@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CosmicCollector.Avalonia.Views.MainMenuView">
+  <Grid>
+    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="12">
+      <TextBlock Text="COSMIC COLLECTOR"
+                 FontSize="28"
+                 FontWeight="Bold"
+                 HorizontalAlignment="Center" />
+      <Button Content="Играть" Command="{Binding StartGameCommand}" Width="200" />
+      <Button Content="Правила" Command="{Binding ShowRulesCommand}" Width="200" />
+      <Button Content="Рекорды" Command="{Binding ShowRecordsCommand}" Width="200" />
+      <Button Content="Выход" Command="{Binding ExitCommand}" Width="200" />
+    </StackPanel>
+  </Grid>
+</UserControl>

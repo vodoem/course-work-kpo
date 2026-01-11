@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CosmicCollector.Avalonia.Views.RulesView">
+  <Grid>
+    <StackPanel HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Spacing="12"
+                MaxWidth="600">
+      <TextBlock Text="Правила"
+                 FontSize="24"
+                 FontWeight="Bold"
+                 HorizontalAlignment="Center" />
+      <TextBlock Text="TODO: правила из ТЗ будут добавлены позже."
+                 TextAlignment="Center"
+                 TextWrapping="Wrap" />
+      <Button Content="Назад" Command="{Binding BackCommand}" Width="200" />
+    </StackPanel>
+  </Grid>
+</UserControl>
