@@ -9,9 +9,13 @@
                   Spacing="12">
         <TextBlock Text="Правила"
                    FontSize="24"
-                   FontWeight="Bold" />
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
         <TextBlock Text="TODO: правила из ТЗ будут добавлены позже."
-                   TextWrapping="Wrap" />
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
         <Button Content="Назад" Command="{Binding BackCommand}" />
       </StackPanel>
     </Border>

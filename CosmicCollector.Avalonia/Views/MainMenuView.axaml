@@ -9,7 +9,9 @@
                   Spacing="12">
         <TextBlock Text="COSMIC COLLECTOR"
                    FontSize="28"
-                   FontWeight="Bold" />
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
         <Button Content="Играть" Command="{Binding StartGameCommand}" />
         <Button Content="Правила" Command="{Binding ShowRulesCommand}" />
         <Button Content="Рекорды" Command="{Binding ShowRecordsCommand}" />

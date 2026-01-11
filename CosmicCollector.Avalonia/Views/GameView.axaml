@@ -1,25 +1,22 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:CosmicCollector.Avalonia.Views.Controls"
              x:Class="CosmicCollector.Avalonia.Views.GameView">
   <Grid>
-    <Border Width="520"
+    <Border Width="840"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
       <StackPanel HorizontalAlignment="Center"
                   Spacing="12">
-        <TextBlock Text="Игровой экран"
-                   FontSize="24"
-                   FontWeight="Bold" />
-        <TextBlock Text="Уровень: {Binding CurrentLevel}" />
-        <TextBlock Text="Очки: {Binding Score}" />
-        <TextBlock Text="Энергия: {Binding Energy}" />
-        <TextBlock Text="Цель очков: {Binding RequiredScore}" />
-        <TextBlock Text="{Binding TimerText}" />
-        <TextBlock Text="{Binding BlueProgressText}" />
-        <TextBlock Text="{Binding GreenProgressText}" />
-        <TextBlock Text="{Binding RedProgressText}" />
-        <TextBlock Text="Пауза: {Binding IsPaused}" />
-        <TextBlock Text="Отсчёт: {Binding CountdownValue}" />
+        <controls:HudView />
+        <Border BorderBrush="White"
+                BorderThickness="2"
+                Width="{Binding FieldWidth}"
+                Height="{Binding FieldHeight}">
+          <controls:GameSceneControl Width="{Binding FieldWidth}"
+                                     Height="{Binding FieldHeight}"
+                                     Items="{Binding RenderItems}" />
+        </Border>
         <Button Content="В меню" Command="{Binding BackToMenuCommand}" />
       </StackPanel>
     </Border>

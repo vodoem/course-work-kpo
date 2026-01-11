@@ -9,9 +9,13 @@
                   Spacing="12">
         <TextBlock Text="Рекорды"
                    FontSize="24"
-                   FontWeight="Bold" />
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
         <TextBlock Text="TODO: список рекордов будет подключен позже."
-                   TextWrapping="Wrap" />
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
         <Button Content="Назад" Command="{Binding BackCommand}" />
       </StackPanel>
     </Border>

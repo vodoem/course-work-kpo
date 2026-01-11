@@ -9,9 +9,13 @@
                   Spacing="12">
         <TextBlock Text="Экран завершения"
                    FontSize="24"
-                   FontWeight="Bold" />
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
         <TextBlock Text="TODO: итоговый экран и сохранение рекорда будут добавлены позже."
-                   TextWrapping="Wrap" />
+                   TextWrapping="Wrap"
+                   HorizontalAlignment="Center"
+                   TextAlignment="Center" />
         <Button Content="Сохранить" Command="{Binding SaveRecordCommand}" />
         <Button Content="Заново" Command="{Binding RestartCommand}" />
         <Button Content="В меню" Command="{Binding BackToMenuCommand}" />

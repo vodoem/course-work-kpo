@@ -11,10 +11,6 @@
       <Setter Property="HorizontalAlignment" Value="Center" />
       <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
-    <Style Selector="TextBlock">
-      <Setter Property="HorizontalAlignment" Value="Center" />
-      <Setter Property="TextAlignment" Value="Center" />
-    </Style>
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="{x:Type viewModels:MainMenuViewModel}">

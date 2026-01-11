@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.Media;
@@ -13,6 +14,7 @@ namespace CosmicCollector.Avalonia.Rendering;
 public sealed class SpriteResolver
 {
   private readonly Uri _baseUri;
+  private readonly Dictionary<string, Bitmap> _cache = new();
 
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="SpriteResolver"/>.
@@ -23,12 +25,25 @@ public sealed class SpriteResolver
   }
 
   /// <summary>
-  /// Пытается загрузить Bitmap для ключа спрайта.
+  /// Возвращает контрол спрайта или fallback.
   /// </summary>
   /// <param name="parSpriteKey">Ключ спрайта без расширения.</param>
-  /// <param name="outBitmap">Загруженный Bitmap.</param>
-  /// <returns>True, если Bitmap найден.</returns>
-  public bool TryLoadBitmap(string parSpriteKey, out Bitmap? outBitmap)
+  /// <returns>Контрол спрайта.</returns>
+  public Control Resolve(string parSpriteKey)
+  {
+    if (TryLoadBitmap(parSpriteKey, out var bitmap) && bitmap is not null)
+    {
+      return new Image
+      {
+        Source = bitmap,
+        Stretch = Stretch.Uniform
+      };
+    }
+
+    return BuildFallback(parSpriteKey);
+  }
+
+  private bool TryLoadBitmap(string parSpriteKey, out Bitmap? outBitmap)
   {
     outBitmap = null;
 
@@ -37,12 +52,20 @@ public sealed class SpriteResolver
       return false;
     }
 
+    if (_cache.TryGetValue(parSpriteKey, out var cached))
+    {
+      outBitmap = cached;
+      return true;
+    }
+
     var spriteUri = new Uri(_baseUri, $"{parSpriteKey}.png");
 
     try
     {
       using var stream = AssetLoader.Open(spriteUri);
-      outBitmap = new Bitmap(stream);
+      var bitmap = new Bitmap(stream);
+      _cache[parSpriteKey] = bitmap;
+      outBitmap = bitmap;
       return true;
     }
     catch
@@ -51,38 +74,13 @@ public sealed class SpriteResolver
     }
   }
 
-  /// <summary>
-  /// Создаёт визуальный элемент спрайта с fallback-отрисовкой.
-  /// </summary>
-  /// <param name="parSpriteKey">Ключ спрайта без расширения.</param>
-  /// <param name="parWidth">Ширина.</param>
-  /// <param name="parHeight">Высота.</param>
-  /// <returns>Контрол со спрайтом или заглушкой.</returns>
-  public Control CreateSpriteControl(string parSpriteKey, int parWidth, int parHeight)
-  {
-    if (TryLoadBitmap(parSpriteKey, out var bitmap) && bitmap is not null)
-    {
-      return new Image
-      {
-        Source = bitmap,
-        Width = parWidth,
-        Height = parHeight,
-        Stretch = Stretch.Uniform
-      };
-    }
-
-    return BuildFallback(parSpriteKey, parWidth, parHeight);
-  }
-
-  private static Control BuildFallback(string parSpriteKey, int parWidth, int parHeight)
+  private static Control BuildFallback(string parSpriteKey)
   {
     var label = GetFallbackLabel(parSpriteKey);
     var brush = new SolidColorBrush(GetFallbackColor(parSpriteKey));
 
     return new Border
     {
-      Width = parWidth,
-      Height = parHeight,
       Background = brush,
       BorderBrush = Brushes.White,
       BorderThickness = new Thickness(1),
