@@ -15,21 +15,41 @@
             CornerRadius="16"
             Padding="16"
             Margin="0,16,0,0">
-      <ScrollViewer VerticalScrollBarVisibility="Visible">
-        <ItemsControl ItemsSource="{Binding Records}">
-          <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-              <StackPanel Spacing="8" />
-            </ItemsPanelTemplate>
-          </ItemsControl.ItemsPanel>
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <TextBlock Text="{Binding}"
-                         FontSize="16" />
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
-      </ScrollViewer>
+      <Border.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style Selector="DataGrid">
+          <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style Selector="DataGridColumnHeader">
+          <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style Selector="DataGridCell">
+          <Setter Property="Foreground" Value="Black" />
+        </Style>
+      </Border.Styles>
+      <DataGrid ItemsSource="{Binding Records}"
+                AutoGenerateColumns="False"
+                HeadersVisibility="Column"
+                GridLinesVisibility="None"
+                VerticalScrollBarVisibility="Visible"
+                HorizontalScrollBarVisibility="Disabled">
+        <DataGrid.Columns>
+          <DataGridTextColumn Header="№"
+                              Binding="{Binding Position}"
+                              Width="Auto" />
+          <DataGridTextColumn Header="Имя"
+                              Binding="{Binding PlayerName}"
+                              Width="*" />
+          <DataGridTextColumn Header="Очки"
+                              Binding="{Binding Score}"
+                              Width="Auto" />
+          <DataGridTextColumn Header="Уровень"
+                              Binding="{Binding Level}"
+                              Width="Auto" />
+        </DataGrid.Columns>
+      </DataGrid>
     </Border>
     <Button Grid.Row="2"
             Content="Главное меню"

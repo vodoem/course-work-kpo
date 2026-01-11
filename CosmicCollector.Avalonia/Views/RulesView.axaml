@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:md="clr-namespace:Markdown.Avalonia;assembly=Markdown.Avalonia"
              x:Class="CosmicCollector.Avalonia.Views.RulesView">
   <Grid RowDefinitions="Auto,*,Auto"
         Margin="24">
@@ -14,29 +15,43 @@
               CornerRadius="16"
               Padding="16"
               Margin="0,0,24,0">
-        <ScrollViewer VerticalScrollBarVisibility="Visible">
-          <StackPanel Spacing="12">
-            <TextBlock Text="Описание игры и правила"
-                       FontSize="18"
-                       FontWeight="Bold" />
-            <TextBlock Text="{Binding DescriptionText}"
-                       TextWrapping="Wrap" />
-          </StackPanel>
-        </ScrollViewer>
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="Black" />
+          </Style>
+          <Style Selector="md|MarkdownScrollViewer">
+            <Setter Property="Foreground" Value="Black" />
+          </Style>
+        </Border.Styles>
+        <StackPanel Spacing="12">
+          <TextBlock Text="Описание игры и правила"
+                     FontSize="18"
+                     FontWeight="Bold" />
+          <md:MarkdownScrollViewer Markdown="{Binding DescriptionText}"
+                                   VerticalScrollBarVisibility="Visible"
+                                   HorizontalScrollBarVisibility="Disabled" />
+        </StackPanel>
       </Border>
       <Border Grid.Column="1"
               Background="#E6E6E6"
               CornerRadius="16"
               Padding="16">
-        <ScrollViewer VerticalScrollBarVisibility="Visible">
-          <StackPanel Spacing="12">
-            <TextBlock Text="Клавиши управления"
-                       FontSize="18"
-                       FontWeight="Bold" />
-            <TextBlock Text="{Binding ControlsText}"
-                       TextWrapping="Wrap" />
-          </StackPanel>
-        </ScrollViewer>
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="Black" />
+          </Style>
+          <Style Selector="md|MarkdownScrollViewer">
+            <Setter Property="Foreground" Value="Black" />
+          </Style>
+        </Border.Styles>
+        <StackPanel Spacing="12">
+          <TextBlock Text="Клавиши управления"
+                     FontSize="18"
+                     FontWeight="Bold" />
+          <md:MarkdownScrollViewer Markdown="{Binding ControlsText}"
+                                   VerticalScrollBarVisibility="Visible"
+                                   HorizontalScrollBarVisibility="Disabled" />
+        </StackPanel>
       </Border>
     </Grid>
     <Button Grid.Row="2"

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace CosmicCollector.Avalonia.Infrastructure;
@@ -34,15 +35,18 @@ internal static class RulesTextProvider
       controlEndIndex = lines.Length;
     }
 
-    var controlsLines = controlStartIndex == -1
-      ? Array.Empty<string>()
-      : ExtractSection(lines, controlStartIndex + 1, controlEndIndex);
+    if (controlStartIndex == -1)
+    {
+      var fullText = NormalizeLines(RemoveFirstHeading(lines));
+      return (fullText, "Раздел \"Управление\" не найден.");
+    }
 
+    var controlsLines = ExtractSection(lines, controlStartIndex + 1, controlEndIndex);
     var descriptionLines = new List<string>();
 
     for (var i = 0; i < lines.Length; i++)
     {
-      if (controlStartIndex != -1 && i >= controlStartIndex && i < controlEndIndex)
+      if (i >= controlStartIndex && i < controlEndIndex)
       {
         continue;
       }
@@ -101,15 +105,7 @@ internal static class RulesTextProvider
 
   private static string NormalizeLines(IReadOnlyList<string> parLines)
   {
-    var normalized = new List<string>();
-
-    foreach (var line in parLines)
-    {
-      var value = IsHeading(line) ? StripHeading(line) : line;
-      normalized.Add(value);
-    }
-
-    return string.Join(Environment.NewLine, normalized).Trim();
+    return string.Join(Environment.NewLine, parLines).Trim();
   }
 
   private static bool IsHeading(string parLine)
@@ -117,21 +113,13 @@ internal static class RulesTextProvider
     return parLine.TrimStart().StartsWith("#", StringComparison.Ordinal);
   }
 
-  private static string StripHeading(string parLine)
+  private static IReadOnlyList<string> RemoveFirstHeading(IReadOnlyList<string> parLines)
   {
-    var trimmed = parLine.TrimStart();
-    var index = 0;
-
-    while (index < trimmed.Length && trimmed[index] == '#')
+    if (parLines.Count == 0)
     {
-      index++;
+      return parLines;
     }
 
-    if (index < trimmed.Length)
-    {
-      trimmed = trimmed[index..];
-    }
-
-    return trimmed.TrimStart();
+    return IsHeading(parLines[0]) ? parLines.Skip(1).ToArray() : parLines;
   }
 }

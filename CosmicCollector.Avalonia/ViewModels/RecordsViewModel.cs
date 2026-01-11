@@ -25,19 +25,25 @@ public sealed class RecordsViewModel : ViewModelBase
   }
 
   /// <summary>
-  /// Коллекция строк с рекордами.
+  /// Коллекция строк таблицы рекордов.
   /// </summary>
-  public IReadOnlyList<string> Records { get; }
+  public IReadOnlyList<RecordsRowViewModel> Records { get; }
 
   /// <summary>
   /// Команда возврата в главное меню.
   /// </summary>
   public ICommand BackCommand { get; }
 
-  private static IReadOnlyList<string> BuildRecordsList(IReadOnlyList<RecordEntry> parRecords)
+  private static IReadOnlyList<RecordsRowViewModel> BuildRecordsList(IReadOnlyList<RecordEntry> parRecords)
   {
     return parRecords
-      .Select((record, index) => $"{index + 1}. {record.parPlayerName} - {record.parScore}, lvl {record.parLevel}")
+      .OrderByDescending(record => record.parScore)
+      .ThenByDescending(record => record.parLevel)
+      .Select((record, index) => new RecordsRowViewModel(
+        index + 1,
+        record.parPlayerName,
+        record.parScore,
+        record.parLevel))
       .ToList();
   }
 }
