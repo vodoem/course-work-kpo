@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Input;
+using Avalonia.Input;
 using Avalonia.Threading;
 using CosmicCollector.Avalonia.Commands;
 using CosmicCollector.Avalonia.Infrastructure;
@@ -218,7 +219,7 @@ public sealed class GameViewModel : ViewModelBase
   /// Обрабатывает нажатия клавиш.
   /// </summary>
   /// <param name="parKey">Нажатая клавиша.</param>
-  public void HandleKeyDown(Avalonia.Input.Key parKey)
+  public void HandleKeyDown(Key parKey)
   {
     if (!_isActive)
     {
@@ -227,15 +228,15 @@ public sealed class GameViewModel : ViewModelBase
 
     switch (parKey)
     {
-      case Avalonia.Input.Key.A:
-      case Avalonia.Input.Key.Left:
+      case Key.A:
+      case Key.Left:
         EnqueueMove(-1);
         break;
-      case Avalonia.Input.Key.D:
-      case Avalonia.Input.Key.Right:
+      case Key.D:
+      case Key.Right:
         EnqueueMove(1);
         break;
-      case Avalonia.Input.Key.P:
+      case Key.P:
         _gameRuntime.CommandQueue.Enqueue(new TogglePauseCommand());
         break;
     }
@@ -245,7 +246,7 @@ public sealed class GameViewModel : ViewModelBase
   /// Обрабатывает отпускание клавиш.
   /// </summary>
   /// <param name="parKey">Отпущенная клавиша.</param>
-  public void HandleKeyUp(Avalonia.Input.Key parKey)
+  public void HandleKeyUp(Key parKey)
   {
     if (!_isActive)
     {
@@ -254,10 +255,10 @@ public sealed class GameViewModel : ViewModelBase
 
     switch (parKey)
     {
-      case Avalonia.Input.Key.A:
-      case Avalonia.Input.Key.Left:
-      case Avalonia.Input.Key.D:
-      case Avalonia.Input.Key.Right:
+      case Key.A:
+      case Key.Left:
+      case Key.D:
+      case Key.Right:
         EnqueueMove(0);
         break;
     }
