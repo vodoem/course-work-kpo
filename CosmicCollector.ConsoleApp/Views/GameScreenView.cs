@@ -158,7 +158,7 @@ public sealed class GameScreenView : IGameScreenView
       parOffsetY,
       parWidth,
       parHeight);
-    _spritePainter.DrawFilledRect(parBuffer, parColors, rect, DroneFillChar, ConsoleColor.Gray);
+    _spritePainter.DrawFilledRect(parBuffer, parColors, rect, DroneFillChar, ConsoleColor.White);
     _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, DroneGlyphChar, ConsoleColor.White);
   }
 
@@ -197,7 +197,7 @@ public sealed class GameScreenView : IGameScreenView
         CrystalType.Red => CrystalRedGlyphChar,
         _ => CrystalBlueGlyphChar
       };
-      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, CrystalFillChar, ConsoleColor.Gray);
+      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, CrystalFillChar, glyphColor);
       _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, glyphChar, glyphColor);
     }
   }
@@ -263,7 +263,7 @@ public sealed class GameScreenView : IGameScreenView
         BonusType.Magnet => BonusMagnetGlyphChar,
         _ => BonusAcceleratorGlyphChar
       };
-      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, BonusFillChar, ConsoleColor.Gray);
+      _spritePainter.DrawFilledRect(parBuffer, parColors, rect, BonusFillChar, glyphColor);
       _spritePainter.DrawCenteredGlyph(parBuffer, parColors, rect, glyphChar, glyphColor);
     }
   }
