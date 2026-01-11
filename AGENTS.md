@@ -10,8 +10,9 @@
 3) `docs/architecture/solution_structure.md`
 4) `docs/architecture/threading.md`
 5) `docs/architecture/events.md`
-6) `docs/spec/csharp_style_summary.md`
-7) `docs/codex/prompt_cookbook.md` (как работать и какие шаблоны промптов использовать)
+6) `docs/ui/avalonia/ui-requirements.md` (требования к UI Avalonia)
+7) `docs/spec/csharp_style_summary.md`
+8) `docs/codex/prompt_cookbook.md`
 
 Если есть конфликт — решаем в пользу пунктов 1–2.
 
