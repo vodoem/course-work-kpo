@@ -36,6 +36,9 @@ public sealed class SpawnIntegrationTests
     Xunit.Assert.Equal("Crystal", spawned[0].parObjectType);
   }
 
+  /// <summary>
+  /// Проверяет сценарий CreateConfig.
+  /// </summary>
   private static SpawnConfig CreateConfig()
   {
     return new SpawnConfig(
