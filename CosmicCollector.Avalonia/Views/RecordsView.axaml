@@ -25,7 +25,7 @@
           <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="dg|DataGridColumnHeader">
-          <Setter Property="Foreground" Value="Black" />
+          <Setter Property="Foreground" Value="White" />
         </Style>
         <Style Selector="dg|DataGridCell">
           <Setter Property="Foreground" Value="Black" />
