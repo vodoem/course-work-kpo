@@ -28,18 +28,27 @@ internal static class AppDataPaths
 
   private static string FindPath(string parRelativePath)
   {
-    var directory = new DirectoryInfo(AppContext.BaseDirectory);
-
-    while (directory is not null)
+    var searchRoots = new[]
     {
-      var candidate = Path.Combine(directory.FullName, parRelativePath);
+      Environment.CurrentDirectory,
+      AppContext.BaseDirectory
+    };
 
-      if (File.Exists(candidate))
+    foreach (var root in searchRoots)
+    {
+      var directory = new DirectoryInfo(root);
+
+      while (directory is not null)
       {
-        return candidate;
-      }
+        var candidate = Path.Combine(directory.FullName, parRelativePath);
 
-      directory = directory.Parent;
+        if (File.Exists(candidate))
+        {
+          return candidate;
+        }
+
+        directory = directory.Parent;
+      }
     }
 
     return Path.Combine(AppContext.BaseDirectory, parRelativePath);
