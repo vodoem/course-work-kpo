@@ -8,7 +8,7 @@ using CosmicCollector.Avalonia.ViewModels;
 namespace CosmicCollector.Avalonia;
 
 /// <summary>
-/// Avalonia application definition.
+/// Класс приложения Avalonia.
 /// </summary>
 public sealed class App : Application
 {

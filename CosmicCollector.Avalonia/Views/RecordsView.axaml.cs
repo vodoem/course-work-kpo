@@ -3,12 +3,12 @@ using Avalonia.Controls;
 namespace CosmicCollector.Avalonia.Views;
 
 /// <summary>
-/// View for the records screen.
+/// Представление экрана рекордов.
 /// </summary>
 public sealed partial class RecordsView : UserControl
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="RecordsView"/> class.
+  /// Инициализирует новый экземпляр <see cref="RecordsView"/>.
   /// </summary>
   public RecordsView()
   {

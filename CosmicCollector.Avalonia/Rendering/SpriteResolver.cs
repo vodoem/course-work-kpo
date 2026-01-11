@@ -9,7 +9,7 @@ using Avalonia.Platform;
 namespace CosmicCollector.Avalonia.Rendering;
 
 /// <summary>
-/// Resolves sprite assets with a fallback when files are missing.
+/// Резолвер спрайтов с fallback-отрисовкой при отсутствии PNG.
 /// </summary>
 public sealed class SpriteResolver
 {
@@ -17,18 +17,18 @@ public sealed class SpriteResolver
   private readonly Uri _baseUri;
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="SpriteResolver"/> class.
+  /// Инициализирует новый экземпляр <see cref="SpriteResolver"/>.
   /// </summary>
   public SpriteResolver()
     : this(AvaloniaLocator.Current.GetService<IAssetLoader>() ??
-           throw new InvalidOperationException("Asset loader is not available."))
+           throw new InvalidOperationException("AssetLoader недоступен."))
   {
   }
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="SpriteResolver"/> class.
+  /// Инициализирует новый экземпляр <see cref="SpriteResolver"/>.
   /// </summary>
-  /// <param name="parAssetLoader">Asset loader instance.</param>
+  /// <param name="parAssetLoader">Загрузчик ассетов.</param>
   public SpriteResolver(IAssetLoader parAssetLoader)
   {
     _assetLoader = parAssetLoader;
@@ -36,21 +36,21 @@ public sealed class SpriteResolver
   }
 
   /// <summary>
-  /// Attempts to load a sprite bitmap by name.
+  /// Пытается загрузить Bitmap для ключа спрайта.
   /// </summary>
-  /// <param name="parSpriteName">Sprite name without extension.</param>
-  /// <param name="outBitmap">Loaded bitmap when available.</param>
-  /// <returns>True if the bitmap was loaded.</returns>
-  public bool TryResolve(string parSpriteName, out IBitmap? outBitmap)
+  /// <param name="parSpriteKey">Ключ спрайта без расширения.</param>
+  /// <param name="outBitmap">Загруженный Bitmap.</param>
+  /// <returns>True, если Bitmap найден.</returns>
+  public bool TryLoadBitmap(string parSpriteKey, out Bitmap? outBitmap)
   {
     outBitmap = null;
 
-    if (string.IsNullOrWhiteSpace(parSpriteName))
+    if (string.IsNullOrWhiteSpace(parSpriteKey))
     {
       return false;
     }
 
-    var spriteUri = new Uri(_baseUri, $"{parSpriteName}.png");
+    var spriteUri = new Uri(_baseUri, $"{parSpriteKey}.png");
 
     try
     {
@@ -65,15 +65,15 @@ public sealed class SpriteResolver
   }
 
   /// <summary>
-  /// Resolves a control for the sprite with a fallback if missing.
+  /// Создаёт визуальный элемент спрайта с fallback-отрисовкой.
   /// </summary>
-  /// <param name="parSpriteName">Sprite name without extension.</param>
-  /// <param name="parWidth">Desired width.</param>
-  /// <param name="parHeight">Desired height.</param>
-  /// <returns>Image control or fallback element.</returns>
-  public IControl Resolve(string parSpriteName, double parWidth, double parHeight)
+  /// <param name="parSpriteKey">Ключ спрайта без расширения.</param>
+  /// <param name="parWidth">Ширина.</param>
+  /// <param name="parHeight">Высота.</param>
+  /// <returns>Контрол со спрайтом или заглушкой.</returns>
+  public Control CreateSpriteControl(string parSpriteKey, int parWidth, int parHeight)
   {
-    if (TryResolve(parSpriteName, out var bitmap) && bitmap is not null)
+    if (TryLoadBitmap(parSpriteKey, out var bitmap) && bitmap is not null)
     {
       return new Image
       {
@@ -84,13 +84,13 @@ public sealed class SpriteResolver
       };
     }
 
-    return BuildFallback(parSpriteName, parWidth, parHeight);
+    return BuildFallback(parSpriteKey, parWidth, parHeight);
   }
 
-  private static IControl BuildFallback(string parSpriteName, double parWidth, double parHeight)
+  private static Control BuildFallback(string parSpriteKey, int parWidth, int parHeight)
   {
-    var label = GetFallbackLabel(parSpriteName);
-    var brush = new SolidColorBrush(GetFallbackColor(parSpriteName));
+    var label = GetFallbackLabel(parSpriteKey);
+    var brush = new SolidColorBrush(GetFallbackColor(parSpriteKey));
 
     return new Border
     {
@@ -110,9 +110,9 @@ public sealed class SpriteResolver
     };
   }
 
-  private static string GetFallbackLabel(string parSpriteName)
+  private static string GetFallbackLabel(string parSpriteKey)
   {
-    return parSpriteName switch
+    return parSpriteKey switch
     {
       "drone" => "D",
       "crystal_blue" => "B",
@@ -127,9 +127,9 @@ public sealed class SpriteResolver
     };
   }
 
-  private static Color GetFallbackColor(string parSpriteName)
+  private static Color GetFallbackColor(string parSpriteKey)
   {
-    return parSpriteName switch
+    return parSpriteKey switch
     {
       "drone" => Colors.SlateGray,
       "crystal_blue" => Colors.DodgerBlue,

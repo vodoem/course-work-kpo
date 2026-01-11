@@ -3,12 +3,12 @@ using Avalonia.Controls;
 namespace CosmicCollector.Avalonia.Views;
 
 /// <summary>
-/// View for the main menu screen.
+/// Представление главного меню.
 /// </summary>
 public sealed partial class MainMenuView : UserControl
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="MainMenuView"/> class.
+  /// Инициализирует новый экземпляр <see cref="MainMenuView"/>.
   /// </summary>
   public MainMenuView()
   {

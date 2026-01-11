@@ -3,12 +3,12 @@ using Avalonia.Controls;
 namespace CosmicCollector.Avalonia.Views;
 
 /// <summary>
-/// View for the game over screen placeholder.
+/// Представление заглушки экрана завершения игры.
 /// </summary>
 public sealed partial class GameOverView : UserControl
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="GameOverView"/> class.
+  /// Инициализирует новый экземпляр <see cref="GameOverView"/>.
   /// </summary>
   public GameOverView()
   {

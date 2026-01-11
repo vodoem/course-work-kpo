@@ -5,16 +5,16 @@ using CosmicCollector.Avalonia.Navigation;
 namespace CosmicCollector.Avalonia.Commands;
 
 /// <summary>
-/// Command that triggers navigation.
+/// Команда для перехода на другой экран.
 /// </summary>
 public sealed class NavigateCommand : ICommand
 {
   private readonly NavigationService _navigationService;
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="NavigateCommand"/> class.
+  /// Инициализирует новый экземпляр <see cref="NavigateCommand"/>.
   /// </summary>
-  /// <param name="parNavigationService">Navigation service instance.</param>
+  /// <param name="parNavigationService">Сервис навигации.</param>
   public NavigateCommand(NavigationService parNavigationService)
   {
     _navigationService = parNavigationService;

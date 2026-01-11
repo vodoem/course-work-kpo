@@ -4,19 +4,19 @@ using CosmicCollector.Avalonia.ViewModels;
 namespace CosmicCollector.Avalonia.Navigation;
 
 /// <summary>
-/// Stores current view model for navigation.
+/// Хранилище текущей ViewModel для навигации.
 /// </summary>
 public sealed class NavigationStore
 {
   private ViewModelBase? _currentViewModel;
 
   /// <summary>
-  /// Occurs when the current view model changes.
+  /// Событие изменения текущей ViewModel.
   /// </summary>
   public event Action? CurrentViewModelChanged;
 
   /// <summary>
-  /// Gets or sets the current view model.
+  /// Текущая ViewModel.
   /// </summary>
   public ViewModelBase? CurrentViewModel
   {

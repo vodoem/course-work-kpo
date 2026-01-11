@@ -5,15 +5,15 @@ using CosmicCollector.Avalonia.Navigation;
 namespace CosmicCollector.Avalonia.ViewModels;
 
 /// <summary>
-/// View model for the game screen placeholder.
+/// ViewModel заглушки игрового экрана.
 /// </summary>
 public sealed class GameViewModel : ViewModelBase
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="GameViewModel"/> class.
+  /// Инициализирует новый экземпляр <see cref="GameViewModel"/>.
   /// </summary>
-  /// <param name="parBackNavigation">Navigation back to main menu.</param>
-  /// <param name="parFinishNavigation">Navigation to the game over screen.</param>
+  /// <param name="parBackNavigation">Навигация назад в главное меню.</param>
+  /// <param name="parFinishNavigation">Навигация на экран завершения.</param>
   public GameViewModel(NavigationService parBackNavigation, NavigationService parFinishNavigation)
   {
     BackToMenuCommand = new NavigateCommand(parBackNavigation);
@@ -21,12 +21,12 @@ public sealed class GameViewModel : ViewModelBase
   }
 
   /// <summary>
-  /// Gets the command to return to the main menu.
+  /// Команда возврата в главное меню.
   /// </summary>
   public ICommand BackToMenuCommand { get; }
 
   /// <summary>
-  /// Gets the command to open the game over screen placeholder.
+  /// Команда перехода на экран завершения.
   /// </summary>
   public ICommand FinishGameCommand { get; }
 }

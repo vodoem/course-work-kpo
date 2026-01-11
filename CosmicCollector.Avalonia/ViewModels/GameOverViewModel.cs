@@ -5,15 +5,15 @@ using CosmicCollector.Avalonia.Navigation;
 namespace CosmicCollector.Avalonia.ViewModels;
 
 /// <summary>
-/// View model for the game over screen placeholder.
+/// ViewModel заглушки экрана завершения игры.
 /// </summary>
 public sealed class GameOverViewModel : ViewModelBase
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="GameOverViewModel"/> class.
+  /// Инициализирует новый экземпляр <see cref="GameOverViewModel"/>.
   /// </summary>
-  /// <param name="parRestartNavigation">Navigation to restart the game.</param>
-  /// <param name="parBackNavigation">Navigation back to main menu.</param>
+  /// <param name="parRestartNavigation">Навигация для перезапуска игры.</param>
+  /// <param name="parBackNavigation">Навигация назад в главное меню.</param>
   public GameOverViewModel(NavigationService parRestartNavigation, NavigationService parBackNavigation)
   {
     RestartCommand = new NavigateCommand(parRestartNavigation);
@@ -22,17 +22,17 @@ public sealed class GameOverViewModel : ViewModelBase
   }
 
   /// <summary>
-  /// Gets the command to restart the game.
+  /// Команда перезапуска игры.
   /// </summary>
   public ICommand RestartCommand { get; }
 
   /// <summary>
-  /// Gets the command to return to the main menu.
+  /// Команда возврата в главное меню.
   /// </summary>
   public ICommand BackToMenuCommand { get; }
 
   /// <summary>
-  /// Gets the command to save a record (placeholder).
+  /// Команда сохранения рекорда (заглушка).
   /// </summary>
   public ICommand SaveRecordCommand { get; }
 }

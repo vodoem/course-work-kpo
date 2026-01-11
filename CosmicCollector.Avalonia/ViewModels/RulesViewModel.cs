@@ -5,21 +5,21 @@ using CosmicCollector.Avalonia.Navigation;
 namespace CosmicCollector.Avalonia.ViewModels;
 
 /// <summary>
-/// View model for the rules screen.
+/// ViewModel экрана правил.
 /// </summary>
 public sealed class RulesViewModel : ViewModelBase
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="RulesViewModel"/> class.
+  /// Инициализирует новый экземпляр <see cref="RulesViewModel"/>.
   /// </summary>
-  /// <param name="parBackNavigation">Navigation back to main menu.</param>
+  /// <param name="parBackNavigation">Навигация назад в главное меню.</param>
   public RulesViewModel(NavigationService parBackNavigation)
   {
     BackCommand = new NavigateCommand(parBackNavigation);
   }
 
   /// <summary>
-  /// Gets the command to return to the main menu.
+  /// Команда возврата в главное меню.
   /// </summary>
   public ICommand BackCommand { get; }
 }

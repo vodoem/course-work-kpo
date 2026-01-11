@@ -4,7 +4,7 @@ using CosmicCollector.Avalonia.ViewModels;
 namespace CosmicCollector.Avalonia.Navigation;
 
 /// <summary>
-/// Service for switching current view model.
+/// Сервис переключения текущей ViewModel.
 /// </summary>
 public sealed class NavigationService
 {
@@ -12,10 +12,10 @@ public sealed class NavigationService
   private readonly Func<ViewModelBase> _viewModelFactory;
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="NavigationService"/> class.
+  /// Инициализирует новый экземпляр <see cref="NavigationService"/>.
   /// </summary>
-  /// <param name="parNavigationStore">Navigation store instance.</param>
-  /// <param name="parViewModelFactory">Factory for new view model.</param>
+  /// <param name="parNavigationStore">Хранилище навигации.</param>
+  /// <param name="parViewModelFactory">Фабрика ViewModel.</param>
   public NavigationService(NavigationStore parNavigationStore, Func<ViewModelBase> parViewModelFactory)
   {
     _navigationStore = parNavigationStore;
@@ -23,7 +23,7 @@ public sealed class NavigationService
   }
 
   /// <summary>
-  /// Navigates to a new view model.
+  /// Выполняет навигацию на новую ViewModel.
   /// </summary>
   public void Navigate()
   {

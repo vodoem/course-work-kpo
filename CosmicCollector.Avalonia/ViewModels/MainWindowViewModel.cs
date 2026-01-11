@@ -3,16 +3,16 @@ using CosmicCollector.Avalonia.Navigation;
 namespace CosmicCollector.Avalonia.ViewModels;
 
 /// <summary>
-/// View model for the main window.
+/// ViewModel главного окна.
 /// </summary>
 public sealed class MainWindowViewModel : ViewModelBase
 {
   private readonly NavigationStore _navigationStore;
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="MainWindowViewModel"/> class.
+  /// Инициализирует новый экземпляр <see cref="MainWindowViewModel"/>.
   /// </summary>
-  /// <param name="parNavigationStore">Navigation store instance.</param>
+  /// <param name="parNavigationStore">Хранилище навигации.</param>
   public MainWindowViewModel(NavigationStore parNavigationStore)
   {
     _navigationStore = parNavigationStore;
@@ -20,7 +20,7 @@ public sealed class MainWindowViewModel : ViewModelBase
   }
 
   /// <summary>
-  /// Gets the current view model.
+  /// Текущая ViewModel, отображаемая в окне.
   /// </summary>
   public ViewModelBase? CurrentViewModel => _navigationStore.CurrentViewModel;
 

@@ -3,12 +3,12 @@ using Avalonia.Controls;
 namespace CosmicCollector.Avalonia.Views;
 
 /// <summary>
-/// View for the rules screen.
+/// Представление экрана правил.
 /// </summary>
 public sealed partial class RulesView : UserControl
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="RulesView"/> class.
+  /// Инициализирует новый экземпляр <see cref="RulesView"/>.
   /// </summary>
   public RulesView()
   {

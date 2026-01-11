@@ -3,14 +3,14 @@ using Avalonia;
 namespace CosmicCollector.Avalonia;
 
 /// <summary>
-/// Entry point for the Avalonia UI.
+/// Точка входа Avalonia UI.
 /// </summary>
 internal static class Program
 {
   /// <summary>
-  /// Application entry point.
+  /// Главный метод приложения.
   /// </summary>
-  /// <param name="parArgs">Command-line arguments.</param>
+  /// <param name="parArgs">Аргументы командной строки.</param>
   public static void Main(string[] parArgs)
   {
     BuildAvaloniaApp()
@@ -18,9 +18,9 @@ internal static class Program
   }
 
   /// <summary>
-  /// Configures Avalonia application builder.
+  /// Настраивает Avalonia AppBuilder.
   /// </summary>
-  /// <returns>Configured application builder.</returns>
+  /// <returns>Сконфигурированный builder.</returns>
   public static AppBuilder BuildAvaloniaApp()
   {
     return AppBuilder.Configure<App>()

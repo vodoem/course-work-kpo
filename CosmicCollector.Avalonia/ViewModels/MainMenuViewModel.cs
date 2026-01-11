@@ -6,17 +6,17 @@ using CosmicCollector.Avalonia.Navigation;
 namespace CosmicCollector.Avalonia.ViewModels;
 
 /// <summary>
-/// View model for the main menu.
+/// ViewModel главного меню.
 /// </summary>
 public sealed class MainMenuViewModel : ViewModelBase
 {
   /// <summary>
-  /// Initializes a new instance of the <see cref="MainMenuViewModel"/> class.
+  /// Инициализирует новый экземпляр <see cref="MainMenuViewModel"/>.
   /// </summary>
-  /// <param name="parExitAction">Action that closes the application.</param>
-  /// <param name="parGameNavigation">Navigation to the game screen.</param>
-  /// <param name="parRulesNavigation">Navigation to the rules screen.</param>
-  /// <param name="parRecordsNavigation">Navigation to the records screen.</param>
+  /// <param name="parExitAction">Действие выхода из приложения.</param>
+  /// <param name="parGameNavigation">Навигация на экран игры.</param>
+  /// <param name="parRulesNavigation">Навигация на экран правил.</param>
+  /// <param name="parRecordsNavigation">Навигация на экран рекордов.</param>
   public MainMenuViewModel(
     Action parExitAction,
     NavigationService parGameNavigation,
@@ -30,22 +30,22 @@ public sealed class MainMenuViewModel : ViewModelBase
   }
 
   /// <summary>
-  /// Gets the command to start the game.
+  /// Команда запуска игры.
   /// </summary>
   public ICommand StartGameCommand { get; }
 
   /// <summary>
-  /// Gets the command to show rules.
+  /// Команда открытия правил.
   /// </summary>
   public ICommand ShowRulesCommand { get; }
 
   /// <summary>
-  /// Gets the command to show records.
+  /// Команда открытия рекордов.
   /// </summary>
   public ICommand ShowRecordsCommand { get; }
 
   /// <summary>
-  /// Gets the command to exit the application.
+  /// Команда выхода из приложения.
   /// </summary>
   public ICommand ExitCommand { get; }
 }

@@ -4,7 +4,7 @@
              xmlns:views="clr-namespace:CosmicCollector.Avalonia.Views"
              x:Class="CosmicCollector.Avalonia.App">
   <Application.Styles>
-    <FluentTheme Mode="Dark" />
+    <FluentTheme />
   </Application.Styles>
   <Application.DataTemplates>
     <DataTemplate DataType="{x:Type viewModels:MainMenuViewModel}">

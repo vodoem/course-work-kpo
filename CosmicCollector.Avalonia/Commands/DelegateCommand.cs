@@ -4,7 +4,7 @@ using System.Windows.Input;
 namespace CosmicCollector.Avalonia.Commands;
 
 /// <summary>
-/// Basic command wrapper for UI actions.
+/// Простая команда для действий UI.
 /// </summary>
 public sealed class DelegateCommand : ICommand
 {
@@ -12,10 +12,10 @@ public sealed class DelegateCommand : ICommand
   private readonly Func<bool>? _canExecute;
 
   /// <summary>
-  /// Initializes a new instance of the <see cref="DelegateCommand"/> class.
+  /// Инициализирует новый экземпляр <see cref="DelegateCommand"/>.
   /// </summary>
-  /// <param name="parExecute">Action to execute.</param>
-  /// <param name="parCanExecute">Predicate to allow execution.</param>
+  /// <param name="parExecute">Действие команды.</param>
+  /// <param name="parCanExecute">Проверка доступности команды.</param>
   public DelegateCommand(Action parExecute, Func<bool>? parCanExecute = null)
   {
     _execute = parExecute;
@@ -38,7 +38,7 @@ public sealed class DelegateCommand : ICommand
   }
 
   /// <summary>
-  /// Triggers a re-evaluation of <see cref="CanExecute"/>.
+  /// Уведомляет об изменении доступности команды.
   /// </summary>
   public void RaiseCanExecuteChanged()
   {
