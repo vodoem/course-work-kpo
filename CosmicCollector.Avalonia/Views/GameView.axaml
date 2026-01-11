@@ -10,13 +10,17 @@
                  FontSize="24"
                  FontWeight="Bold"
                  HorizontalAlignment="Center" />
-      <TextBlock Text="TODO: рендер игрового поля будет добавлен позже."
-                 TextAlignment="Center"
-                 TextWrapping="Wrap" />
-      <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8">
-        <Button Content="Завершить (заглушка)" Command="{Binding FinishGameCommand}" />
-        <Button Content="В меню" Command="{Binding BackToMenuCommand}" />
-      </StackPanel>
+      <TextBlock Text="Уровень: {Binding CurrentLevel}" TextAlignment="Center" />
+      <TextBlock Text="Очки: {Binding Score}" TextAlignment="Center" />
+      <TextBlock Text="Энергия: {Binding Energy}" TextAlignment="Center" />
+      <TextBlock Text="Цель очков: {Binding RequiredScore}" TextAlignment="Center" />
+      <TextBlock Text="{Binding TimerText}" TextAlignment="Center" />
+      <TextBlock Text="{Binding BlueProgressText}" TextAlignment="Center" />
+      <TextBlock Text="{Binding GreenProgressText}" TextAlignment="Center" />
+      <TextBlock Text="{Binding RedProgressText}" TextAlignment="Center" />
+      <TextBlock Text="Пауза: {Binding IsPaused}" TextAlignment="Center" />
+      <TextBlock Text="Отсчёт: {Binding CountdownValue}" TextAlignment="Center" />
+      <Button Content="В меню" Command="{Binding BackToMenuCommand}" Width="200" />
     </StackPanel>
   </Grid>
 </UserControl>

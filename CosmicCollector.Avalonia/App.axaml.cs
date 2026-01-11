@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using CosmicCollector.Avalonia.Infrastructure;
 using CosmicCollector.Avalonia.Navigation;
 using CosmicCollector.Avalonia.ViewModels;
 
@@ -25,6 +26,7 @@ public sealed class App : Application
     {
       var navigationStore = new NavigationStore();
       var mainWindow = new MainWindow();
+      var gameRuntime = new GameRuntime();
 
       NavigationService CreateNavigationService(Func<ViewModelBase> parViewModelFactory)
       {
@@ -53,6 +55,7 @@ public sealed class App : Application
       GameViewModel CreateGameViewModel()
       {
         return new GameViewModel(
+          gameRuntime,
           CreateNavigationService(CreateMainMenuViewModel),
           CreateNavigationService(CreateGameOverViewModel));
       }
