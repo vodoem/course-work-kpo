@@ -19,9 +19,6 @@
           <Style Selector="TextBlock">
             <Setter Property="Foreground" Value="Black" />
           </Style>
-          <Style Selector="md|MarkdownScrollViewer">
-            <Setter Property="Foreground" Value="Black" />
-          </Style>
         </Border.Styles>
         <StackPanel Spacing="12">
           <TextBlock Text="Описание игры и правила"
@@ -39,9 +36,6 @@
               Padding="16">
         <Border.Styles>
           <Style Selector="TextBlock">
-            <Setter Property="Foreground" Value="Black" />
-          </Style>
-          <Style Selector="md|MarkdownScrollViewer">
             <Setter Property="Foreground" Value="Black" />
           </Style>
         </Border.Styles>
