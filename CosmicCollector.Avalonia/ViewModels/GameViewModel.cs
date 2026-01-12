@@ -411,6 +411,7 @@ public sealed class GameViewModel : ViewModelBase
     _isActive = true;
     _gameRuntime.Start();
     InitializeFieldBounds();
+    UpdateFromSnapshot(_gameRuntime.GetSnapshot());
     SubscribeToEvents();
   }
 
