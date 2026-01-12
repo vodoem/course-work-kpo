@@ -112,9 +112,9 @@ public sealed class GameRuntime
   {
     var bounds = new WorldBounds(
       0,
-      GameLayoutConstants.HudHeight,
+      0,
       GameLayoutConstants.WorldWidth,
-      GameLayoutConstants.WorldHeight - GameLayoutConstants.HudHeight);
+      GameLayoutConstants.WorldHeight);
     var droneBounds = new Aabb(32, 32);
     var drone = new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, droneBounds, 100);
     InitializeDrone(drone, bounds);
