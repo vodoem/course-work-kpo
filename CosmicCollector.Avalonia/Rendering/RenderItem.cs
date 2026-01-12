@@ -13,13 +13,24 @@ public sealed class RenderItem
   /// <param name="parWidth">Ширина.</param>
   /// <param name="parHeight">Высота.</param>
   /// <param name="parSpriteKey">Ключ спрайта.</param>
-  public RenderItem(double parX, double parY, double parWidth, double parHeight, string parSpriteKey)
+  /// <param name="parLayer">Слой отрисовки.</param>
+  /// <param name="parOrder">Порядок внутри слоя.</param>
+  public RenderItem(
+    double parX,
+    double parY,
+    double parWidth,
+    double parHeight,
+    string parSpriteKey,
+    int parLayer,
+    int parOrder)
   {
     X = parX;
     Y = parY;
     Width = parWidth;
     Height = parHeight;
     SpriteKey = parSpriteKey;
+    Layer = parLayer;
+    Order = parOrder;
   }
 
   /// <summary>
@@ -46,4 +57,14 @@ public sealed class RenderItem
   /// Ключ спрайта.
   /// </summary>
   public string SpriteKey { get; }
+
+  /// <summary>
+  /// Слой отрисовки.
+  /// </summary>
+  public int Layer { get; }
+
+  /// <summary>
+  /// Порядок внутри слоя.
+  /// </summary>
+  public int Order { get; }
 }

@@ -89,6 +89,11 @@
             <TextBlock Text="Собранные очки" />
             <TextBlock Text="{Binding Score}" FontWeight="Bold" />
           </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      Spacing="6">
+            <TextBlock Text="Количество собранной энергии" />
+            <TextBlock Text="{Binding Energy}" FontWeight="Bold" />
+          </StackPanel>
         </StackPanel>
       </Border>
     </Grid>

@@ -14,7 +14,8 @@
                                  Width="{Binding FieldWidth}"
                                  Height="{Binding FieldHeight}"
                                  HorizontalAlignment="Center"
-                                 VerticalAlignment="Center" />
+                                 VerticalAlignment="Center"
+                                 ClipToBounds="True" />
     </Border>
     <Grid Grid.RowSpan="2"
           IsVisible="{Binding IsPaused}"

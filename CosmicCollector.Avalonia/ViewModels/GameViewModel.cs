@@ -21,7 +21,7 @@ namespace CosmicCollector.Avalonia.ViewModels;
 /// </summary>
 public sealed class GameViewModel : ViewModelBase
 {
-  private const double PixelsPerUnit = 1.0;
+  private const double PixelsPerUnit = 2.0;
   private readonly GameRuntime _gameRuntime;
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
@@ -565,28 +565,35 @@ public sealed class GameViewModel : ViewModelBase
   private IReadOnlyList<RenderItem> BuildRenderItems(GameSnapshot parSnapshot, WorldBounds parBounds)
   {
     var items = new List<RenderItem>();
+    var order = 0;
 
-    AppendItem(items, parSnapshot.parDrone.parPosition, parSnapshot.parDrone.parBounds, parBounds, "drone");
+    AppendItem(items, parSnapshot.parDrone.parPosition, parSnapshot.parDrone.parBounds, parBounds, "drone", RenderLayer.Drone, order++);
 
     foreach (var crystal in parSnapshot.parCrystals)
     {
-      AppendItem(items, crystal.parPosition, crystal.parBounds, parBounds, GetCrystalSpriteKey(crystal.parType));
+      AppendItem(items, crystal.parPosition, crystal.parBounds, parBounds, GetCrystalSpriteKey(crystal.parType), RenderLayer.Crystal, order++);
     }
 
     foreach (var asteroid in parSnapshot.parAsteroids)
     {
-      AppendItem(items, asteroid.parPosition, asteroid.parBounds, parBounds, "asteroid");
+      AppendItem(items, asteroid.parPosition, asteroid.parBounds, parBounds, "asteroid", RenderLayer.Asteroid, order++);
     }
 
     foreach (var bonus in parSnapshot.parBonuses)
     {
-      AppendItem(items, bonus.parPosition, bonus.parBounds, parBounds, GetBonusSpriteKey(bonus.parType));
+      AppendItem(items, bonus.parPosition, bonus.parBounds, parBounds, GetBonusSpriteKey(bonus.parType), RenderLayer.Bonus, order++);
     }
 
     foreach (var blackHole in parSnapshot.parBlackHoles)
     {
-      AppendItem(items, blackHole.parPosition, blackHole.parBounds, parBounds, "blackhole");
+      AppendItem(items, blackHole.parPosition, blackHole.parBounds, parBounds, "blackhole", RenderLayer.BlackHole, order++);
     }
+
+    items.Sort((left, right) =>
+    {
+      var layerComparison = left.Layer.CompareTo(right.Layer);
+      return layerComparison != 0 ? layerComparison : left.Order.CompareTo(right.Order);
+    });
 
     return items;
   }
@@ -596,14 +603,16 @@ public sealed class GameViewModel : ViewModelBase
     Vector2 parPosition,
     Aabb parBounds,
     WorldBounds parWorldBounds,
-    string parSpriteKey)
+    string parSpriteKey,
+    RenderLayer parLayer,
+    int parOrder)
   {
     var width = parBounds.Width * PixelsPerUnit;
     var height = parBounds.Height * PixelsPerUnit;
     var left = (parPosition.X - (parBounds.Width / 2.0) - parWorldBounds.Left) * PixelsPerUnit;
     var top = (parPosition.Y - (parBounds.Height / 2.0) - parWorldBounds.Top) * PixelsPerUnit;
 
-    parItems.Add(new RenderItem(left, top, width, height, parSpriteKey));
+    parItems.Add(new RenderItem(left, top, width, height, parSpriteKey, (int)parLayer, parOrder));
   }
 
   private static string GetCrystalSpriteKey(CrystalType parType)
