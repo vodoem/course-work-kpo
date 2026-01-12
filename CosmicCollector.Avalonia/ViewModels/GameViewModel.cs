@@ -21,17 +21,23 @@ namespace CosmicCollector.Avalonia.ViewModels;
 /// </summary>
 public sealed class GameViewModel : ViewModelBase
 {
-  private const double PixelsPerUnit = 0.8;
+  private const double PixelsPerUnit = 1.0;
   private readonly GameRuntime _gameRuntime;
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
   private readonly List<IDisposable> _subscriptions = new();
-  private IReadOnlyList<RenderItem> _renderItems = Array.Empty<RenderItem>();
+  private readonly FrameSnapshotStore _snapshotStore = new();
   private bool _isActive;
   private int _currentLevel;
   private int _requiredScore;
   private int _score;
   private int _energy;
+  private int _requiredBlue;
+  private int _requiredGreen;
+  private int _requiredRed;
+  private int _collectedBlue;
+  private int _collectedGreen;
+  private int _collectedRed;
   private string _blueProgressText = "B: 0/0";
   private string _greenProgressText = "G: 0/0";
   private string _redProgressText = "R: 0/0";
@@ -61,6 +67,8 @@ public sealed class GameViewModel : ViewModelBase
     _mainMenuNavigation = parBackNavigation;
     _gameOverNavigation = parGameOverNavigation;
     BackToMenuCommand = new DelegateCommand(HandleBackToMenu);
+    ResumeCommand = new DelegateCommand(HandleResume);
+    ExitToMenuCommand = new DelegateCommand(HandleBackToMenu);
   }
 
   /// <summary>
@@ -69,17 +77,19 @@ public sealed class GameViewModel : ViewModelBase
   public ICommand BackToMenuCommand { get; }
 
   /// <summary>
-  /// Элементы рендера игрового поля.
+  /// Команда продолжения игры.
   /// </summary>
-  public IReadOnlyList<RenderItem> RenderItems
-  {
-    get => _renderItems;
-    private set
-    {
-      _renderItems = value;
-      OnPropertyChanged();
-    }
-  }
+  public ICommand ResumeCommand { get; }
+
+  /// <summary>
+  /// Команда выхода в главное меню.
+  /// </summary>
+  public ICommand ExitToMenuCommand { get; }
+
+  /// <summary>
+  /// Хранилище снимков рендера.
+  /// </summary>
+  public FrameSnapshotStore SnapshotStore => _snapshotStore;
 
   /// <summary>
   /// Ширина игрового поля.
@@ -303,6 +313,84 @@ public sealed class GameViewModel : ViewModelBase
   }
 
   /// <summary>
+  /// Требуемое количество синих кристаллов.
+  /// </summary>
+  public int RequiredBlue
+  {
+    get => _requiredBlue;
+    private set
+    {
+      _requiredBlue = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Требуемое количество зелёных кристаллов.
+  /// </summary>
+  public int RequiredGreen
+  {
+    get => _requiredGreen;
+    private set
+    {
+      _requiredGreen = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Требуемое количество красных кристаллов.
+  /// </summary>
+  public int RequiredRed
+  {
+    get => _requiredRed;
+    private set
+    {
+      _requiredRed = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Собранные синие кристаллы.
+  /// </summary>
+  public int CollectedBlue
+  {
+    get => _collectedBlue;
+    private set
+    {
+      _collectedBlue = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Собранные зелёные кристаллы.
+  /// </summary>
+  public int CollectedGreen
+  {
+    get => _collectedGreen;
+    private set
+    {
+      _collectedGreen = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Собранные красные кристаллы.
+  /// </summary>
+  public int CollectedRed
+  {
+    get => _collectedRed;
+    private set
+    {
+      _collectedRed = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
   /// Активирует игровую сессию.
   /// </summary>
   public void Activate()
@@ -355,6 +443,7 @@ public sealed class GameViewModel : ViewModelBase
         EnqueueMove(1);
         break;
       case Key.P:
+      case Key.Escape:
         _gameRuntime.CommandQueue.Enqueue(new TogglePauseCommand());
         break;
     }
@@ -445,6 +534,12 @@ public sealed class GameViewModel : ViewModelBase
     RequiredScore = parSnapshot.parRequiredScore;
     Score = parSnapshot.parDrone.parScore;
     Energy = parSnapshot.parDrone.parEnergy;
+    RequiredBlue = parSnapshot.parLevelGoals.parRequiredBlue;
+    RequiredGreen = parSnapshot.parLevelGoals.parRequiredGreen;
+    RequiredRed = parSnapshot.parLevelGoals.parRequiredRed;
+    CollectedBlue = parSnapshot.parLevelProgress.parCollectedBlue;
+    CollectedGreen = parSnapshot.parLevelProgress.parCollectedGreen;
+    CollectedRed = parSnapshot.parLevelProgress.parCollectedRed;
     BlueProgressText = $"B: {parSnapshot.parLevelProgress.parCollectedBlue}/{parSnapshot.parLevelGoals.parRequiredBlue}";
     GreenProgressText = $"G: {parSnapshot.parLevelProgress.parCollectedGreen}/{parSnapshot.parLevelGoals.parRequiredGreen}";
     RedProgressText = $"R: {parSnapshot.parLevelProgress.parCollectedRed}/{parSnapshot.parLevelGoals.parRequiredRed}";
@@ -456,7 +551,7 @@ public sealed class GameViewModel : ViewModelBase
     HudProgressText = $"Прогресс: B={parSnapshot.parLevelProgress.parCollectedBlue}/{parSnapshot.parLevelGoals.parRequiredBlue} " +
                       $"G={parSnapshot.parLevelProgress.parCollectedGreen}/{parSnapshot.parLevelGoals.parRequiredGreen} " +
                       $"R={parSnapshot.parLevelProgress.parCollectedRed}/{parSnapshot.parLevelGoals.parRequiredRed}";
-    RenderItems = BuildRenderItems(parSnapshot, _gameRuntime.GameState.WorldBounds);
+    PublishSnapshot(parSnapshot);
   }
 
   private IReadOnlyList<RenderItem> BuildRenderItems(GameSnapshot parSnapshot, WorldBounds parBounds)
@@ -539,6 +634,21 @@ public sealed class GameViewModel : ViewModelBase
   private void EnqueueMove(int parDirection)
   {
     _gameRuntime.CommandQueue.Enqueue(new SetMoveDirectionCommand(parDirection));
+  }
+
+  private void PublishSnapshot(GameSnapshot parSnapshot)
+  {
+    var items = BuildRenderItems(parSnapshot, _gameRuntime.GameState.WorldBounds);
+    var timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
+    _snapshotStore.Update(new FrameSnapshot(timestamp, items));
+  }
+
+  private void HandleResume()
+  {
+    if (IsPaused)
+    {
+      _gameRuntime.CommandQueue.Enqueue(new TogglePauseCommand());
+    }
   }
 
   private void HandleBackToMenu()

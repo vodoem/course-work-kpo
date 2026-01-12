@@ -2,23 +2,46 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:CosmicCollector.Avalonia.Views.Controls"
              x:Class="CosmicCollector.Avalonia.Views.GameView">
-  <Grid>
-    <Border Width="840"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-      <StackPanel HorizontalAlignment="Center"
-                  Spacing="12">
-        <controls:HudView />
-        <Border BorderBrush="White"
-                BorderThickness="2"
-                Width="{Binding FieldWidth}"
-                Height="{Binding FieldHeight}">
-          <controls:GameSceneControl Width="{Binding FieldWidth}"
-                                     Height="{Binding FieldHeight}"
-                                     Items="{Binding RenderItems}" />
-        </Border>
-        <Button Content="В меню" Command="{Binding BackToMenuCommand}" />
-      </StackPanel>
+  <Grid RowDefinitions="Auto,*">
+    <controls:HudView Margin="24,16,24,12" />
+    <Border Grid.Row="1"
+            Margin="24,0,24,24"
+            Background="#0F0F0F"
+            BorderBrush="#2E2E2E"
+            BorderThickness="2"
+            CornerRadius="12">
+      <controls:GameFieldControl SnapshotStore="{Binding SnapshotStore}"
+                                 Width="{Binding FieldWidth}"
+                                 Height="{Binding FieldHeight}"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center" />
     </Border>
+    <Grid Grid.RowSpan="2"
+          IsVisible="{Binding IsPaused}"
+          Background="#80000000">
+      <Border Width="360"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="#2A2A2A"
+              CornerRadius="16"
+              Padding="24">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+          </Style>
+        </Border.Styles>
+        <StackPanel Spacing="16"
+                    HorizontalAlignment="Center">
+          <TextBlock Text="Пауза"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center" />
+          <Button Content="Продолжить"
+                  Command="{Binding ResumeCommand}" />
+          <Button Content="Главное меню"
+                  Command="{Binding ExitToMenuCommand}" />
+        </StackPanel>
+      </Border>
+    </Grid>
   </Grid>
 </UserControl>
