@@ -9,7 +9,8 @@
             Background="#0F0F0F"
             BorderBrush="#2E2E2E"
             BorderThickness="2"
-            CornerRadius="12">
+            CornerRadius="12"
+            ClipToBounds="True">
       <controls:GameFieldControl Snapshot="{Binding LatestSnapshot}"
                                  Width="{Binding FieldWidth}"
                                  Height="{Binding FieldHeight}"
