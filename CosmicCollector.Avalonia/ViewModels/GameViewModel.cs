@@ -21,7 +21,7 @@ namespace CosmicCollector.Avalonia.ViewModels;
 /// </summary>
 public sealed class GameViewModel : ViewModelBase
 {
-  private const double PixelsPerUnit = 2.0;
+  private const double PixelsPerUnit = 1.0;
   private readonly GameRuntime _gameRuntime;
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
