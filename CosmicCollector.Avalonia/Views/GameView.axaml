@@ -11,12 +11,14 @@
             BorderThickness="2"
             CornerRadius="12"
             ClipToBounds="True">
-      <controls:GameFieldControl Snapshot="{Binding LatestSnapshot}"
-                                 Width="{Binding FieldWidth}"
-                                 Height="{Binding FieldHeight}"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center"
-                                 ClipToBounds="True" />
+      <Viewbox Stretch="Uniform">
+        <controls:GameFieldControl Snapshot="{Binding LatestSnapshot}"
+                                   Width="{Binding FieldWidth}"
+                                   Height="{Binding FieldHeight}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   ClipToBounds="True" />
+      </Viewbox>
     </Border>
     <Grid Grid.RowSpan="2"
           IsVisible="{Binding IsPaused}"
