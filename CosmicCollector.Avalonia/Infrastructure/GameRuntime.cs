@@ -1,5 +1,7 @@
 using System;
+using CosmicCollector.Core.Entities;
 using CosmicCollector.Core.Events;
+using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
@@ -50,7 +52,7 @@ public sealed class GameRuntime
       }
 
       _isRunning = true;
-      _gameState = new GameState();
+      _gameState = BuildInitialGameState();
       _eventBus = new EventBus();
       _commandQueue = new CommandQueue();
       _updateService = new GameWorldUpdateService(new DefaultRandomProvider(), SpawnConfig.Default);
@@ -104,5 +106,16 @@ public sealed class GameRuntime
     }
 
     updateService.Update(gameState, parDt, gameState.CurrentLevel, eventBus);
+  }
+
+  private static GameState BuildInitialGameState()
+  {
+    var bounds = new WorldBounds(0, 0, 800, 600);
+    var droneBounds = new Aabb(32, 32);
+    var startPosition = new Vector2(
+      (bounds.Left + bounds.Right) / 2.0,
+      bounds.Bottom - (droneBounds.Height / 2.0));
+    var drone = new Drone(Guid.NewGuid(), startPosition, Vector2.Zero, droneBounds, 100);
+    return new GameState(drone, bounds);
   }
 }
