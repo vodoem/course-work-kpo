@@ -22,7 +22,6 @@ namespace CosmicCollector.Avalonia.ViewModels;
 public sealed class GameViewModel : ViewModelBase
 {
   private const double PixelsPerUnit = 1.0;
-  private const double DefaultSpriteScale = 1.0;
   private readonly GameRuntime _gameRuntime;
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
@@ -609,32 +608,12 @@ public sealed class GameViewModel : ViewModelBase
     RenderLayer parLayer,
     int parOrder)
   {
-    var spriteScale = GetSpriteScale(parSpriteKey);
-    var scaledWidth = parBounds.Width * spriteScale;
-    var scaledHeight = parBounds.Height * spriteScale;
-    var width = scaledWidth * PixelsPerUnit;
-    var height = scaledHeight * PixelsPerUnit;
-    var left = (parPosition.X - (scaledWidth / 2.0) - parWorldBounds.Left) * PixelsPerUnit;
-    var top = (parPosition.Y - (scaledHeight / 2.0) - parWorldBounds.Top) * PixelsPerUnit;
+    var width = parBounds.Width * PixelsPerUnit;
+    var height = parBounds.Height * PixelsPerUnit;
+    var left = (parPosition.X - (parBounds.Width / 2.0) - parWorldBounds.Left) * PixelsPerUnit;
+    var top = (parPosition.Y - (parBounds.Height / 2.0) - parWorldBounds.Top) * PixelsPerUnit;
 
     parItems.Add(new RenderItem(left, top, width, height, parSpriteKey, (int)parLayer, parOrder));
-  }
-
-  private static double GetSpriteScale(string parSpriteKey)
-  {
-    return parSpriteKey switch
-    {
-      "drone" => DefaultSpriteScale,
-      "asteroid" => DefaultSpriteScale,
-      "blackhole" => DefaultSpriteScale,
-      "crystal_blue" => DefaultSpriteScale,
-      "crystal_green" => DefaultSpriteScale,
-      "crystal_red" => DefaultSpriteScale,
-      "bonus_magnet" => DefaultSpriteScale,
-      "bonus_accelerator" => DefaultSpriteScale,
-      "bonus_time" => DefaultSpriteScale,
-      _ => DefaultSpriteScale
-    };
   }
 
   private static string GetCrystalSpriteKey(CrystalType parType)
