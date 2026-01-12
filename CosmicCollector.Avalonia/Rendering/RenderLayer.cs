@@ -18,7 +18,7 @@ public enum RenderLayer
   /// <summary>
   /// Дрон.
   /// </summary>
-  Drone = 20,
+  Drone = 100,
 
   /// <summary>
   /// Астероиды.

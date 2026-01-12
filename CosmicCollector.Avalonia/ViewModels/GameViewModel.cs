@@ -610,7 +610,7 @@ public sealed class GameViewModel : ViewModelBase
     var width = parBounds.Width * PixelsPerUnit;
     var height = parBounds.Height * PixelsPerUnit;
     var left = (parPosition.X - (parBounds.Width / 2.0) - parWorldBounds.Left) * PixelsPerUnit;
-    var top = (parPosition.Y - (parBounds.Height / 2.0) - parWorldBounds.Top) * PixelsPerUnit;
+    var top = (parWorldBounds.Bottom - parPosition.Y - (parBounds.Height / 2.0)) * PixelsPerUnit;
 
     parItems.Add(new RenderItem(left, top, width, height, parSpriteKey, (int)parLayer, parOrder));
   }
