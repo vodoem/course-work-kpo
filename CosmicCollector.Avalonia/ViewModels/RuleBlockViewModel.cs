@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Media;
 
 namespace CosmicCollector.Avalonia.ViewModels;
 

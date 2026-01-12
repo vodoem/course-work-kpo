@@ -25,8 +25,7 @@
           <Setter Property="Background" Value="Transparent" />
         </Style>
         <Style Selector="dg|DataGridColumnHeader">
-          <Setter Property="Foreground" Value="White" />
-          <Setter Property="Background" Value="#3A3A3A" />
+          <Setter Property="Background" Value="#E6E6E6" />
         </Style>
         <Style Selector="dg|DataGridColumnHeader > TextBlock">
           <Setter Property="Foreground" Value="White" />
