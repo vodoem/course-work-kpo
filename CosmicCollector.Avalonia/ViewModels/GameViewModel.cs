@@ -26,7 +26,7 @@ public sealed class GameViewModel : ViewModelBase
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
   private readonly List<IDisposable> _subscriptions = new();
-  private readonly FrameSnapshotStore _snapshotStore = new();
+  private FrameSnapshot? _latestSnapshot;
   private bool _isActive;
   private int _currentLevel;
   private int _requiredScore;
@@ -87,9 +87,17 @@ public sealed class GameViewModel : ViewModelBase
   public ICommand ExitToMenuCommand { get; }
 
   /// <summary>
-  /// Хранилище снимков рендера.
+  /// Последний снимок рендера.
   /// </summary>
-  public FrameSnapshotStore SnapshotStore => _snapshotStore;
+  public FrameSnapshot? LatestSnapshot
+  {
+    get => _latestSnapshot;
+    private set
+    {
+      _latestSnapshot = value;
+      OnPropertyChanged();
+    }
+  }
 
   /// <summary>
   /// Ширина игрового поля.
@@ -640,7 +648,7 @@ public sealed class GameViewModel : ViewModelBase
   {
     var items = BuildRenderItems(parSnapshot, _gameRuntime.GameState.WorldBounds);
     var timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-    _snapshotStore.Update(new FrameSnapshot(timestamp, items));
+    LatestSnapshot = new FrameSnapshot(timestamp, items);
   }
 
   private void HandleResume()

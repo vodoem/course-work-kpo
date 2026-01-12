@@ -1,8 +1,6 @@
-using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Rendering;
 using CosmicCollector.Avalonia.Rendering;
 
 namespace CosmicCollector.Avalonia.Views.Controls;
@@ -10,42 +8,24 @@ namespace CosmicCollector.Avalonia.Views.Controls;
 /// <summary>
 /// Контрол отрисовки игрового поля через снимки.
 /// </summary>
-public sealed class GameFieldControl : Control, IRenderLoopTask
+public sealed class GameFieldControl : Control
 {
   /// <summary>
-  /// Свойство хранилища снимков.
+  /// Свойство снимка рендера.
   /// </summary>
-  public static readonly StyledProperty<FrameSnapshotStore?> SnapshotStoreProperty =
-    AvaloniaProperty.Register<GameFieldControl, FrameSnapshotStore?>(nameof(SnapshotStore));
+  public static readonly StyledProperty<FrameSnapshot?> SnapshotProperty =
+    AvaloniaProperty.Register<GameFieldControl, FrameSnapshot?>(nameof(Snapshot));
 
   private readonly SpriteAtlas _spriteAtlas = new();
   private readonly Typeface _fallbackTypeface = new("Inter");
-  private IRenderLoop? _renderLoop;
-  private bool _isAttached;
-  private long _lastRenderTicks;
 
   /// <summary>
-  /// Хранилище снимков рендера.
+  /// Снимок рендера.
   /// </summary>
-  public FrameSnapshotStore? SnapshotStore
+  public FrameSnapshot? Snapshot
   {
-    get => GetValue(SnapshotStoreProperty);
-    set => SetValue(SnapshotStoreProperty, value);
-  }
-
-  /// <inheritdoc />
-  public bool NeedsUpdate => true;
-
-  /// <inheritdoc />
-  public void Update(TimeSpan parTime)
-  {
-    if (!_isAttached)
-    {
-      return;
-    }
-
-    _lastRenderTicks = System.Diagnostics.Stopwatch.GetTimestamp();
-    InvalidateVisual();
+    get => GetValue(SnapshotProperty);
+    set => SetValue(SnapshotProperty, value);
   }
 
   /// <inheritdoc />
@@ -53,7 +33,7 @@ public sealed class GameFieldControl : Control, IRenderLoopTask
   {
     base.Render(parContext);
 
-    var snapshot = SnapshotStore?.GetLatest();
+    var snapshot = Snapshot;
 
     if (snapshot is null)
     {
@@ -66,7 +46,7 @@ public sealed class GameFieldControl : Control, IRenderLoopTask
 
       if (_spriteAtlas.TryGetBitmap(item.SpriteKey, out var bitmap) && bitmap is not null)
       {
-        parContext.DrawImage(bitmap, 1, new Rect(bitmap.Size), targetRect);
+        parContext.DrawImage(bitmap, new Rect(bitmap.Size), targetRect);
         continue;
       }
 
@@ -75,13 +55,15 @@ public sealed class GameFieldControl : Control, IRenderLoopTask
       var brush = new SolidColorBrush(color);
       parContext.DrawRectangle(brush, new Pen(Brushes.White, 1), targetRect);
 
-      var text = new FormattedText(
-        label,
-        _fallbackTypeface,
-        12,
-        TextAlignment.Center,
-        TextWrapping.NoWrap,
-        Size.Infinity);
+      var text = new FormattedText(new FormattedTextOptions
+      {
+        Text = label,
+        Typeface = _fallbackTypeface,
+        FontSize = 12,
+        TextAlignment = TextAlignment.Center,
+        TextWrapping = TextWrapping.NoWrap,
+        Constraint = Size.Infinity
+      });
 
       var textOrigin = new Point(
         targetRect.X + (targetRect.Width - text.Bounds.Width) / 2,
@@ -91,19 +73,13 @@ public sealed class GameFieldControl : Control, IRenderLoopTask
     }
   }
 
-  protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs parE)
+  protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs parChange)
   {
-    base.OnAttachedToVisualTree(parE);
-    _isAttached = true;
-    _renderLoop = AvaloniaLocator.Current.GetService<IRenderLoop>();
-    _renderLoop?.Add(this);
-  }
+    base.OnPropertyChanged(parChange);
 
-  protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs parE)
-  {
-    base.OnDetachedFromVisualTree(parE);
-    _isAttached = false;
-    _renderLoop?.Remove(this);
-    _renderLoop = null;
+    if (parChange.Property == SnapshotProperty)
+    {
+      InvalidateVisual();
+    }
   }
 }

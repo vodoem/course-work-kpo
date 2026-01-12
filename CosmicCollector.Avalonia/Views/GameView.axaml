@@ -10,7 +10,7 @@
             BorderBrush="#2E2E2E"
             BorderThickness="2"
             CornerRadius="12">
-      <controls:GameFieldControl SnapshotStore="{Binding SnapshotStore}"
+      <controls:GameFieldControl Snapshot="{Binding LatestSnapshot}"
                                  Width="{Binding FieldWidth}"
                                  Height="{Binding FieldHeight}"
                                  HorizontalAlignment="Center"
