@@ -110,7 +110,11 @@ public sealed class GameRuntime
 
   private static GameState BuildInitialGameState()
   {
-    var bounds = new WorldBounds(0, 0, 800, 600);
+    var bounds = new WorldBounds(
+      0,
+      GameLayoutConstants.HudHeight,
+      GameLayoutConstants.WorldWidth,
+      GameLayoutConstants.HudHeight + GameLayoutConstants.WorldHeight);
     var droneBounds = new Aabb(32, 32);
     var startPosition = new Vector2(
       (bounds.Left + bounds.Right) / 2.0,
