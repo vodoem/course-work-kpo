@@ -1,23 +1,77 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
              x:Class="CosmicCollector.Avalonia.Views.RecordsView">
-  <Grid>
-    <Border Width="520"
+  <Grid RowDefinitions="Auto,*,Auto"
+        Margin="24">
+    <TextBlock Text="Рекорды"
+               FontSize="24"
+               FontWeight="Bold"
+               HorizontalAlignment="Left" />
+    <Border Grid.Row="1"
+            Width="640"
             HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-      <StackPanel HorizontalAlignment="Center"
-                  Spacing="12">
-        <TextBlock Text="Рекорды"
-                   FontSize="24"
-                   FontWeight="Bold"
+            VerticalAlignment="Stretch"
+            Background="#E6E6E6"
+            CornerRadius="16"
+            Padding="16"
+            Margin="0,16,0,0">
+      <Border.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Foreground" Value="Black" />
+        </Style>
+        <Style Selector="dg|DataGrid">
+          <Setter Property="Foreground" Value="Black" />
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="dg|DataGridColumnHeader">
+          <Setter Property="Foreground" Value="White" />
+          <Setter Property="Background" Value="#3A3A3A" />
+        </Style>
+        <Style Selector="dg|DataGridColumnHeader > TextBlock">
+          <Setter Property="Foreground" Value="White" />
+        </Style>
+        <Style Selector="dg|DataGridCell">
+          <Setter Property="Foreground" Value="Black" />
+        </Style>
+      </Border.Styles>
+      <Grid>
+        <TextBlock Text="Нет записей"
                    HorizontalAlignment="Center"
-                   TextAlignment="Center" />
-        <TextBlock Text="TODO: список рекордов будет подключен позже."
-                   TextWrapping="Wrap"
-                   HorizontalAlignment="Center"
-                   TextAlignment="Center" />
-        <Button Content="Назад" Command="{Binding BackCommand}" />
-      </StackPanel>
+                   VerticalAlignment="Center"
+                   FontSize="16"
+                   IsVisible="{Binding NoRecords}" />
+        <dg:DataGrid ItemsSource="{Binding Records}"
+                     AutoGenerateColumns="False"
+                     HeadersVisibility="Column"
+                     GridLinesVisibility="None"
+                     VerticalScrollBarVisibility="Visible"
+                     HorizontalScrollBarVisibility="Disabled"
+                     IsVisible="{Binding HasRecords}">
+          <dg:DataGrid.Columns>
+            <dg:DataGridTextColumn Header="№"
+                                   Binding="{Binding Position}"
+                                   Width="Auto" />
+            <dg:DataGridTextColumn Header="Имя"
+                                   Binding="{Binding PlayerName}"
+                                   Width="*" />
+            <dg:DataGridTextColumn Header="Очки"
+                                   Binding="{Binding Score}"
+                                   Width="Auto" />
+            <dg:DataGridTextColumn Header="Уровень"
+                                   Binding="{Binding Level}"
+                                   Width="Auto" />
+            <dg:DataGridTextColumn Header="Время"
+                                   Binding="{Binding Time}"
+                                   Width="Auto" />
+          </dg:DataGrid.Columns>
+        </dg:DataGrid>
+      </Grid>
     </Border>
+    <Button Grid.Row="2"
+            Content="Главное меню"
+            Command="{Binding BackCommand}"
+            HorizontalAlignment="Center"
+            Margin="0,16,0,0" />
   </Grid>
 </UserControl>
