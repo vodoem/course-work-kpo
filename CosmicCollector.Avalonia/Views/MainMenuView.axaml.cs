@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Threading;
 
 namespace CosmicCollector.Avalonia.Views;
 
@@ -13,5 +14,17 @@ public sealed partial class MainMenuView : UserControl
   public MainMenuView()
   {
     InitializeComponent();
+    AttachedToVisualTree += OnAttachedToVisualTree;
+  }
+
+  private void OnAttachedToVisualTree(object? parSender, VisualTreeAttachmentEventArgs parArgs)
+  {
+    var startButton = this.FindControl<Button>("StartGameButton");
+    if (startButton is null)
+    {
+      return;
+    }
+
+    Dispatcher.UIThread.Post(() => startButton.Focus(), DispatcherPriority.Background);
   }
 }

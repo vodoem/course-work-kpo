@@ -1,7 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CosmicCollector.Avalonia.Views.MainMenuView">
-  <Grid FocusManager.FocusedElement="{Binding ElementName=StartGameButton}">
+  <Grid>
     <Border Width="480"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">

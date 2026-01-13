@@ -1,7 +1,9 @@
+using System.ComponentModel;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using CosmicCollector.Avalonia.ViewModels;
 
 namespace CosmicCollector.Avalonia.Views;
@@ -11,6 +13,8 @@ namespace CosmicCollector.Avalonia.Views;
 /// </summary>
 public sealed partial class GameView : UserControl
 {
+  private GameViewModel? _viewModel;
+
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="GameView"/>.
   /// </summary>
@@ -29,16 +33,41 @@ public sealed partial class GameView : UserControl
     Focus();
     if (DataContext is GameViewModel viewModel)
     {
+      _viewModel = viewModel;
+      _viewModel.PropertyChanged += OnViewModelPropertyChanged;
       viewModel.Activate();
     }
   }
 
   private void OnDetachedFromVisualTree(object? parSender, VisualTreeAttachmentEventArgs parArgs)
   {
-    if (DataContext is GameViewModel viewModel)
+    if (_viewModel is not null)
     {
-      viewModel.Deactivate();
+      _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+      _viewModel.Deactivate();
+      _viewModel = null;
     }
+  }
+
+  private void OnViewModelPropertyChanged(object? parSender, PropertyChangedEventArgs parArgs)
+  {
+    if (parArgs.PropertyName != nameof(GameViewModel.IsPauseOverlayVisible))
+    {
+      return;
+    }
+
+    if (_viewModel?.IsPauseOverlayVisible != true)
+    {
+      return;
+    }
+
+    var resumeButton = this.FindControl<Button>("ResumeButton");
+    if (resumeButton is null)
+    {
+      return;
+    }
+
+    Dispatcher.UIThread.Post(() => resumeButton.Focus(), DispatcherPriority.Background);
   }
 
   private void OnKeyDown(object? parSender, KeyEventArgs parArgs)
