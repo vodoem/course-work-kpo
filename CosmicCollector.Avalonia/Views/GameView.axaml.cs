@@ -58,6 +58,7 @@ public sealed partial class GameView : UserControl
 
     if (_viewModel?.IsPauseOverlayVisible != true)
     {
+      Focus();
       return;
     }
 
@@ -76,6 +77,11 @@ public sealed partial class GameView : UserControl
 
   private void OnKeyDown(object? parSender, KeyEventArgs parArgs)
   {
+    if (HandlePauseOverlayNavigation(parArgs))
+    {
+      return;
+    }
+
     if (DataContext is GameViewModel viewModel)
     {
       viewModel.HandleKeyDown(parArgs.Key);
@@ -88,5 +94,37 @@ public sealed partial class GameView : UserControl
     {
       viewModel.HandleKeyUp(parArgs.Key);
     }
+  }
+
+  private bool HandlePauseOverlayNavigation(KeyEventArgs parArgs)
+  {
+    if (_viewModel?.IsPauseOverlayVisible != true)
+    {
+      return false;
+    }
+
+    if (parArgs.Key != Key.Down && parArgs.Key != Key.Up)
+    {
+      return false;
+    }
+
+    var resumeButton = this.FindControl<Button>("ResumeButton");
+    var exitButton = this.FindControl<Button>("ExitToMenuButton");
+    if (resumeButton is null || exitButton is null)
+    {
+      return false;
+    }
+
+    if (resumeButton.IsFocused || (!resumeButton.IsFocused && !exitButton.IsFocused))
+    {
+      exitButton.Focus();
+    }
+    else
+    {
+      resumeButton.Focus();
+    }
+
+    parArgs.Handled = true;
+    return true;
   }
 }

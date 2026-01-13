@@ -16,9 +16,15 @@
         <Button x:Name="StartGameButton"
                 Content="_Играть"
                 Command="{Binding StartGameCommand}" />
-        <Button Content="_Правила" Command="{Binding ShowRulesCommand}" />
-        <Button Content="_Рекорды" Command="{Binding ShowRecordsCommand}" />
-        <Button Content="_Выход" Command="{Binding ExitCommand}" />
+        <Button x:Name="RulesButton"
+                Content="_Правила"
+                Command="{Binding ShowRulesCommand}" />
+        <Button x:Name="RecordsButton"
+                Content="_Рекорды"
+                Command="{Binding ShowRecordsCommand}" />
+        <Button x:Name="ExitButton"
+                Content="_Выход"
+                Command="{Binding ExitCommand}" />
       </StackPanel>
     </Border>
   </Grid>

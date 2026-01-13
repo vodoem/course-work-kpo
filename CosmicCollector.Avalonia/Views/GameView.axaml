@@ -41,7 +41,8 @@
           <Button x:Name="ResumeButton"
                   Content="_Продолжить"
                   Command="{Binding ResumeCommand}" />
-          <Button Content="_Главное меню"
+          <Button x:Name="ExitToMenuButton"
+                  Content="_Главное меню"
                   Command="{Binding ExitToMenuCommand}" />
         </StackPanel>
       </Border>
