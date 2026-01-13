@@ -5,12 +5,13 @@
   <Grid RowDefinitions="Auto,*">
     <controls:HudView Margin="0,16,0,12"
                       HorizontalAlignment="Center"
-                      Width="{Binding #GameFieldHost.Bounds.Width}" />
+                      Width="{Binding #GameFieldBorder.Bounds.Width}" />
     <controls:AspectRatioDecorator Grid.Row="1"
                                    x:Name="GameFieldHost"
                                    Margin="24,0,24,24"
                                    AspectRatio="1.3333333333">
-      <Border Background="#0F0F0F"
+      <Border x:Name="GameFieldBorder"
+              Background="#0F0F0F"
               BorderBrush="#2E2E2E"
               BorderThickness="2"
               CornerRadius="12"
