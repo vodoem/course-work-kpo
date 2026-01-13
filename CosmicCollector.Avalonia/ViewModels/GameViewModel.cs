@@ -21,7 +21,7 @@ namespace CosmicCollector.Avalonia.ViewModels;
 /// </summary>
 public sealed class GameViewModel : ViewModelBase
 {
-  private const double PixelsPerUnit = 1.0;
+  private const double PixelsPerUnit = 4.0;
   private readonly GameRuntime _gameRuntime;
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
@@ -483,8 +483,8 @@ public sealed class GameViewModel : ViewModelBase
   private void InitializeFieldBounds()
   {
     var bounds = _gameRuntime.GameState.WorldBounds;
-    FieldWidth = (bounds.Right - bounds.Left) * PixelsPerUnit;
-    FieldHeight = (bounds.Bottom - bounds.Top) * PixelsPerUnit;
+    FieldWidth = bounds.Right - bounds.Left;
+    FieldHeight = bounds.Bottom - bounds.Top;
   }
 
   private void SubscribeToEvents()
@@ -607,10 +607,10 @@ public sealed class GameViewModel : ViewModelBase
     RenderLayer parLayer,
     int parOrder)
   {
-    var width = parBounds.Width * PixelsPerUnit;
-    var height = parBounds.Height * PixelsPerUnit;
-    var left = (parPosition.X - (parBounds.Width / 2.0)) * PixelsPerUnit;
-    var top = (parPosition.Y - (parBounds.Height / 2.0)) * PixelsPerUnit;
+    var width = parBounds.Width;
+    var height = parBounds.Height;
+    var left = parPosition.X - (parBounds.Width / 2.0);
+    var top = parPosition.Y - (parBounds.Height / 2.0);
 
     parItems.Add(new RenderItem(left, top, width, height, parSpriteKey, (int)parLayer, parOrder));
   }
@@ -658,7 +658,7 @@ public sealed class GameViewModel : ViewModelBase
     var worldBounds = _gameRuntime.GameState.WorldBounds;
     var items = BuildRenderItems(parSnapshot);
     var timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-    LatestSnapshot = new FrameSnapshot(timestamp, items, worldBounds);
+    LatestSnapshot = new FrameSnapshot(timestamp, items, worldBounds, PixelsPerUnit);
   }
 
   private void HandleResume()

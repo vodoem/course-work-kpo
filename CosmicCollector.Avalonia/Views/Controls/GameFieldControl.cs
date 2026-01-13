@@ -49,7 +49,11 @@ public sealed class GameFieldControl : Control
       return;
     }
 
-    var mapper = new WorldToScreenMapper(snapshot.WorldBounds, Bounds.Width, Bounds.Height);
+    var mapper = new WorldToScreenMapper(
+      snapshot.WorldBounds,
+      Bounds.Width,
+      Bounds.Height,
+      snapshot.PixelsPerUnit);
 
     if (!mapper.IsValid)
     {
