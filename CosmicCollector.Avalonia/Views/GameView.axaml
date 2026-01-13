@@ -18,7 +18,7 @@
                                  ClipToBounds="True" />
     </Border>
     <Grid Grid.RowSpan="2"
-          IsVisible="{Binding IsPaused}"
+          IsVisible="{Binding IsPauseOverlayVisible}"
           Background="#80000000">
       <Border Width="360"
               HorizontalAlignment="Center"
@@ -42,6 +42,27 @@
           <Button Content="Главное меню"
                   Command="{Binding ExitToMenuCommand}" />
         </StackPanel>
+      </Border>
+    </Grid>
+    <Grid Grid.RowSpan="2"
+          IsVisible="{Binding IsCountdownVisible}"
+          Background="#80000000">
+      <Border Width="240"
+              Height="200"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="#2A2A2A"
+              CornerRadius="16">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+          </Style>
+        </Border.Styles>
+        <TextBlock Text="{Binding CountdownValue}"
+                   FontSize="72"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
       </Border>
     </Grid>
   </Grid>

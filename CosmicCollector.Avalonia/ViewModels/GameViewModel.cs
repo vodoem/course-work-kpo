@@ -238,6 +238,8 @@ public sealed class GameViewModel : ViewModelBase
     {
       _isPaused = value;
       OnPropertyChanged();
+      OnPropertyChanged(nameof(IsPauseOverlayVisible));
+      OnPropertyChanged(nameof(IsCountdownVisible));
     }
   }
 
@@ -251,8 +253,20 @@ public sealed class GameViewModel : ViewModelBase
     {
       _countdownValue = value;
       OnPropertyChanged();
+      OnPropertyChanged(nameof(IsPauseOverlayVisible));
+      OnPropertyChanged(nameof(IsCountdownVisible));
     }
   }
+
+  /// <summary>
+  /// Признак видимости оверлея паузы.
+  /// </summary>
+  public bool IsPauseOverlayVisible => IsPaused && CountdownValue <= 0;
+
+  /// <summary>
+  /// Признак видимости оверлея отсчёта.
+  /// </summary>
+  public bool IsCountdownVisible => IsPaused && CountdownValue > 0;
 
   /// <summary>
   /// Текст цели очков для HUD.
@@ -528,7 +542,14 @@ public sealed class GameViewModel : ViewModelBase
 
   private void OnPauseToggled(PauseToggled parEvent)
   {
-    Dispatcher.UIThread.Post(() => IsPaused = parEvent.parIsPaused);
+    Dispatcher.UIThread.Post(() =>
+    {
+      IsPaused = parEvent.parIsPaused;
+      if (!parEvent.parIsPaused)
+      {
+        CountdownValue = 0;
+      }
+    });
   }
 
   private void OnCountdownTick(CountdownTick parEvent)
@@ -662,7 +683,7 @@ public sealed class GameViewModel : ViewModelBase
 
   private void HandleResume()
   {
-    if (IsPaused)
+    if (IsPaused && CountdownValue <= 0)
     {
       _gameRuntime.CommandQueue.Enqueue(new TogglePauseCommand());
     }
