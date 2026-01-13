@@ -2,6 +2,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:CosmicCollector.Avalonia.Views.Controls"
              x:Class="CosmicCollector.Avalonia.Views.GameView">
+  <UserControl.Styles>
+    <Style Selector="Button.focus-target:focus">
+      <Setter Property="Background" Value="#3A3A3A" />
+      <Setter Property="BorderBrush" Value="#FFFFFF" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </UserControl.Styles>
   <Grid RowDefinitions="Auto,*">
     <controls:HudView Margin="24,16,24,12"
                       HorizontalAlignment="Stretch" />
@@ -40,9 +47,11 @@
                      HorizontalAlignment="Center" />
           <Button x:Name="ResumeButton"
                   Content="_Продолжить"
+                  Classes="focus-target"
                   Command="{Binding ResumeCommand}" />
           <Button x:Name="ExitToMenuButton"
                   Content="_Главное меню"
+                  Classes="focus-target"
                   Command="{Binding ExitToMenuCommand}" />
         </StackPanel>
       </Border>
