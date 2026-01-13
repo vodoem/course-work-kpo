@@ -4,18 +4,20 @@
              x:Class="CosmicCollector.Avalonia.Views.GameView">
   <Grid RowDefinitions="Auto,*">
     <controls:HudView Margin="24,16,24,12" />
-    <Border Grid.Row="1"
-            Margin="24,0,24,24"
-            Background="#0F0F0F"
-            BorderBrush="#2E2E2E"
-            BorderThickness="2"
-            CornerRadius="12"
-            ClipToBounds="True">
-      <controls:GameFieldControl Snapshot="{Binding LatestSnapshot}"
-                                 HorizontalAlignment="Stretch"
-                                 VerticalAlignment="Stretch"
-                                 ClipToBounds="True" />
-    </Border>
+    <controls:AspectRatioDecorator Grid.Row="1"
+                                   Margin="24,0,24,24"
+                                   AspectRatio="1.3333333333">
+      <Border Background="#0F0F0F"
+              BorderBrush="#2E2E2E"
+              BorderThickness="2"
+              CornerRadius="12"
+              ClipToBounds="True">
+        <controls:GameFieldControl Snapshot="{Binding LatestSnapshot}"
+                                   HorizontalAlignment="Stretch"
+                                   VerticalAlignment="Stretch"
+                                   ClipToBounds="True" />
+      </Border>
+    </controls:AspectRatioDecorator>
     <Grid Grid.RowSpan="2"
           IsVisible="{Binding IsPaused}"
           Background="#80000000">
