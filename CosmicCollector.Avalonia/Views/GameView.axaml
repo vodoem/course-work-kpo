@@ -19,7 +19,9 @@
     </Border>
     <Grid Grid.RowSpan="2"
           IsVisible="{Binding IsPauseOverlayVisible}"
-          Background="#80000000">
+          Background="#80000000"
+          FocusManager.IsFocusScope="True"
+          FocusManager.FocusedElement="{Binding ElementName=ResumeButton}">
       <Border Width="360"
               HorizontalAlignment="Center"
               VerticalAlignment="Center"
@@ -32,14 +34,16 @@
           </Style>
         </Border.Styles>
         <StackPanel Spacing="16"
+                    TabNavigation="Cycle"
                     HorizontalAlignment="Center">
           <TextBlock Text="Пауза"
                      FontSize="20"
                      FontWeight="Bold"
                      HorizontalAlignment="Center" />
-          <Button Content="Продолжить"
+          <Button x:Name="ResumeButton"
+                  Content="_Продолжить"
                   Command="{Binding ResumeCommand}" />
-          <Button Content="Главное меню"
+          <Button Content="_Главное меню"
                   Command="{Binding ExitToMenuCommand}" />
         </StackPanel>
       </Border>
