@@ -6,13 +6,13 @@ namespace CosmicCollector.Avalonia.Rendering;
 /// <summary>
 /// Преобразует мировые координаты в экранные.
 /// Единственное место, где определяется масштабирование и ориентация оси Y.
+/// Масштабирование по X/Y может быть независимым, чтобы поле заполняло доступную область.
 /// </summary>
 public sealed class WorldToScreenMapper
 {
   private readonly WorldBounds _worldBounds;
-  private readonly double _scale;
-  private readonly double _offsetX;
-  private readonly double _offsetY;
+  private readonly double _scaleX;
+  private readonly double _scaleY;
 
   /// <summary>
   /// Инициализирует маппер координат.
@@ -32,15 +32,13 @@ public sealed class WorldToScreenMapper
     if (worldWidth <= 0 || worldHeight <= 0 || parViewportWidth <= 0 || parViewportHeight <= 0)
     {
       IsValid = false;
-      _scale = 0;
-      _offsetX = 0;
-      _offsetY = 0;
+      _scaleX = 0;
+      _scaleY = 0;
       return;
     }
 
-    _scale = Math.Min(parViewportWidth / worldWidth, parViewportHeight / worldHeight);
-    _offsetX = (parViewportWidth - (worldWidth * _scale)) / 2.0;
-    _offsetY = (parViewportHeight - (worldHeight * _scale)) / 2.0;
+    _scaleX = parViewportWidth / worldWidth;
+    _scaleY = parViewportHeight / worldHeight;
     IsValid = true;
   }
 
@@ -59,10 +57,10 @@ public sealed class WorldToScreenMapper
   /// <returns>Прямоугольник в экранных координатах.</returns>
   public Rect MapRect(double parLeft, double parTop, double parWidth, double parHeight)
   {
-    var left = (parLeft - _worldBounds.Left) * _scale + _offsetX;
-    var top = (parTop - _worldBounds.Top) * _scale + _offsetY;
-    var width = parWidth * _scale;
-    var height = parHeight * _scale;
+    var left = (parLeft - _worldBounds.Left) * _scaleX;
+    var top = (parTop - _worldBounds.Top) * _scaleY;
+    var width = parWidth * _scaleX;
+    var height = parHeight * _scaleY;
     return new Rect(left, top, width, height);
   }
 }
