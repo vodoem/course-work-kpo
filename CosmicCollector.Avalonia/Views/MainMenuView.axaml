@@ -1,21 +1,25 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CosmicCollector.Avalonia.Views.MainMenuView">
-  <Grid>
+  <Grid FocusManager.IsFocusScope="True"
+        FocusManager.FocusedElement="{Binding ElementName=StartGameButton}">
     <Border Width="480"
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
       <StackPanel HorizontalAlignment="Center"
-                  Spacing="12">
+                  Spacing="12"
+                  TabNavigation="Cycle">
         <TextBlock Text="COSMIC COLLECTOR"
                    FontSize="28"
                    FontWeight="Bold"
                    HorizontalAlignment="Center"
                    TextAlignment="Center" />
-        <Button Content="Играть" Command="{Binding StartGameCommand}" />
-        <Button Content="Правила" Command="{Binding ShowRulesCommand}" />
-        <Button Content="Рекорды" Command="{Binding ShowRecordsCommand}" />
-        <Button Content="Выход" Command="{Binding ExitCommand}" />
+        <Button x:Name="StartGameButton"
+                Content="_Играть"
+                Command="{Binding StartGameCommand}" />
+        <Button Content="_Правила" Command="{Binding ShowRulesCommand}" />
+        <Button Content="_Рекорды" Command="{Binding ShowRecordsCommand}" />
+        <Button Content="_Выход" Command="{Binding ExitCommand}" />
       </StackPanel>
     </Border>
   </Grid>
