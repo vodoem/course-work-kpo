@@ -20,7 +20,6 @@
     <Grid Grid.RowSpan="2"
           IsVisible="{Binding IsPauseOverlayVisible}"
           Background="#80000000"
-          FocusManager.IsFocusScope="True"
           FocusManager.FocusedElement="{Binding ElementName=ResumeButton}">
       <Border Width="360"
               HorizontalAlignment="Center"
