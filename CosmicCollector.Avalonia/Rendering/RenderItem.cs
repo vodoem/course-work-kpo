@@ -8,10 +8,10 @@ public sealed class RenderItem
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="RenderItem"/>.
   /// </summary>
-  /// <param name="parX">Координата X (левый край).</param>
-  /// <param name="parY">Координата Y (верхний край).</param>
-  /// <param name="parWidth">Ширина.</param>
-  /// <param name="parHeight">Высота.</param>
+  /// <param name="parX">Координата X (левый край) в мировых единицах.</param>
+  /// <param name="parY">Координата Y (верхний край) в мировых единицах.</param>
+  /// <param name="parWidth">Ширина в мировых единицах.</param>
+  /// <param name="parHeight">Высота в мировых единицах.</param>
   /// <param name="parSpriteKey">Ключ спрайта.</param>
   /// <param name="parLayer">Слой отрисовки.</param>
   /// <param name="parOrder">Порядок внутри слоя.</param>
@@ -34,22 +34,22 @@ public sealed class RenderItem
   }
 
   /// <summary>
-  /// Координата X (левый край).
+  /// Координата X (левый край) в мировых единицах.
   /// </summary>
   public double X { get; }
 
   /// <summary>
-  /// Координата Y (верхний край).
+  /// Координата Y (верхний край) в мировых единицах.
   /// </summary>
   public double Y { get; }
 
   /// <summary>
-  /// Ширина.
+  /// Ширина в мировых единицах.
   /// </summary>
   public double Width { get; }
 
   /// <summary>
-  /// Высота.
+  /// Высота в мировых единицах.
   /// </summary>
   public double Height { get; }
 
