@@ -50,6 +50,8 @@ public sealed class GameViewModel : ViewModelBase
   private string _hudProgressText = "Прогресс: B=0/0 G=0/0 R=0/0";
   private double _fieldWidth;
   private double _fieldHeight;
+  private bool _leftPressed;
+  private bool _rightPressed;
 
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="GameViewModel"/>.
@@ -439,6 +441,7 @@ public sealed class GameViewModel : ViewModelBase
     }
 
     _isActive = false;
+    ResetMoveState();
     UnsubscribeFromEvents();
     _gameRuntime.Stop();
   }
@@ -458,11 +461,13 @@ public sealed class GameViewModel : ViewModelBase
     {
       case Key.A:
       case Key.Left:
-        EnqueueMove(-1);
+        _leftPressed = true;
+        EnqueueMove(ComputeMoveDirection());
         break;
       case Key.D:
       case Key.Right:
-        EnqueueMove(1);
+        _rightPressed = true;
+        EnqueueMove(ComputeMoveDirection());
         break;
       case Key.P:
       case Key.Escape:
@@ -486,9 +491,13 @@ public sealed class GameViewModel : ViewModelBase
     {
       case Key.A:
       case Key.Left:
+        _leftPressed = false;
+        EnqueueMove(ComputeMoveDirection());
+        break;
       case Key.D:
       case Key.Right:
-        EnqueueMove(0);
+        _rightPressed = false;
+        EnqueueMove(ComputeMoveDirection());
         break;
     }
   }
@@ -548,7 +557,10 @@ public sealed class GameViewModel : ViewModelBase
       if (!parEvent.parIsPaused)
       {
         CountdownValue = 0;
+        return;
       }
+
+      ResetMoveState();
     });
   }
 
@@ -671,6 +683,23 @@ public sealed class GameViewModel : ViewModelBase
   private void EnqueueMove(int parDirection)
   {
     _gameRuntime.CommandQueue.Enqueue(new SetMoveDirectionCommand(parDirection));
+  }
+
+  private int ComputeMoveDirection()
+  {
+    if (_leftPressed == _rightPressed)
+    {
+      return 0;
+    }
+
+    return _leftPressed ? -1 : 1;
+  }
+
+  private void ResetMoveState()
+  {
+    _leftPressed = false;
+    _rightPressed = false;
+    EnqueueMove(0);
   }
 
   private void PublishSnapshot(GameSnapshot parSnapshot)
