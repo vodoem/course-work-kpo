@@ -52,8 +52,7 @@ public sealed class GameFieldControl : Control
     var mapper = new WorldToScreenMapper(
       snapshot.WorldBounds,
       Bounds.Width,
-      Bounds.Height,
-      snapshot.PixelsPerUnit);
+      Bounds.Height);
 
     if (!mapper.IsValid)
     {

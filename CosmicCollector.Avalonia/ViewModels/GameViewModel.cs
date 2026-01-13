@@ -21,7 +21,6 @@ namespace CosmicCollector.Avalonia.ViewModels;
 /// </summary>
 public sealed class GameViewModel : ViewModelBase
 {
-  private const double PixelsPerUnit = 4.0;
   private readonly GameRuntime _gameRuntime;
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
@@ -658,7 +657,7 @@ public sealed class GameViewModel : ViewModelBase
     var worldBounds = _gameRuntime.GameState.WorldBounds;
     var items = BuildRenderItems(parSnapshot);
     var timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-    LatestSnapshot = new FrameSnapshot(timestamp, items, worldBounds, PixelsPerUnit);
+    LatestSnapshot = new FrameSnapshot(timestamp, items, worldBounds);
   }
 
   private void HandleResume()

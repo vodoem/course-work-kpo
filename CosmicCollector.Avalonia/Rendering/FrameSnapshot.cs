@@ -13,17 +13,14 @@ public sealed class FrameSnapshot
   /// <param name="parTimestampTicks">Метка времени в тиках Stopwatch.</param>
   /// <param name="parItems">Список элементов рендера.</param>
   /// <param name="parWorldBounds">Границы мира.</param>
-  /// <param name="parPixelsPerUnit">Масштаб мировых единиц к пикселям.</param>
   public FrameSnapshot(
     long parTimestampTicks,
     IReadOnlyList<RenderItem> parItems,
-    CosmicCollector.Core.Geometry.WorldBounds parWorldBounds,
-    double parPixelsPerUnit)
+    CosmicCollector.Core.Geometry.WorldBounds parWorldBounds)
   {
     TimestampTicks = parTimestampTicks;
     Items = parItems;
     WorldBounds = parWorldBounds;
-    PixelsPerUnit = parPixelsPerUnit;
   }
 
   /// <summary>
@@ -40,9 +37,4 @@ public sealed class FrameSnapshot
   /// Границы мира.
   /// </summary>
   public CosmicCollector.Core.Geometry.WorldBounds WorldBounds { get; }
-
-  /// <summary>
-  /// Масштаб мировых единиц к пикселям.
-  /// </summary>
-  public double PixelsPerUnit { get; }
 }

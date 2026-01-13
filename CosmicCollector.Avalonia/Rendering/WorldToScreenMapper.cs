@@ -13,7 +13,6 @@ public sealed class WorldToScreenMapper
   private readonly WorldBounds _worldBounds;
   private readonly double _scaleX;
   private readonly double _scaleY;
-  private readonly double _pixelsPerUnit;
 
   /// <summary>
   /// Инициализирует маппер координат.
@@ -21,15 +20,12 @@ public sealed class WorldToScreenMapper
   /// <param name="parWorldBounds">Границы мира.</param>
   /// <param name="parViewportWidth">Ширина области отрисовки.</param>
   /// <param name="parViewportHeight">Высота области отрисовки.</param>
-  /// <param name="parPixelsPerUnit">Масштаб мировых единиц к пикселям.</param>
   public WorldToScreenMapper(
     WorldBounds parWorldBounds,
     double parViewportWidth,
-    double parViewportHeight,
-    double parPixelsPerUnit)
+    double parViewportHeight)
   {
     _worldBounds = parWorldBounds;
-    _pixelsPerUnit = Math.Max(1.0, parPixelsPerUnit);
     var worldWidth = _worldBounds.Right - _worldBounds.Left;
     var worldHeight = _worldBounds.Bottom - _worldBounds.Top;
 
@@ -41,10 +37,8 @@ public sealed class WorldToScreenMapper
       return;
     }
 
-    var scaledWorldWidth = worldWidth * _pixelsPerUnit;
-    var scaledWorldHeight = worldHeight * _pixelsPerUnit;
-    _scaleX = parViewportWidth / scaledWorldWidth;
-    _scaleY = parViewportHeight / scaledWorldHeight;
+    _scaleX = parViewportWidth / worldWidth;
+    _scaleY = parViewportHeight / worldHeight;
     IsValid = true;
   }
 
@@ -63,10 +57,10 @@ public sealed class WorldToScreenMapper
   /// <returns>Прямоугольник в экранных координатах.</returns>
   public Rect MapRect(double parLeft, double parTop, double parWidth, double parHeight)
   {
-    var left = (parLeft - _worldBounds.Left) * _pixelsPerUnit * _scaleX;
-    var top = (parTop - _worldBounds.Top) * _pixelsPerUnit * _scaleY;
-    var width = parWidth * _pixelsPerUnit * _scaleX;
-    var height = parHeight * _pixelsPerUnit * _scaleY;
+    var left = (parLeft - _worldBounds.Left) * _scaleX;
+    var top = (parTop - _worldBounds.Top) * _scaleY;
+    var width = parWidth * _scaleX;
+    var height = parHeight * _scaleY;
     return new Rect(left, top, width, height);
   }
 }
