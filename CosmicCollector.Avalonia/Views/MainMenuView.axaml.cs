@@ -25,6 +25,10 @@ public sealed partial class MainMenuView : UserControl
       return;
     }
 
-    Dispatcher.UIThread.Post(() => startButton.Focus(), DispatcherPriority.Background);
+    Dispatcher.UIThread.Post(() =>
+    {
+      startButton.BringIntoView();
+      startButton.Focus();
+    }, DispatcherPriority.Loaded);
   }
 }

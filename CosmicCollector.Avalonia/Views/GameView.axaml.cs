@@ -67,7 +67,11 @@ public sealed partial class GameView : UserControl
       return;
     }
 
-    Dispatcher.UIThread.Post(() => resumeButton.Focus(), DispatcherPriority.Background);
+    Dispatcher.UIThread.Post(() =>
+    {
+      resumeButton.BringIntoView();
+      resumeButton.Focus();
+    }, DispatcherPriority.Loaded);
   }
 
   private void OnKeyDown(object? parSender, KeyEventArgs parArgs)
