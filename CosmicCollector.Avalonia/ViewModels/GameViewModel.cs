@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Threading;
 using CosmicCollector.Avalonia.Commands;
@@ -543,15 +544,16 @@ public sealed class GameViewModel : ViewModelBase
 
   private void OnGameOver(GameOver parEvent)
   {
+    var snapshot = _gameRuntime.GetSnapshot();
     Dispatcher.UIThread.Post(() =>
     {
-      var snapshot = _gameRuntime.GetSnapshot();
-      Deactivate();
       _gameOverNavigation.Navigate();
       if (_gameOverNavigation.CurrentViewModel is GameOverViewModel gameOverViewModel)
       {
         gameOverViewModel.SetFinalStats(snapshot);
       }
+
+      Task.Run(Deactivate);
     });
   }
 
