@@ -5,6 +5,7 @@ using Avalonia.Markup.Xaml;
 using CosmicCollector.Avalonia.Infrastructure;
 using CosmicCollector.Avalonia.Navigation;
 using CosmicCollector.Avalonia.ViewModels;
+using CosmicCollector.Persistence.Records;
 
 namespace CosmicCollector.Avalonia;
 
@@ -27,6 +28,7 @@ public sealed class App : Application
       var navigationStore = new NavigationStore();
       var mainWindow = new MainWindow();
       var gameRuntime = new GameRuntime();
+      var recordsRepository = new RecordsRepository(AppDataPaths.GetRecordsFilePath());
 
       NavigationService CreateNavigationService(Func<ViewModelBase> parViewModelFactory)
       {
@@ -64,7 +66,8 @@ public sealed class App : Application
       {
         return new GameOverViewModel(
           CreateNavigationService(CreateGameViewModel),
-          CreateNavigationService(CreateMainMenuViewModel));
+          CreateNavigationService(CreateMainMenuViewModel),
+          recordsRepository);
       }
 
       navigationStore.CurrentViewModel = CreateMainMenuViewModel();

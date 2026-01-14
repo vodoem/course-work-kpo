@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Windows.Input;
+using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Threading;
 using CosmicCollector.Avalonia.Commands;
@@ -21,17 +22,22 @@ namespace CosmicCollector.Avalonia.ViewModels;
 /// </summary>
 public sealed class GameViewModel : ViewModelBase
 {
-  private const double PixelsPerUnit = 0.8;
   private readonly GameRuntime _gameRuntime;
   private readonly NavigationService _mainMenuNavigation;
   private readonly NavigationService _gameOverNavigation;
   private readonly List<IDisposable> _subscriptions = new();
-  private IReadOnlyList<RenderItem> _renderItems = Array.Empty<RenderItem>();
+  private FrameSnapshot? _latestSnapshot;
   private bool _isActive;
   private int _currentLevel;
   private int _requiredScore;
   private int _score;
   private int _energy;
+  private int _requiredBlue;
+  private int _requiredGreen;
+  private int _requiredRed;
+  private int _collectedBlue;
+  private int _collectedGreen;
+  private int _collectedRed;
   private string _blueProgressText = "B: 0/0";
   private string _greenProgressText = "G: 0/0";
   private string _redProgressText = "R: 0/0";
@@ -45,6 +51,9 @@ public sealed class GameViewModel : ViewModelBase
   private string _hudProgressText = "Прогресс: B=0/0 G=0/0 R=0/0";
   private double _fieldWidth;
   private double _fieldHeight;
+  private bool _leftPressed;
+  private bool _rightPressed;
+  private WorldBounds _worldBounds;
 
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="GameViewModel"/>.
@@ -61,6 +70,8 @@ public sealed class GameViewModel : ViewModelBase
     _mainMenuNavigation = parBackNavigation;
     _gameOverNavigation = parGameOverNavigation;
     BackToMenuCommand = new DelegateCommand(HandleBackToMenu);
+    ResumeCommand = new DelegateCommand(HandleResume);
+    ExitToMenuCommand = new DelegateCommand(HandleBackToMenu);
   }
 
   /// <summary>
@@ -69,14 +80,24 @@ public sealed class GameViewModel : ViewModelBase
   public ICommand BackToMenuCommand { get; }
 
   /// <summary>
-  /// Элементы рендера игрового поля.
+  /// Команда продолжения игры.
   /// </summary>
-  public IReadOnlyList<RenderItem> RenderItems
+  public ICommand ResumeCommand { get; }
+
+  /// <summary>
+  /// Команда выхода в главное меню.
+  /// </summary>
+  public ICommand ExitToMenuCommand { get; }
+
+  /// <summary>
+  /// Последний снимок рендера.
+  /// </summary>
+  public FrameSnapshot? LatestSnapshot
   {
-    get => _renderItems;
+    get => _latestSnapshot;
     private set
     {
-      _renderItems = value;
+      _latestSnapshot = value;
       OnPropertyChanged();
     }
   }
@@ -221,6 +242,8 @@ public sealed class GameViewModel : ViewModelBase
     {
       _isPaused = value;
       OnPropertyChanged();
+      OnPropertyChanged(nameof(IsPauseOverlayVisible));
+      OnPropertyChanged(nameof(IsCountdownVisible));
     }
   }
 
@@ -234,8 +257,20 @@ public sealed class GameViewModel : ViewModelBase
     {
       _countdownValue = value;
       OnPropertyChanged();
+      OnPropertyChanged(nameof(IsPauseOverlayVisible));
+      OnPropertyChanged(nameof(IsCountdownVisible));
     }
   }
+
+  /// <summary>
+  /// Признак видимости оверлея паузы.
+  /// </summary>
+  public bool IsPauseOverlayVisible => IsPaused && CountdownValue <= 0;
+
+  /// <summary>
+  /// Признак видимости оверлея отсчёта.
+  /// </summary>
+  public bool IsCountdownVisible => IsPaused && CountdownValue > 0;
 
   /// <summary>
   /// Текст цели очков для HUD.
@@ -303,6 +338,84 @@ public sealed class GameViewModel : ViewModelBase
   }
 
   /// <summary>
+  /// Требуемое количество синих кристаллов.
+  /// </summary>
+  public int RequiredBlue
+  {
+    get => _requiredBlue;
+    private set
+    {
+      _requiredBlue = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Требуемое количество зелёных кристаллов.
+  /// </summary>
+  public int RequiredGreen
+  {
+    get => _requiredGreen;
+    private set
+    {
+      _requiredGreen = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Требуемое количество красных кристаллов.
+  /// </summary>
+  public int RequiredRed
+  {
+    get => _requiredRed;
+    private set
+    {
+      _requiredRed = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Собранные синие кристаллы.
+  /// </summary>
+  public int CollectedBlue
+  {
+    get => _collectedBlue;
+    private set
+    {
+      _collectedBlue = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Собранные зелёные кристаллы.
+  /// </summary>
+  public int CollectedGreen
+  {
+    get => _collectedGreen;
+    private set
+    {
+      _collectedGreen = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
+  /// Собранные красные кристаллы.
+  /// </summary>
+  public int CollectedRed
+  {
+    get => _collectedRed;
+    private set
+    {
+      _collectedRed = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
   /// Активирует игровую сессию.
   /// </summary>
   public void Activate()
@@ -315,6 +428,7 @@ public sealed class GameViewModel : ViewModelBase
     _isActive = true;
     _gameRuntime.Start();
     InitializeFieldBounds();
+    UpdateFromSnapshot(_gameRuntime.GetSnapshot());
     SubscribeToEvents();
   }
 
@@ -329,6 +443,7 @@ public sealed class GameViewModel : ViewModelBase
     }
 
     _isActive = false;
+    ResetMoveState();
     UnsubscribeFromEvents();
     _gameRuntime.Stop();
   }
@@ -348,13 +463,16 @@ public sealed class GameViewModel : ViewModelBase
     {
       case Key.A:
       case Key.Left:
-        EnqueueMove(-1);
+        _leftPressed = true;
+        EnqueueMove(ComputeMoveDirection());
         break;
       case Key.D:
       case Key.Right:
-        EnqueueMove(1);
+        _rightPressed = true;
+        EnqueueMove(ComputeMoveDirection());
         break;
       case Key.P:
+      case Key.Escape:
         _gameRuntime.CommandQueue.Enqueue(new TogglePauseCommand());
         break;
     }
@@ -375,9 +493,13 @@ public sealed class GameViewModel : ViewModelBase
     {
       case Key.A:
       case Key.Left:
+        _leftPressed = false;
+        EnqueueMove(ComputeMoveDirection());
+        break;
       case Key.D:
       case Key.Right:
-        EnqueueMove(0);
+        _rightPressed = false;
+        EnqueueMove(ComputeMoveDirection());
         break;
     }
   }
@@ -385,8 +507,9 @@ public sealed class GameViewModel : ViewModelBase
   private void InitializeFieldBounds()
   {
     var bounds = _gameRuntime.GameState.WorldBounds;
-    FieldWidth = (bounds.Right - bounds.Left) * PixelsPerUnit;
-    FieldHeight = (bounds.Bottom - bounds.Top) * PixelsPerUnit;
+    _worldBounds = bounds;
+    FieldWidth = bounds.Right - bounds.Left;
+    FieldHeight = bounds.Bottom - bounds.Top;
   }
 
   private void SubscribeToEvents()
@@ -410,16 +533,35 @@ public sealed class GameViewModel : ViewModelBase
 
   private void OnGameTick(GameTick parEvent)
   {
+    if (!_isActive)
+    {
+      return;
+    }
+
     var snapshot = _gameRuntime.GetSnapshot();
     Dispatcher.UIThread.Post(() => UpdateFromSnapshot(snapshot));
   }
 
   private void OnGameOver(GameOver parEvent)
   {
+    var snapshot = _gameRuntime.GetSnapshot();
     Dispatcher.UIThread.Post(() =>
     {
-      Deactivate();
+      if (!_isActive)
+      {
+        return;
+      }
+
+      _isActive = false;
+      ResetMoveState();
+      UnsubscribeFromEvents();
       _gameOverNavigation.Navigate();
+      if (_gameOverNavigation.CurrentViewModel is GameOverViewModel gameOverViewModel)
+      {
+        gameOverViewModel.SetFinalStats(snapshot);
+      }
+
+      Task.Run(_gameRuntime.Stop);
     });
   }
 
@@ -431,7 +573,17 @@ public sealed class GameViewModel : ViewModelBase
 
   private void OnPauseToggled(PauseToggled parEvent)
   {
-    Dispatcher.UIThread.Post(() => IsPaused = parEvent.parIsPaused);
+    Dispatcher.UIThread.Post(() =>
+    {
+      IsPaused = parEvent.parIsPaused;
+      if (!parEvent.parIsPaused)
+      {
+        CountdownValue = 0;
+        return;
+      }
+
+      ResetMoveState();
+    });
   }
 
   private void OnCountdownTick(CountdownTick parEvent)
@@ -441,10 +593,21 @@ public sealed class GameViewModel : ViewModelBase
 
   private void UpdateFromSnapshot(GameSnapshot parSnapshot)
   {
+    if (!_isActive)
+    {
+      return;
+    }
+
     CurrentLevel = parSnapshot.parCurrentLevel;
     RequiredScore = parSnapshot.parRequiredScore;
     Score = parSnapshot.parDrone.parScore;
     Energy = parSnapshot.parDrone.parEnergy;
+    RequiredBlue = parSnapshot.parLevelGoals.parRequiredBlue;
+    RequiredGreen = parSnapshot.parLevelGoals.parRequiredGreen;
+    RequiredRed = parSnapshot.parLevelGoals.parRequiredRed;
+    CollectedBlue = parSnapshot.parLevelProgress.parCollectedBlue;
+    CollectedGreen = parSnapshot.parLevelProgress.parCollectedGreen;
+    CollectedRed = parSnapshot.parLevelProgress.parCollectedRed;
     BlueProgressText = $"B: {parSnapshot.parLevelProgress.parCollectedBlue}/{parSnapshot.parLevelGoals.parRequiredBlue}";
     GreenProgressText = $"G: {parSnapshot.parLevelProgress.parCollectedGreen}/{parSnapshot.parLevelGoals.parRequiredGreen}";
     RedProgressText = $"R: {parSnapshot.parLevelProgress.parCollectedRed}/{parSnapshot.parLevelGoals.parRequiredRed}";
@@ -456,34 +619,41 @@ public sealed class GameViewModel : ViewModelBase
     HudProgressText = $"Прогресс: B={parSnapshot.parLevelProgress.parCollectedBlue}/{parSnapshot.parLevelGoals.parRequiredBlue} " +
                       $"G={parSnapshot.parLevelProgress.parCollectedGreen}/{parSnapshot.parLevelGoals.parRequiredGreen} " +
                       $"R={parSnapshot.parLevelProgress.parCollectedRed}/{parSnapshot.parLevelGoals.parRequiredRed}";
-    RenderItems = BuildRenderItems(parSnapshot, _gameRuntime.GameState.WorldBounds);
+    PublishSnapshot(parSnapshot);
   }
 
-  private IReadOnlyList<RenderItem> BuildRenderItems(GameSnapshot parSnapshot, WorldBounds parBounds)
+  private IReadOnlyList<RenderItem> BuildRenderItems(GameSnapshot parSnapshot)
   {
     var items = new List<RenderItem>();
+    var order = 0;
 
-    AppendItem(items, parSnapshot.parDrone.parPosition, parSnapshot.parDrone.parBounds, parBounds, "drone");
+    AppendItem(items, parSnapshot.parDrone.parPosition, parSnapshot.parDrone.parBounds, "drone", RenderLayer.Drone, order++);
 
     foreach (var crystal in parSnapshot.parCrystals)
     {
-      AppendItem(items, crystal.parPosition, crystal.parBounds, parBounds, GetCrystalSpriteKey(crystal.parType));
+      AppendItem(items, crystal.parPosition, crystal.parBounds, GetCrystalSpriteKey(crystal.parType), RenderLayer.Crystal, order++);
     }
 
     foreach (var asteroid in parSnapshot.parAsteroids)
     {
-      AppendItem(items, asteroid.parPosition, asteroid.parBounds, parBounds, "asteroid");
+      AppendItem(items, asteroid.parPosition, asteroid.parBounds, "asteroid", RenderLayer.Asteroid, order++);
     }
 
     foreach (var bonus in parSnapshot.parBonuses)
     {
-      AppendItem(items, bonus.parPosition, bonus.parBounds, parBounds, GetBonusSpriteKey(bonus.parType));
+      AppendItem(items, bonus.parPosition, bonus.parBounds, GetBonusSpriteKey(bonus.parType), RenderLayer.Bonus, order++);
     }
 
     foreach (var blackHole in parSnapshot.parBlackHoles)
     {
-      AppendItem(items, blackHole.parPosition, blackHole.parBounds, parBounds, "blackhole");
+      AppendItem(items, blackHole.parPosition, blackHole.parBounds, "blackhole", RenderLayer.BlackHole, order++);
     }
+
+    items.Sort((left, right) =>
+    {
+      var layerComparison = left.Layer.CompareTo(right.Layer);
+      return layerComparison != 0 ? layerComparison : left.Order.CompareTo(right.Order);
+    });
 
     return items;
   }
@@ -492,15 +662,16 @@ public sealed class GameViewModel : ViewModelBase
     ICollection<RenderItem> parItems,
     Vector2 parPosition,
     Aabb parBounds,
-    WorldBounds parWorldBounds,
-    string parSpriteKey)
+    string parSpriteKey,
+    RenderLayer parLayer,
+    int parOrder)
   {
-    var width = parBounds.Width * PixelsPerUnit;
-    var height = parBounds.Height * PixelsPerUnit;
-    var left = (parPosition.X - (parBounds.Width / 2.0) - parWorldBounds.Left) * PixelsPerUnit;
-    var top = (parPosition.Y - (parBounds.Height / 2.0) - parWorldBounds.Top) * PixelsPerUnit;
+    var width = parBounds.Width;
+    var height = parBounds.Height;
+    var left = parPosition.X - (parBounds.Width / 2.0);
+    var top = parPosition.Y - (parBounds.Height / 2.0);
 
-    parItems.Add(new RenderItem(left, top, width, height, parSpriteKey));
+    parItems.Add(new RenderItem(left, top, width, height, parSpriteKey, (int)parLayer, parOrder));
   }
 
   private static string GetCrystalSpriteKey(CrystalType parType)
@@ -539,6 +710,38 @@ public sealed class GameViewModel : ViewModelBase
   private void EnqueueMove(int parDirection)
   {
     _gameRuntime.CommandQueue.Enqueue(new SetMoveDirectionCommand(parDirection));
+  }
+
+  private int ComputeMoveDirection()
+  {
+    if (_leftPressed == _rightPressed)
+    {
+      return 0;
+    }
+
+    return _leftPressed ? -1 : 1;
+  }
+
+  private void ResetMoveState()
+  {
+    _leftPressed = false;
+    _rightPressed = false;
+    EnqueueMove(0);
+  }
+
+  private void PublishSnapshot(GameSnapshot parSnapshot)
+  {
+    var items = BuildRenderItems(parSnapshot);
+    var timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
+    LatestSnapshot = new FrameSnapshot(timestamp, items, _worldBounds);
+  }
+
+  private void HandleResume()
+  {
+    if (IsPaused && CountdownValue <= 0)
+    {
+      _gameRuntime.CommandQueue.Enqueue(new TogglePauseCommand());
+    }
   }
 
   private void HandleBackToMenu()

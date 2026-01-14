@@ -1,27 +1,101 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="CosmicCollector.Avalonia.Views.Controls.HudView">
-  <Grid RowDefinitions="Auto,Auto">
-    <Grid ColumnDefinitions="Auto,*,Auto" Row="0">
-      <TextBlock Text="{Binding HudTargetScoreText}"
-                 Grid.Column="0"
-                 TextTrimming="CharacterEllipsis" />
-      <TextBlock Text="{Binding HudTimerValueText}"
-                 Grid.Column="1"
-                 HorizontalAlignment="Center"
-                 TextTrimming="CharacterEllipsis" />
-      <TextBlock Text="{Binding HudStatusText}"
-                 Grid.Column="2"
-                 TextTrimming="CharacterEllipsis" />
+  <Border Background="#1C1C1C"
+          CornerRadius="12"
+          Padding="16">
+    <Border.Styles>
+      <Style Selector="TextBlock">
+        <Setter Property="Foreground" Value="White" />
+      </Style>
+    </Border.Styles>
+    <Grid ColumnDefinitions="*,*,*">
+      <Border Background="#2A2A2A"
+              CornerRadius="10"
+              Padding="12"
+              Margin="0,0,12,0">
+        <StackPanel Spacing="8">
+          <TextBlock Text="Количество кристаллов которые надо набрать"
+                     FontWeight="Bold"
+                     FontSize="12" />
+          <StackPanel Orientation="Horizontal"
+                      Spacing="8">
+            <Image Source="avares://CosmicCollector.Avalonia/Assets/Sprites/crystal_blue.png"
+                   Width="20"
+                   Height="20" />
+            <TextBlock Text="{Binding RequiredBlue}" />
+            <Image Source="avares://CosmicCollector.Avalonia/Assets/Sprites/crystal_green.png"
+                   Width="20"
+                   Height="20" />
+            <TextBlock Text="{Binding RequiredGreen}" />
+            <Image Source="avares://CosmicCollector.Avalonia/Assets/Sprites/crystal_red.png"
+                   Width="20"
+                   Height="20" />
+            <TextBlock Text="{Binding RequiredRed}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      Spacing="6">
+            <TextBlock Text="Цель очков" />
+            <TextBlock Text="{Binding RequiredScore}" FontWeight="Bold" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      <Border Background="#2A2A2A"
+              CornerRadius="10"
+              Padding="12"
+              Margin="0,0,12,0"
+              Grid.Column="1">
+        <StackPanel Spacing="6"
+                    HorizontalAlignment="Center">
+          <TextBlock Text="Таймер"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center" />
+          <TextBlock Text="{Binding TimerText}"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+      </Border>
+      <Border Background="#2A2A2A"
+              CornerRadius="10"
+              Padding="12"
+              Grid.Column="2">
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal"
+                      Spacing="6">
+            <TextBlock Text="Уровень" />
+            <TextBlock Text="{Binding CurrentLevel}" FontWeight="Bold" />
+          </StackPanel>
+          <TextBlock Text="Количество собранных кристаллов"
+                     FontWeight="Bold"
+                     FontSize="12" />
+          <StackPanel Orientation="Horizontal"
+                      Spacing="8">
+            <Image Source="avares://CosmicCollector.Avalonia/Assets/Sprites/crystal_blue.png"
+                   Width="20"
+                   Height="20" />
+            <TextBlock Text="{Binding CollectedBlue}" />
+            <Image Source="avares://CosmicCollector.Avalonia/Assets/Sprites/crystal_green.png"
+                   Width="20"
+                   Height="20" />
+            <TextBlock Text="{Binding CollectedGreen}" />
+            <Image Source="avares://CosmicCollector.Avalonia/Assets/Sprites/crystal_red.png"
+                   Width="20"
+                   Height="20" />
+            <TextBlock Text="{Binding CollectedRed}" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      Spacing="6">
+            <TextBlock Text="Собранные очки" />
+            <TextBlock Text="{Binding Score}" FontWeight="Bold" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal"
+                      Spacing="6">
+            <TextBlock Text="Количество собранной энергии" />
+            <TextBlock Text="{Binding Energy}" FontWeight="Bold" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
     </Grid>
-    <Grid ColumnDefinitions="Auto,*" Row="1">
-      <TextBlock Text="{Binding HudGoalsText}"
-                 Grid.Column="0"
-                 TextTrimming="CharacterEllipsis" />
-      <TextBlock Text="{Binding HudProgressText}"
-                 Grid.Column="1"
-                 HorizontalAlignment="Right"
-                 TextTrimming="CharacterEllipsis" />
-    </Grid>
-  </Grid>
+  </Border>
 </UserControl>

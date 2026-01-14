@@ -8,37 +8,48 @@ public sealed class RenderItem
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="RenderItem"/>.
   /// </summary>
-  /// <param name="parX">Координата X (левый край).</param>
-  /// <param name="parY">Координата Y (верхний край).</param>
-  /// <param name="parWidth">Ширина.</param>
-  /// <param name="parHeight">Высота.</param>
+  /// <param name="parX">Координата X (левый край) в мировых единицах.</param>
+  /// <param name="parY">Координата Y (верхний край) в мировых единицах.</param>
+  /// <param name="parWidth">Ширина в мировых единицах.</param>
+  /// <param name="parHeight">Высота в мировых единицах.</param>
   /// <param name="parSpriteKey">Ключ спрайта.</param>
-  public RenderItem(double parX, double parY, double parWidth, double parHeight, string parSpriteKey)
+  /// <param name="parLayer">Слой отрисовки.</param>
+  /// <param name="parOrder">Порядок внутри слоя.</param>
+  public RenderItem(
+    double parX,
+    double parY,
+    double parWidth,
+    double parHeight,
+    string parSpriteKey,
+    int parLayer,
+    int parOrder)
   {
     X = parX;
     Y = parY;
     Width = parWidth;
     Height = parHeight;
     SpriteKey = parSpriteKey;
+    Layer = parLayer;
+    Order = parOrder;
   }
 
   /// <summary>
-  /// Координата X (левый край).
+  /// Координата X (левый край) в мировых единицах.
   /// </summary>
   public double X { get; }
 
   /// <summary>
-  /// Координата Y (верхний край).
+  /// Координата Y (верхний край) в мировых единицах.
   /// </summary>
   public double Y { get; }
 
   /// <summary>
-  /// Ширина.
+  /// Ширина в мировых единицах.
   /// </summary>
   public double Width { get; }
 
   /// <summary>
-  /// Высота.
+  /// Высота в мировых единицах.
   /// </summary>
   public double Height { get; }
 
@@ -46,4 +57,14 @@ public sealed class RenderItem
   /// Ключ спрайта.
   /// </summary>
   public string SpriteKey { get; }
+
+  /// <summary>
+  /// Слой отрисовки.
+  /// </summary>
+  public int Layer { get; }
+
+  /// <summary>
+  /// Порядок внутри слоя.
+  /// </summary>
+  public int Order { get; }
 }

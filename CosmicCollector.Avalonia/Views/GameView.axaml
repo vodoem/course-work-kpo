@@ -2,23 +2,80 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:controls="clr-namespace:CosmicCollector.Avalonia.Views.Controls"
              x:Class="CosmicCollector.Avalonia.Views.GameView">
-  <Grid>
-    <Border Width="840"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center">
-      <StackPanel HorizontalAlignment="Center"
-                  Spacing="12">
-        <controls:HudView />
-        <Border BorderBrush="White"
-                BorderThickness="2"
-                Width="{Binding FieldWidth}"
-                Height="{Binding FieldHeight}">
-          <controls:GameSceneControl Width="{Binding FieldWidth}"
-                                     Height="{Binding FieldHeight}"
-                                     Items="{Binding RenderItems}" />
-        </Border>
-        <Button Content="В меню" Command="{Binding BackToMenuCommand}" />
-      </StackPanel>
+  <UserControl.Styles>
+    <Style Selector="Button.focus-target:focus">
+      <Setter Property="Background" Value="#3A3A3A" />
+      <Setter Property="BorderBrush" Value="#FFFFFF" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </UserControl.Styles>
+  <Grid RowDefinitions="Auto,*">
+    <controls:HudView Margin="24,16,24,12"
+                      HorizontalAlignment="Stretch" />
+    <Border Grid.Row="1"
+            Margin="24,0,24,24"
+            Background="#0F0F0F"
+            BorderBrush="#2E2E2E"
+            BorderThickness="2"
+            CornerRadius="12"
+            ClipToBounds="True">
+      <controls:GameFieldControl Snapshot="{Binding LatestSnapshot}"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch"
+                                 ClipToBounds="True" />
     </Border>
+    <Grid Grid.RowSpan="2"
+          IsVisible="{Binding IsPauseOverlayVisible}"
+          Background="#80000000">
+      <Border Width="360"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="#2A2A2A"
+              CornerRadius="16"
+              Padding="24">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+          </Style>
+        </Border.Styles>
+        <StackPanel Spacing="16"
+                    TabNavigation="Cycle"
+                    HorizontalAlignment="Center">
+          <TextBlock Text="Пауза"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center" />
+          <Button x:Name="ResumeButton"
+                  Content="_Продолжить"
+                  Classes="focus-target"
+                  Command="{Binding ResumeCommand}" />
+          <Button x:Name="ExitToMenuButton"
+                  Content="_Главное меню"
+                  Classes="focus-target"
+                  Command="{Binding ExitToMenuCommand}" />
+        </StackPanel>
+      </Border>
+    </Grid>
+    <Grid Grid.RowSpan="2"
+          IsVisible="{Binding IsCountdownVisible}"
+          Background="#80000000">
+      <Border Width="240"
+              Height="200"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="#2A2A2A"
+              CornerRadius="16">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+          </Style>
+        </Border.Styles>
+        <TextBlock Text="{Binding CountdownValue}"
+                   FontSize="72"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+      </Border>
+    </Grid>
   </Grid>
 </UserControl>

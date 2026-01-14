@@ -1,8 +1,10 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         x:Class="CosmicCollector.Avalonia.MainWindow"
-        Width="900"
-        Height="600"
+        Width="1024"
+        Height="768"
+        MinWidth="800"
+        MinHeight="600"
         Title="Cosmic Collector">
   <ContentControl Content="{Binding CurrentViewModel}" />
 </Window>
