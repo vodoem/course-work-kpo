@@ -547,13 +547,21 @@ public sealed class GameViewModel : ViewModelBase
     var snapshot = _gameRuntime.GetSnapshot();
     Dispatcher.UIThread.Post(() =>
     {
+      if (!_isActive)
+      {
+        return;
+      }
+
+      _isActive = false;
+      ResetMoveState();
+      UnsubscribeFromEvents();
       _gameOverNavigation.Navigate();
       if (_gameOverNavigation.CurrentViewModel is GameOverViewModel gameOverViewModel)
       {
         gameOverViewModel.SetFinalStats(snapshot);
       }
 
-      Task.Run(Deactivate);
+      Task.Run(_gameRuntime.Stop);
     });
   }
 
