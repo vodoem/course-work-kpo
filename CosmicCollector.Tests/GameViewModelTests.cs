@@ -18,6 +18,227 @@ namespace CosmicCollector.Tests;
 
 public sealed class GameViewModelTests
 {
+  // Batch 3: клавиатура + очередь команд + активность/неактивность + HUD-инварианты.
+
+  [Fact]
+  public void HandleKeyDown_WhenNotActive_DoesNothing()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+
+    // Act
+    viewModel.HandleKeyDown(Key.Left);
+    viewModel.HandleKeyDown(Key.Escape);
+
+    // Assert
+    Assert.Empty(runtime.CommandQueue.DrainAll());
+  }
+
+  [Fact]
+  public void HandleKeyUp_WhenNotActive_DoesNothing()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+
+    // Act
+    viewModel.HandleKeyUp(Key.Left);
+
+    // Assert
+    Assert.Empty(runtime.CommandQueue.DrainAll());
+  }
+
+  [Fact]
+  public void HandleKeyDown_LeftOrA_EnqueuesSetMoveDirectionMinusOne()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+
+    try
+    {
+      // Act
+      viewModel.HandleKeyDown(Key.A);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      var command = Assert.Single(commands);
+      var moveCommand = Assert.IsType<SetMoveDirectionCommand>(command);
+      Assert.Equal(-1, moveCommand.DirectionX);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void HandleKeyDown_RightOrD_EnqueuesSetMoveDirectionPlusOne()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+
+    try
+    {
+      // Act
+      viewModel.HandleKeyDown(Key.D);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      var command = Assert.Single(commands);
+      var moveCommand = Assert.IsType<SetMoveDirectionCommand>(command);
+      Assert.Equal(1, moveCommand.DirectionX);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void HandleKeyUp_AfterMovementKey_EnqueuesSetMoveDirectionZero()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+
+    try
+    {
+      viewModel.HandleKeyDown(Key.Left);
+      runtime.CommandQueue.DrainAll();
+
+      // Act
+      viewModel.HandleKeyUp(Key.Left);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      var command = Assert.Single(commands);
+      var moveCommand = Assert.IsType<SetMoveDirectionCommand>(command);
+      Assert.Equal(0, moveCommand.DirectionX);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void HandleKeyDown_Escape_EnqueuesTogglePauseCommand()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+
+    try
+    {
+      // Act
+      viewModel.HandleKeyDown(Key.Escape);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      Assert.Single(commands, command => command is TogglePauseCommand);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void HandleKeyDown_P_EnqueuesTogglePauseCommand()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+
+    try
+    {
+      // Act
+      viewModel.HandleKeyDown(Key.P);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      Assert.Single(commands, command => command is TogglePauseCommand);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void Activate_CallsRuntimeStart_AndInitializesFieldBoundsFromWorldBounds()
+  {
+    // Arrange
+    var runtime = new GameRuntime();
+    var viewModel = CreateViewModel(runtime);
+
+    try
+    {
+      // Act
+      viewModel.Activate();
+
+      // Assert
+      Assert.NotNull(GetPrivateField<object>(runtime, "_gameLoopRunner"));
+      Assert.Equal(800, viewModel.FieldWidth);
+      Assert.Equal(600, viewModel.FieldHeight);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void Activate_SecondCall_IsIdempotent_DoesNotStartTwice()
+  {
+    // Arrange
+    var runtime = new GameRuntime();
+    var viewModel = CreateViewModel(runtime);
+
+    try
+    {
+      viewModel.Activate();
+      var firstRunner = GetPrivateField<object>(runtime, "_gameLoopRunner");
+      var firstTickSubscriptions = GetEventBusHandlerCount<GameTick>(runtime.EventBus);
+
+      // Act
+      viewModel.Activate();
+      var secondRunner = GetPrivateField<object>(runtime, "_gameLoopRunner");
+      var secondTickSubscriptions = GetEventBusHandlerCount<GameTick>(runtime.EventBus);
+
+      // Assert
+      Assert.Same(firstRunner, secondRunner);
+      Assert.Equal(firstTickSubscriptions, secondTickSubscriptions);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void Deactivate_WhenNotActive_DoesNothing()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+
+    // Act
+    viewModel.Deactivate();
+
+    // Assert
+    Assert.NotNull(runtime.GameState);
+    Assert.Empty(GetSubscriptions(viewModel));
+  }
+
   [Fact]
   public void Activate_StartsRuntime_InitializesFieldBounds_UpdatesFromInitialSnapshot()
   {
@@ -467,6 +688,12 @@ public sealed class GameViewModelTests
   private static List<IDisposable> GetSubscriptions(GameViewModel parViewModel)
   {
     return GetPrivateField<List<IDisposable>>(parViewModel, "_subscriptions");
+  }
+
+  private static int GetEventBusHandlerCount<TEvent>(EventBus parEventBus) where TEvent : IGameEvent
+  {
+    var handlers = GetPrivateField<Dictionary<Type, List<Delegate>>>(parEventBus, "_handlers");
+    return handlers.TryGetValue(typeof(TEvent), out var list) ? list.Count : 0;
   }
 
   private static void InvokePauseToggled(GameViewModel parViewModel, bool parIsPaused)
