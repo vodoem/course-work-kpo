@@ -37,7 +37,12 @@ public sealed class GameFieldControl : Control
     });
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Рисует элементы текущего снимка, проецируя координаты мира в экран.
+  /// </summary>
+  /// <remarks>
+  /// Отрисовка выполняется только из snapshot и не содержит игровой логики.
+  /// </remarks>
   public override void Render(DrawingContext parContext)
   {
     base.Render(parContext);

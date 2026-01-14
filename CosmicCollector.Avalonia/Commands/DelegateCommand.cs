@@ -22,16 +22,25 @@ public sealed class DelegateCommand : ICommand
     _canExecute = parCanExecute;
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Событие доступности команды.
+  /// </summary>
   public event EventHandler? CanExecuteChanged;
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Возвращает доступность команды через делегат.
+  /// </summary>
+  /// <param name="parParameter">Параметр команды (не используется).</param>
+  /// <returns>true, если команда доступна.</returns>
   public bool CanExecute(object? parParameter)
   {
     return _canExecute?.Invoke() ?? true;
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Выполняет действие команды.
+  /// </summary>
+  /// <param name="parParameter">Параметр команды (не используется).</param>
   public void Execute(object? parParameter)
   {
     _execute();

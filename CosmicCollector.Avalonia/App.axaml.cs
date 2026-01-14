@@ -14,13 +14,20 @@ namespace CosmicCollector.Avalonia;
 /// </summary>
 public sealed class App : Application
 {
-  /// <inheritdoc />
+  /// <summary>
+  /// Загружает ресурсы XAML приложения.
+  /// </summary>
   public override void Initialize()
   {
     AvaloniaXamlLoader.Load(this);
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Собирает граф навигации и инициализирует главные ViewModel.
+  /// </summary>
+  /// <remarks>
+  /// Выполняется один раз при старте и создаёт общие сервисы (runtime, хранилище навигации).
+  /// </remarks>
   public override void OnFrameworkInitializationCompleted()
   {
     if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)

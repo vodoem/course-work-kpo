@@ -20,7 +20,9 @@ public sealed class NavigateCommand : ICommand
     _navigationService = parNavigationService;
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Событие команды не используется: доступность всегда true.
+  /// </summary>
   public event EventHandler? CanExecuteChanged
   {
     add
@@ -31,13 +33,20 @@ public sealed class NavigateCommand : ICommand
     }
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Всегда разрешает выполнение команды.
+  /// </summary>
+  /// <param name="parParameter">Параметр команды (не используется).</param>
+  /// <returns>true.</returns>
   public bool CanExecute(object? parParameter)
   {
     return true;
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Выполняет переход через <see cref="NavigationService"/>.
+  /// </summary>
+  /// <param name="parParameter">Параметр команды (не используется).</param>
   public void Execute(object? parParameter)
   {
     _navigationService.Navigate();
