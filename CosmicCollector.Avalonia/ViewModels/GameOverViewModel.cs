@@ -106,8 +106,14 @@ public sealed class GameOverViewModel : ViewModelBase
 
       _isNameInputActive = value;
       OnPropertyChanged();
+      OnPropertyChanged(nameof(IsRestartEnabled));
     }
   }
+
+  /// <summary>
+  /// Признак доступности перезапуска.
+  /// </summary>
+  public bool IsRestartEnabled => !IsNameInputActive;
 
   /// <summary>
   /// Признак нового рекорда.
