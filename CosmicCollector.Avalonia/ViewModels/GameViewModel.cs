@@ -52,6 +52,7 @@ public sealed class GameViewModel : ViewModelBase
   private double _fieldHeight;
   private bool _leftPressed;
   private bool _rightPressed;
+  private WorldBounds _worldBounds;
 
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="GameViewModel"/>.
@@ -505,6 +506,7 @@ public sealed class GameViewModel : ViewModelBase
   private void InitializeFieldBounds()
   {
     var bounds = _gameRuntime.GameState.WorldBounds;
+    _worldBounds = bounds;
     FieldWidth = bounds.Right - bounds.Left;
     FieldHeight = bounds.Bottom - bounds.Top;
   }
@@ -530,6 +532,11 @@ public sealed class GameViewModel : ViewModelBase
 
   private void OnGameTick(GameTick parEvent)
   {
+    if (!_isActive)
+    {
+      return;
+    }
+
     var snapshot = _gameRuntime.GetSnapshot();
     Dispatcher.UIThread.Post(() => UpdateFromSnapshot(snapshot));
   }
@@ -576,6 +583,11 @@ public sealed class GameViewModel : ViewModelBase
 
   private void UpdateFromSnapshot(GameSnapshot parSnapshot)
   {
+    if (!_isActive)
+    {
+      return;
+    }
+
     CurrentLevel = parSnapshot.parCurrentLevel;
     RequiredScore = parSnapshot.parRequiredScore;
     Score = parSnapshot.parDrone.parScore;
@@ -709,10 +721,9 @@ public sealed class GameViewModel : ViewModelBase
 
   private void PublishSnapshot(GameSnapshot parSnapshot)
   {
-    var worldBounds = _gameRuntime.GameState.WorldBounds;
     var items = BuildRenderItems(parSnapshot);
     var timestamp = System.Diagnostics.Stopwatch.GetTimestamp();
-    LatestSnapshot = new FrameSnapshot(timestamp, items, worldBounds);
+    LatestSnapshot = new FrameSnapshot(timestamp, items, _worldBounds);
   }
 
   private void HandleResume()
