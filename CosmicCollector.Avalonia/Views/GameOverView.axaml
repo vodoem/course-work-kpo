@@ -3,9 +3,9 @@
              xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
              x:Class="CosmicCollector.Avalonia.Views.GameOverView">
   <UserControl.KeyBindings>
-    <KeyBinding Key="Escape" Command="{Binding BackToMenuCommand}" />
-    <KeyBinding Key="R" Command="{Binding RestartCommand}" />
-    <KeyBinding Key="Enter" Command="{Binding PrimaryActionCommand}" />
+    <KeyBinding Gesture="Escape" Command="{Binding BackToMenuCommand}" />
+    <KeyBinding Gesture="R" Command="{Binding RestartCommand}" />
+    <KeyBinding Gesture="Enter" Command="{Binding PrimaryActionCommand}" />
   </UserControl.KeyBindings>
   <UserControl.Styles>
     <Style Selector="TextBlock">
