@@ -646,6 +646,12 @@ public sealed class GameViewModel : ViewModelBase
 
     foreach (var blackHole in parSnapshot.parBlackHoles)
     {
+      if (blackHole.parRadius > 0)
+      {
+        var fieldBounds = new Aabb(blackHole.parRadius * 2, blackHole.parRadius * 2);
+        AppendItem(items, blackHole.parPosition, fieldBounds, "black_hole_field", RenderLayer.BlackHoleField, order++);
+      }
+
       AppendItem(items, blackHole.parPosition, blackHole.parBounds, "blackhole", RenderLayer.BlackHole, order++);
     }
 
