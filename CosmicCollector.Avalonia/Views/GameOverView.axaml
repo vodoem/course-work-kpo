@@ -4,9 +4,7 @@
              x:Class="CosmicCollector.Avalonia.Views.GameOverView">
   <UserControl.KeyBindings>
     <KeyBinding Gesture="Escape" Command="{Binding BackToMenuCommand}" />
-    <KeyBinding Gesture="R"
-                Command="{Binding RestartCommand}"
-                IsEnabled="{Binding IsRestartEnabled}" />
+    <KeyBinding Gesture="R" Command="{Binding RestartCommand}" />
     <KeyBinding Gesture="Enter" Command="{Binding PrimaryActionCommand}" />
   </UserControl.KeyBindings>
   <UserControl.Styles>

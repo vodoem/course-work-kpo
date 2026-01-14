@@ -21,6 +21,7 @@ public sealed class GameOverViewModel : ViewModelBase
   private readonly NavigationService _restartNavigation;
   private readonly NavigationService _backNavigation;
   private readonly IRecordsRepository _recordsRepository;
+  private readonly DelegateCommand _restartCommand;
   private bool _isHighScore;
   private bool _isSaved;
   private string _playerName = string.Empty;
@@ -42,7 +43,8 @@ public sealed class GameOverViewModel : ViewModelBase
     _restartNavigation = parRestartNavigation;
     _backNavigation = parBackNavigation;
     _recordsRepository = parRecordsRepository;
-    RestartCommand = new NavigateCommand(parRestartNavigation);
+    _restartCommand = new DelegateCommand(() => _restartNavigation.Navigate(), () => !IsNameInputActive);
+    RestartCommand = _restartCommand;
     BackToMenuCommand = new NavigateCommand(parBackNavigation);
     SaveRecordCommand = new DelegateCommand(HandleSave);
     PrimaryActionCommand = new DelegateCommand(HandlePrimaryAction);
@@ -106,14 +108,9 @@ public sealed class GameOverViewModel : ViewModelBase
 
       _isNameInputActive = value;
       OnPropertyChanged();
-      OnPropertyChanged(nameof(IsRestartEnabled));
+      _restartCommand.RaiseCanExecuteChanged();
     }
   }
-
-  /// <summary>
-  /// Признак доступности перезапуска.
-  /// </summary>
-  public bool IsRestartEnabled => !IsNameInputActive;
 
   /// <summary>
   /// Признак нового рекорда.
