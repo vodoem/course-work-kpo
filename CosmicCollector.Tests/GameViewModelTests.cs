@@ -2,10 +2,12 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using Avalonia.Input;
+using Avalonia.Threading;
 using CosmicCollector.Avalonia.Infrastructure;
 using CosmicCollector.Avalonia.Navigation;
 using CosmicCollector.Avalonia.ViewModels;
 using CosmicCollector.Core.Entities;
+using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.MVC.Commands;
@@ -207,11 +209,241 @@ public sealed class GameViewModelTests
     }
   }
 
+  [Fact]
+  public void OnGameOver_DeactivatesAndNavigatesToGameOver()
+  {
+    // Arrange
+    var bounds = new WorldBounds(0, 0, 800, 600);
+    var runtime = CreateInitializedRuntime(bounds);
+    var navigation = CreateNavigationProbes();
+    var viewModel = new GameViewModel(runtime, navigation.MainMenu.Service, navigation.GameOver.Service);
+    viewModel.Activate();
+
+    // Act
+    runtime.EventBus.Publish(new GameOver("fail"));
+    DrainUiThread();
+    var stopped = WaitForRuntimeStop(runtime);
+
+    // Assert
+    Assert.Equal(1, navigation.GameOver.NavigateCount);
+    Assert.True(stopped);
+  }
+
+  [Fact]
+  public void OnLevelCompleted_UpdatesSnapshotButDoesNotNavigate()
+  {
+    // Arrange
+    var bounds = new WorldBounds(0, 0, 800, 600);
+    var runtime = CreateInitializedRuntime(bounds);
+    SetGameStateScore(runtime.GameState, 120);
+    var navigation = CreateNavigationProbes();
+    var viewModel = new GameViewModel(runtime, navigation.MainMenu.Service, navigation.GameOver.Service);
+    viewModel.Activate();
+
+    // Act
+    runtime.EventBus.Publish(new LevelCompleted("ok"));
+    DrainUiThread();
+
+    // Assert
+    Assert.Equal(0, navigation.GameOver.NavigateCount);
+    Assert.Equal(120, viewModel.Score);
+  }
+
+  [Fact]
+  public void OnPauseToggled_ToPaused_SetsIsPausedTrue_AndShowsPauseOverlayWhenCountdownZero()
+  {
+    // Arrange
+    var viewModel = CreateActivatedViewModel();
+
+    try
+    {
+      // Act
+      InvokePauseToggled(viewModel, true);
+      DrainUiThread();
+
+      // Assert
+      Assert.True(viewModel.IsPaused);
+      Assert.True(viewModel.IsPauseOverlayVisible);
+      Assert.False(viewModel.IsCountdownVisible);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void OnCountdownTick_SetsCountdownValue_AndShowsCountdownOverlay()
+  {
+    // Arrange
+    var viewModel = CreateActivatedViewModel();
+
+    try
+    {
+      InvokePauseToggled(viewModel, true);
+      DrainUiThread();
+
+      // Act
+      InvokeCountdownTick(viewModel, 3);
+      DrainUiThread();
+
+      // Assert
+      Assert.Equal(3, viewModel.CountdownValue);
+      Assert.True(viewModel.IsCountdownVisible);
+      Assert.False(viewModel.IsPauseOverlayVisible);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void OnPauseToggled_ToUnpaused_ResetsCountdownValueToZero_AndHidesOverlays()
+  {
+    // Arrange
+    var viewModel = CreateActivatedViewModel();
+
+    try
+    {
+      InvokePauseToggled(viewModel, true);
+      InvokeCountdownTick(viewModel, 2);
+      DrainUiThread();
+
+      // Act
+      InvokePauseToggled(viewModel, false);
+      DrainUiThread();
+
+      // Assert
+      Assert.False(viewModel.IsPaused);
+      Assert.Equal(0, viewModel.CountdownValue);
+      Assert.False(viewModel.IsPauseOverlayVisible);
+      Assert.False(viewModel.IsCountdownVisible);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void CountdownFlow_3_2_1_ThenUnpause_ResultsInHiddenCountdown()
+  {
+    // Arrange
+    var viewModel = CreateActivatedViewModel();
+
+    try
+    {
+      // Act
+      InvokePauseToggled(viewModel, true);
+      InvokeCountdownTick(viewModel, 3);
+      InvokeCountdownTick(viewModel, 2);
+      InvokeCountdownTick(viewModel, 1);
+      InvokePauseToggled(viewModel, false);
+      DrainUiThread();
+
+      // Assert
+      Assert.False(viewModel.IsPaused);
+      Assert.Equal(0, viewModel.CountdownValue);
+      Assert.False(viewModel.IsCountdownVisible);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void ResumeCommand_WhenPausedAndNoCountdown_EnqueuesTogglePauseCommand()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+
+    try
+    {
+      InvokePauseToggled(viewModel, true);
+      DrainUiThread();
+
+      // Act
+      viewModel.ResumeCommand.Execute(null);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      Assert.Single(commands, command => command is TogglePauseCommand);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void ResumeCommand_WhenCountdownActive_DoesNotEnqueueTogglePause()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+
+    try
+    {
+      InvokePauseToggled(viewModel, true);
+      InvokeCountdownTick(viewModel, 2);
+      DrainUiThread();
+
+      // Act
+      viewModel.ResumeCommand.Execute(null);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      Assert.Empty(commands);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void ExitToMenuCommand_DeactivatesAndNavigatesToMainMenu()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var navigation = CreateNavigationProbes();
+    var viewModel = new GameViewModel(runtime, navigation.MainMenu.Service, navigation.GameOver.Service);
+    viewModel.Activate();
+
+    // Act
+    viewModel.ExitToMenuCommand.Execute(null);
+    var stopped = WaitForRuntimeStop(runtime);
+
+    // Assert
+    Assert.Equal(1, navigation.MainMenu.NavigateCount);
+    Assert.True(stopped);
+  }
+
   private static GameViewModel CreateViewModel(GameRuntime parRuntime)
   {
     var mainMenuNavigation = new NavigationService(new NavigationStore(), () => new StubViewModel());
     var gameOverNavigation = new NavigationService(new NavigationStore(), () => new StubViewModel());
     return new GameViewModel(parRuntime, mainMenuNavigation, gameOverNavigation);
+  }
+
+  private static GameViewModel CreateActivatedViewModel()
+  {
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var viewModel = CreateViewModel(runtime);
+    viewModel.Activate();
+    return viewModel;
+  }
+
+  private static (NavigationProbe MainMenu, NavigationProbe GameOver) CreateNavigationProbes()
+  {
+    var mainMenu = new NavigationProbe();
+    var gameOver = new NavigationProbe();
+    return (mainMenu, gameOver);
   }
 
   private static GameRuntime CreateInitializedRuntime(WorldBounds parBounds)
@@ -234,6 +466,77 @@ public sealed class GameViewModelTests
   private static List<IDisposable> GetSubscriptions(GameViewModel parViewModel)
   {
     return GetPrivateField<List<IDisposable>>(parViewModel, "_subscriptions");
+  }
+
+  private static void InvokePauseToggled(GameViewModel parViewModel, bool parIsPaused)
+  {
+    InvokePrivateMethod(parViewModel, "OnPauseToggled", new PauseToggled(parIsPaused));
+  }
+
+  private static void InvokeCountdownTick(GameViewModel parViewModel, int parValue)
+  {
+    InvokePrivateMethod(parViewModel, "OnCountdownTick", new CountdownTick(parValue));
+  }
+
+  private static void DrainUiThread()
+  {
+    // Avalonia.Dispatcher не даёт публичного способа синхронно выполнить Post, поэтому пробуем RunJobs через reflection.
+    var dispatcher = Dispatcher.UIThread;
+    if (!TryRunDispatcherJobs(dispatcher))
+    {
+      dispatcher.InvokeAsync(() => { }).GetAwaiter().GetResult();
+      TryRunDispatcherJobs(dispatcher);
+    }
+  }
+
+  private static bool TryRunDispatcherJobs(Dispatcher parDispatcher)
+  {
+    var dispatcherType = parDispatcher.GetType();
+    var runJobsMethod = dispatcherType.GetMethod("RunJobs", new[] { typeof(DispatcherPriority) })
+                        ?? dispatcherType.GetMethod("RunJobs", Type.EmptyTypes);
+    if (runJobsMethod is null)
+    {
+      return false;
+    }
+
+    var parameters = runJobsMethod.GetParameters().Length == 0
+      ? Array.Empty<object>()
+      : new object[] { DispatcherPriority.Background };
+    runJobsMethod.Invoke(parDispatcher, parameters);
+    return true;
+  }
+
+  private static bool WaitForRuntimeStop(GameRuntime parRuntime)
+  {
+    for (var attempt = 0; attempt < 20; attempt++)
+    {
+      try
+      {
+        _ = parRuntime.GameState;
+      }
+      catch (InvalidOperationException)
+      {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private static void SetGameStateScore(GameState parGameState, int parScore)
+  {
+    SetPrivateField(parGameState, "_score", parScore);
+  }
+
+  private static void InvokePrivateMethod(object parTarget, string parMethodName, object parArgument)
+  {
+    var method = parTarget.GetType().GetMethod(parMethodName, BindingFlags.Instance | BindingFlags.NonPublic);
+    if (method is null)
+    {
+      throw new InvalidOperationException($"Метод '{parMethodName}' не найден.");
+    }
+
+    method.Invoke(parTarget, new[] { parArgument });
   }
 
   private static void SetPrivateField<T>(object parTarget, string parFieldName, T parValue)
@@ -260,5 +563,23 @@ public sealed class GameViewModelTests
 
   private sealed class StubViewModel : ViewModelBase
   {
+  }
+
+  private sealed class NavigationProbe
+  {
+    private int _navigateCount;
+
+    public NavigationProbe()
+    {
+      Store = new NavigationStore();
+      Store.CurrentViewModelChanged += () => _navigateCount++;
+      Service = new NavigationService(Store, () => new StubViewModel());
+    }
+
+    public NavigationService Service { get; }
+
+    public NavigationStore Store { get; }
+
+    public int NavigateCount => _navigateCount;
   }
 }
