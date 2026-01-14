@@ -108,6 +108,7 @@ public sealed class SpriteResolver
       "bonus_magnet" => "M",
       "bonus_accelerator" => "X",
       "bonus_time" => "T",
+      "black_hole_field" => "BF",
       "blackhole" => "BH",
       _ => "?"
     };
@@ -125,6 +126,7 @@ public sealed class SpriteResolver
       "bonus_magnet" => Colors.Goldenrod,
       "bonus_accelerator" => Colors.OrangeRed,
       "bonus_time" => Colors.MediumPurple,
+      "black_hole_field" => Colors.MidnightBlue,
       "blackhole" => Colors.Black,
       _ => Colors.DarkSlateBlue
     };

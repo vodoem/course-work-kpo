@@ -23,7 +23,9 @@ public sealed class AspectRatioDecorator : Decorator
     set => SetValue(AspectRatioProperty, value);
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Измеряет дочерний элемент с учётом требуемого соотношения сторон.
+  /// </summary>
   protected override Size MeasureOverride(Size availableSize)
   {
     if (Child is null)
@@ -36,7 +38,9 @@ public sealed class AspectRatioDecorator : Decorator
     return targetSize;
   }
 
-  /// <inheritdoc />
+  /// <summary>
+  /// Размещает дочерний элемент по центру в пределах доступной области.
+  /// </summary>
   protected override Size ArrangeOverride(Size finalSize)
   {
     if (Child is null)

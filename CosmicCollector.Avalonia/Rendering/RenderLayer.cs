@@ -11,6 +11,11 @@ public enum RenderLayer
   Background = 0,
 
   /// <summary>
+  /// Поле притяжения чёрной дыры.
+  /// </summary>
+  BlackHoleField = 5,
+
+  /// <summary>
   /// Чёрные дыры.
   /// </summary>
   BlackHole = 10,
