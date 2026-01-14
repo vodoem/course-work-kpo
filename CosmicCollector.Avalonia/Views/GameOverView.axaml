@@ -2,11 +2,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
              x:Class="CosmicCollector.Avalonia.Views.GameOverView">
-  <UserControl.KeyBindings>
-    <KeyBinding Gesture="Escape" Command="{Binding BackToMenuCommand}" />
-    <KeyBinding Gesture="R" Command="{Binding RestartCommand}" />
-    <KeyBinding Gesture="Enter" Command="{Binding PrimaryActionCommand}" />
-  </UserControl.KeyBindings>
   <UserControl.Styles>
     <Style Selector="TextBlock">
       <Setter Property="Foreground" Value="White" />
@@ -142,12 +137,6 @@
         <Button Content="Заново"
                 Command="{Binding RestartCommand}" />
       </StackPanel>
-      <TextBlock Grid.Row="3"
-                 HorizontalAlignment="Right"
-                 VerticalAlignment="Center"
-                 Text="Enter — сохранить/меню, Esc — меню, R — заново"
-                 FontSize="12"
-                 Opacity="0.7" />
     </Grid>
   </Grid>
 </UserControl>
