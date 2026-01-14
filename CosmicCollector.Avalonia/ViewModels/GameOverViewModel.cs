@@ -26,6 +26,7 @@ public sealed class GameOverViewModel : ViewModelBase
   private string _playerName = string.Empty;
   private string _nameError = string.Empty;
   private IReadOnlyList<RecordsRowViewModel> _topRecords = Array.Empty<RecordsRowViewModel>();
+  private bool _isNameInputActive;
 
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="GameOverViewModel"/>.
@@ -47,6 +48,7 @@ public sealed class GameOverViewModel : ViewModelBase
     PrimaryActionCommand = new DelegateCommand(HandlePrimaryAction);
     LoadRecords();
     TimerText = "—";
+    UpdateNameInputFocus();
   }
 
   /// <summary>
@@ -90,6 +92,24 @@ public sealed class GameOverViewModel : ViewModelBase
   public string TimerText { get; private set; }
 
   /// <summary>
+  /// Признак режима ввода имени.
+  /// </summary>
+  public bool IsNameInputActive
+  {
+    get => _isNameInputActive;
+    set
+    {
+      if (_isNameInputActive == value)
+      {
+        return;
+      }
+
+      _isNameInputActive = value;
+      OnPropertyChanged();
+    }
+  }
+
+  /// <summary>
   /// Признак нового рекорда.
   /// </summary>
   public bool IsHighScore
@@ -101,6 +121,7 @@ public sealed class GameOverViewModel : ViewModelBase
       OnPropertyChanged();
       OnPropertyChanged(nameof(IsInputModeVisible));
       OnPropertyChanged(nameof(IsTableModeVisible));
+      UpdateNameInputFocus();
     }
   }
 
@@ -116,6 +137,7 @@ public sealed class GameOverViewModel : ViewModelBase
       OnPropertyChanged();
       OnPropertyChanged(nameof(IsInputModeVisible));
       OnPropertyChanged(nameof(IsTableModeVisible));
+      UpdateNameInputFocus();
     }
   }
 
@@ -167,6 +189,14 @@ public sealed class GameOverViewModel : ViewModelBase
   public bool IsInputModeVisible => IsHighScore && !IsSaved;
 
   /// <summary>
+  /// Обновляет режим фокуса для ввода имени.
+  /// </summary>
+  private void UpdateNameInputFocus()
+  {
+    IsNameInputActive = IsInputModeVisible;
+  }
+
+  /// <summary>
   /// Режим таблицы рекордов.
   /// </summary>
   public bool IsTableModeVisible => !IsInputModeVisible;
@@ -213,6 +243,7 @@ public sealed class GameOverViewModel : ViewModelBase
 
     LoadRecords();
     IsHighScore = CheckHighScore(Score, Level, _topRecords);
+    UpdateNameInputFocus();
   }
 
   private void HandlePrimaryAction()

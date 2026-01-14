@@ -4,7 +4,9 @@
              x:Class="CosmicCollector.Avalonia.Views.GameOverView">
   <UserControl.KeyBindings>
     <KeyBinding Gesture="Escape" Command="{Binding BackToMenuCommand}" />
-    <KeyBinding Gesture="R" Command="{Binding RestartCommand}" />
+    <KeyBinding Gesture="R"
+                Command="{Binding RestartCommand}"
+                IsEnabled="{Binding IsNameInputActive, Converter={x:Static Avalonia.Controls.Converters.BooleanConverters.Inverse}}" />
     <KeyBinding Gesture="Enter" Command="{Binding PrimaryActionCommand}" />
   </UserControl.KeyBindings>
   <UserControl.Styles>
@@ -89,6 +91,7 @@
             <TextBlock Text="Новый рекорд!" />
             <TextBlock Text="Введите имя (1–16):" />
             <TextBox Text="{Binding PlayerName}"
+                     IsFocused="{Binding IsNameInputActive}"
                      MaxLength="16"
                      FontSize="16" />
             <TextBlock Text="{Binding NameError}"
