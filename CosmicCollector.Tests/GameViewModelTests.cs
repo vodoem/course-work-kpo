@@ -186,9 +186,10 @@ public sealed class GameViewModelTests
       viewModel.Activate();
 
       // Assert
+      var worldBounds = runtime.GameState.WorldBounds;
       Assert.NotNull(GetPrivateField<object>(runtime, "_gameLoopRunner"));
-      Assert.Equal(800, viewModel.FieldWidth);
-      Assert.Equal(600, viewModel.FieldHeight);
+      Assert.Equal(worldBounds.Right - worldBounds.Left, viewModel.FieldWidth);
+      Assert.Equal(worldBounds.Bottom - worldBounds.Top, viewModel.FieldHeight);
     }
     finally
     {
