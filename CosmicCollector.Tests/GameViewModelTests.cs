@@ -128,7 +128,7 @@ public sealed class GameViewModelTests
   }
 
   [Fact]
-  public void HandleKeyDown_Escape_EnqueuesTogglePauseCommand()
+  public void HandleKeyDown_Escape_EnqueuesTogglePauseCommand_Batch3()
   {
     // Arrange
     var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
@@ -408,7 +408,7 @@ public sealed class GameViewModelTests
   [Theory]
   [InlineData(Key.Escape)]
   [InlineData(Key.P)]
-  public void HandleKeyDown_Escape_EnqueuesTogglePauseCommand(Key parKey)
+  public void HandleKeyDown_Escape_EnqueuesTogglePauseCommand_Batch2(Key parKey)
   {
     // Arrange
     var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
