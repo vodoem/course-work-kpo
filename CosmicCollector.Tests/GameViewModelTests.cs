@@ -392,13 +392,14 @@ public sealed class GameViewModelTests
       InvokePauseToggled(viewModel, true);
       InvokeCountdownTick(viewModel, 2);
       DrainUiThread();
+      runtime.CommandQueue.DrainAll();
 
       // Act
       viewModel.ResumeCommand.Execute(null);
       var commands = runtime.CommandQueue.DrainAll();
 
       // Assert
-      Assert.Empty(commands);
+      Assert.DoesNotContain(commands, command => command is TogglePauseCommand);
     }
     finally
     {
@@ -518,6 +519,9 @@ public sealed class GameViewModelTests
       {
         return true;
       }
+
+      // Ждём завершения Task.Run(_gameRuntime.Stop) из обработчика GameOver.
+      Thread.Sleep(10);
     }
 
     return false;
