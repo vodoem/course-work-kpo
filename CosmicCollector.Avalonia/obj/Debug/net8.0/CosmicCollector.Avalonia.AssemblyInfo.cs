@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CosmicCollector.Avalonia")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6d0693f3d9a62b93883d36251d57e3b892b6022b")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+b86f2c627c9eec5a6cf471c54d17e3e4e6ec8768")]
 [assembly: System.Reflection.AssemblyProductAttribute("CosmicCollector.Avalonia")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CosmicCollector.Avalonia")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -39,7 +39,6 @@
           </Style>
         </Border.Styles>
         <StackPanel Spacing="16"
-                    TabNavigation="Cycle"
                     HorizontalAlignment="Center">
           <TextBlock Text="Пауза"
                      FontSize="20"

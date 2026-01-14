@@ -13,8 +13,7 @@
             HorizontalAlignment="Center"
             VerticalAlignment="Center">
       <StackPanel HorizontalAlignment="Center"
-                  Spacing="12"
-                  TabNavigation="Cycle">
+                  Spacing="12">
         <TextBlock Text="COSMIC COLLECTOR"
                    FontSize="28"
                    FontWeight="Bold"
