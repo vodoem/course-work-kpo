@@ -24,6 +24,9 @@
     <Style Selector="dg|DataGridCell">
       <Setter Property="Foreground" Value="Black" />
     </Style>
+    <Style Selector="dg|DataGridCell > TextBlock">
+      <Setter Property="Foreground" Value="Black" />
+    </Style>
     <Style Selector="TextBox">
       <Setter Property="Foreground" Value="White" />
       <Setter Property="Background" Value="#2A2A2A" />
