@@ -89,7 +89,7 @@
             <TextBlock Text="Новый рекорд!" />
             <TextBlock Text="Введите имя (1–16):" />
             <TextBox Text="{Binding PlayerName}"
-                     IsFocused="{Binding IsNameInputActive}"
+                     x:Name="PlayerNameTextBox"
                      MaxLength="16"
                      FontSize="16" />
             <TextBlock Text="{Binding NameError}"
