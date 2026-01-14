@@ -120,6 +120,7 @@ public sealed class GameWorldUpdateService
       HandleBlackHoleCoreCollisions(parGameState, parEventPublisher);
       var timeStabilizerCollected = false;
       HandleCollisions(parGameState, parEventPublisher, isAcceleratorActive, ref timeStabilizerCollected);
+      ClampDroneToBounds(parGameState);
       RemoveOutOfBoundsObjects(parGameState, parEventPublisher);
 
       if (parGameState.HasLevelTimer &&
@@ -178,7 +179,6 @@ public sealed class GameWorldUpdateService
     var direction = NormalizeDirection(parGameState.IsDisoriented, parGameState.DroneMoveDirectionX);
     drone.Velocity = new Vector2(direction * GameRules.DroneBaseSpeed, 0);
     drone.Position = drone.Position.Add(drone.Velocity.Multiply(parDt * droneMultiplier));
-    ClampDroneToBounds(parGameState);
 
     foreach (var crystal in parGameState.CrystalsInternal)
     {
