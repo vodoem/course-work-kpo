@@ -538,8 +538,13 @@ public sealed class GameViewModel : ViewModelBase
   {
     Dispatcher.UIThread.Post(() =>
     {
+      var snapshot = _gameRuntime.GetSnapshot();
       Deactivate();
       _gameOverNavigation.Navigate();
+      if (_gameOverNavigation.CurrentViewModel is GameOverViewModel gameOverViewModel)
+      {
+        gameOverViewModel.SetFinalStats(snapshot);
+      }
     });
   }
 

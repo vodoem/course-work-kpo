@@ -64,9 +64,7 @@ public sealed class App : Application
 
       GameOverViewModel CreateGameOverViewModel()
       {
-        var snapshot = gameRuntime.GetSnapshot();
         return new GameOverViewModel(
-          snapshot,
           CreateNavigationService(CreateGameViewModel),
           CreateNavigationService(CreateMainMenuViewModel),
           recordsRepository);

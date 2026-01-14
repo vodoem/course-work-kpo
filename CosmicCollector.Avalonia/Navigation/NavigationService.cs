@@ -29,4 +29,9 @@ public sealed class NavigationService
   {
     _navigationStore.CurrentViewModel = _viewModelFactory();
   }
+
+  /// <summary>
+  /// Возвращает текущую ViewModel навигации.
+  /// </summary>
+  public ViewModelBase? CurrentViewModel => _navigationStore.CurrentViewModel;
 }

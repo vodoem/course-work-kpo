@@ -30,12 +30,10 @@ public sealed class GameOverViewModel : ViewModelBase
   /// <summary>
   /// Инициализирует новый экземпляр <see cref="GameOverViewModel"/>.
   /// </summary>
-  /// <param name="parSnapshot">Снимок состояния игры.</param>
   /// <param name="parRestartNavigation">Навигация для перезапуска игры.</param>
   /// <param name="parBackNavigation">Навигация назад в главное меню.</param>
   /// <param name="parRecordsRepository">Репозиторий рекордов.</param>
   public GameOverViewModel(
-    GameSnapshot parSnapshot,
     NavigationService parRestartNavigation,
     NavigationService parBackNavigation,
     IRecordsRepository parRecordsRepository)
@@ -47,12 +45,8 @@ public sealed class GameOverViewModel : ViewModelBase
     BackToMenuCommand = new NavigateCommand(parBackNavigation);
     SaveRecordCommand = new DelegateCommand(HandleSave);
     PrimaryActionCommand = new DelegateCommand(HandlePrimaryAction);
-    Level = parSnapshot.parCurrentLevel;
-    Score = parSnapshot.parDrone.parScore;
-    Energy = parSnapshot.parDrone.parEnergy;
-    TimerText = FormatTimer(parSnapshot.parHasLevelTimer, parSnapshot.parLevelTimeRemainingSec);
     LoadRecords();
-    _isHighScore = CheckHighScore(Score, Level, _topRecords);
+    TimerText = "—";
   }
 
   /// <summary>
@@ -78,22 +72,22 @@ public sealed class GameOverViewModel : ViewModelBase
   /// <summary>
   /// Уровень игрока.
   /// </summary>
-  public int Level { get; }
+  public int Level { get; private set; }
 
   /// <summary>
   /// Итоговые очки.
   /// </summary>
-  public int Score { get; }
+  public int Score { get; private set; }
 
   /// <summary>
   /// Энергия.
   /// </summary>
-  public int Energy { get; }
+  public int Energy { get; private set; }
 
   /// <summary>
   /// Текст времени уровня.
   /// </summary>
-  public string TimerText { get; }
+  public string TimerText { get; private set; }
 
   /// <summary>
   /// Признак нового рекорда.
@@ -201,6 +195,25 @@ public sealed class GameOverViewModel : ViewModelBase
   /// Признак отсутствия записей.
   /// </summary>
   public bool NoRecords => !HasRecords;
+
+  /// <summary>
+  /// Обновляет итоговую статистику по завершённой игре.
+  /// </summary>
+  /// <param name="parSnapshot">Снимок состояния игры.</param>
+  public void SetFinalStats(GameSnapshot parSnapshot)
+  {
+    Level = parSnapshot.parCurrentLevel;
+    Score = parSnapshot.parDrone.parScore;
+    Energy = parSnapshot.parDrone.parEnergy;
+    TimerText = FormatTimer(parSnapshot.parHasLevelTimer, parSnapshot.parLevelTimeRemainingSec);
+    OnPropertyChanged(nameof(Level));
+    OnPropertyChanged(nameof(Score));
+    OnPropertyChanged(nameof(Energy));
+    OnPropertyChanged(nameof(TimerText));
+
+    LoadRecords();
+    IsHighScore = CheckHighScore(Score, Level, _topRecords);
+  }
 
   private void HandlePrimaryAction()
   {
