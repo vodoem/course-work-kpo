@@ -742,15 +742,15 @@ public sealed class GameWorldUpdateService
     var clampedX = drone.Position.X;
     var clampedY = drone.Position.Y;
 
-    if (drone.Position.X < bounds.Left - halfWidth)
+    if (clampedX < minX)
     {
       clampedX = minX;
     }
-    else if (drone.Position.X > bounds.Right + halfWidth)
+    else if (clampedX > maxX)
     {
       clampedX = maxX;
     }
-
+    
     if (drone.Position.Y < bounds.Top - halfHeight)
     {
       clampedY = minY;
