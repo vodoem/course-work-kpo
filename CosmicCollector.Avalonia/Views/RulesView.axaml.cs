@@ -58,6 +58,6 @@ public sealed partial class RulesView : UserControl
       };
       items.Add(textBlock);
     }
-    itemsControl.Items = items;
+    itemsControl.ItemsSource = items;
   }
 }
