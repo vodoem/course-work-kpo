@@ -1,26 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:dg="clr-namespace:Avalonia.Controls;assembly=Avalonia.Controls.DataGrid"
              x:Class="CosmicCollector.Avalonia.Views.GameOverView">
   <UserControl.Styles>
     <Style Selector="TextBlock">
       <Setter Property="Foreground" Value="White" />
-    </Style>
-    <Style Selector="dg|DataGrid">
-      <Setter Property="Foreground" Value="Black" />
-      <Setter Property="Background" Value="#E6E6E6" />
-      <Setter Property="BorderBrush" Value="#BDBDBD" />
-      <Setter Property="BorderThickness" Value="1" />
-    </Style>
-    <Style Selector="dg|DataGridColumnHeader">
-      <Setter Property="Background" Value="#2A2A2A" />
-      <Setter Property="Foreground" Value="White" />
-    </Style>
-    <Style Selector="dg|DataGridCell">
-      <Setter Property="Foreground" Value="Black" />
-    </Style>
-    <Style Selector="dg|DataGridCell > TextBlock">
-      <Setter Property="Foreground" Value="Black" />
     </Style>
     <Style Selector="TextBox">
       <Setter Property="Foreground" Value="White" />
@@ -48,19 +31,19 @@
       <Grid ColumnDefinitions="*,*,*,*">
         <StackPanel>
           <TextBlock Text="Уровень" FontWeight="Bold" />
-          <TextBlock Text="{Binding Level}" />
+          <TextBlock x:Name="LevelValueText" />
         </StackPanel>
         <StackPanel Grid.Column="1">
           <TextBlock Text="Очки" FontWeight="Bold" />
-          <TextBlock Text="{Binding Score}" />
+          <TextBlock x:Name="ScoreValueText" />
         </StackPanel>
         <StackPanel Grid.Column="2">
           <TextBlock Text="Энергия" FontWeight="Bold" />
-          <TextBlock Text="{Binding Energy}" />
+          <TextBlock x:Name="EnergyValueText" />
         </StackPanel>
         <StackPanel Grid.Column="3">
           <TextBlock Text="Время" FontWeight="Bold" />
-          <TextBlock Text="{Binding TimerText}" />
+          <TextBlock x:Name="TimerValueText" />
         </StackPanel>
       </Grid>
     </Border>
@@ -76,23 +59,21 @@
           <TextBlock Text="Ваш рекорд"
                      FontSize="18"
                      FontWeight="Bold" />
-          <TextBlock Text="{Binding Score}"
+          <TextBlock x:Name="FinalScoreText"
                      FontSize="32"
                      FontWeight="Bold" />
-          <StackPanel IsVisible="{Binding IsInputModeVisible}"
+          <StackPanel x:Name="InputPanel"
                       Spacing="8">
             <TextBlock Text="Новый рекорд!" />
             <TextBlock Text="Введите имя (1–16):" />
-            <TextBox Text="{Binding PlayerName}"
-                     x:Name="PlayerNameTextBox"
+            <TextBox x:Name="PlayerNameTextBox"
                      MaxLength="16"
                      FontSize="16" />
-            <TextBlock Text="{Binding NameError}"
-                       IsVisible="{Binding HasNameError}"
+            <TextBlock x:Name="NameErrorText"
                        Foreground="#FF6B6B"
                        FontSize="12" />
             <Button Content="Сохранить"
-                    Command="{Binding SaveRecordCommand}" />
+                    x:Name="SaveRecordButton" />
           </StackPanel>
         </StackPanel>
       </Border>
@@ -100,31 +81,24 @@
               Background="#1C1C1C"
               CornerRadius="16"
               Padding="16"
-              IsVisible="{Binding IsTableModeVisible}">
+              x:Name="TablePanel">
         <Grid RowDefinitions="Auto,*">
           <TextBlock Text="Топ-10"
                      FontSize="16"
                      FontWeight="Bold"
                      Margin="0,0,0,8" />
-          <dg:DataGrid Grid.Row="1"
-                       AutoGenerateColumns="False"
-                       HeadersVisibility="Column"
-                       IsReadOnly="True"
-                       ItemsSource="{Binding TopRecords}"
-                       GridLinesVisibility="Horizontal">
-            <dg:DataGrid.Columns>
-              <dg:DataGridTextColumn Header="Место" Binding="{Binding Position}" Width="Auto" />
-              <dg:DataGridTextColumn Header="Имя" Binding="{Binding PlayerName}" Width="*" />
-              <dg:DataGridTextColumn Header="Уровень" Binding="{Binding Level}" Width="Auto" />
-              <dg:DataGridTextColumn Header="Очки" Binding="{Binding Score}" Width="Auto" />
-              <dg:DataGridTextColumn Header="Дата (UTC)" Binding="{Binding Time}" Width="Auto" />
-            </dg:DataGrid.Columns>
-          </dg:DataGrid>
-          <TextBlock Grid.Row="1"
-                     IsVisible="{Binding NoRecords}"
-                     Text="Записей нет."
-                     HorizontalAlignment="Center"
-                     VerticalAlignment="Center" />
+          <Grid Grid.Row="1">
+            <TextBlock x:Name="NoRecordsText"
+                       Text="Записей нет."
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+            <ScrollViewer x:Name="RecordsScroll"
+                          VerticalScrollBarVisibility="Visible"
+                          HorizontalScrollBarVisibility="Disabled">
+              <StackPanel x:Name="RecordsPanel"
+                          Spacing="6" />
+            </ScrollViewer>
+          </Grid>
         </Grid>
       </Border>
       <StackPanel Grid.Row="3"
@@ -132,10 +106,10 @@
                   HorizontalAlignment="Center"
                   Spacing="16"
                   Margin="0,8,0,0">
-        <Button Content="Главное меню"
-                Command="{Binding BackToMenuCommand}" />
-        <Button Content="Заново"
-                Command="{Binding RestartCommand}" />
+        <Button x:Name="BackToMenuButton"
+                Content="Главное меню" />
+        <Button x:Name="RestartButton"
+                Content="Заново" />
       </StackPanel>
     </Grid>
   </Grid>

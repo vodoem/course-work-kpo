@@ -1,7 +1,5 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:viewModels="clr-namespace:CosmicCollector.Avalonia.ViewModels"
-             xmlns:views="clr-namespace:CosmicCollector.Avalonia.Views"
              x:Class="CosmicCollector.Avalonia.App">
   <Application.Styles>
     <FluentTheme />
@@ -13,21 +11,4 @@
       <Setter Property="HorizontalContentAlignment" Value="Center" />
     </Style>
   </Application.Styles>
-  <Application.DataTemplates>
-    <DataTemplate DataType="{x:Type viewModels:MainMenuViewModel}">
-      <views:MainMenuView />
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type viewModels:RulesViewModel}">
-      <views:RulesView />
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type viewModels:RecordsViewModel}">
-      <views:RecordsView />
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type viewModels:GameViewModel}">
-      <views:GameView />
-    </DataTemplate>
-    <DataTemplate DataType="{x:Type viewModels:GameOverViewModel}">
-      <views:GameOverView />
-    </DataTemplate>
-  </Application.DataTemplates>
 </Application>

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using CosmicCollector.Avalonia.ViewModels;
 
 namespace CosmicCollector.Avalonia.Views;
 
@@ -20,6 +21,39 @@ public sealed partial class MainMenuView : UserControl
     Focusable = true;
     AttachedToVisualTree += OnAttachedToVisualTree;
     AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
+    DataContextChanged += OnDataContextChanged;
+  }
+
+  private void OnDataContextChanged(object? parSender, EventArgs parArgs)
+  {
+    if (DataContext is not MainMenuViewModel viewModel)
+    {
+      return;
+    }
+
+    var startButton = this.FindControl<Button>("StartGameButton");
+    if (startButton is not null)
+    {
+      startButton.Command = viewModel.StartGameCommand;
+    }
+
+    var rulesButton = this.FindControl<Button>("RulesButton");
+    if (rulesButton is not null)
+    {
+      rulesButton.Command = viewModel.ShowRulesCommand;
+    }
+
+    var recordsButton = this.FindControl<Button>("RecordsButton");
+    if (recordsButton is not null)
+    {
+      recordsButton.Command = viewModel.ShowRecordsCommand;
+    }
+
+    var exitButton = this.FindControl<Button>("ExitButton");
+    if (exitButton is not null)
+    {
+      exitButton.Command = viewModel.ExitCommand;
+    }
   }
 
   private void OnAttachedToVisualTree(object? parSender, VisualTreeAttachmentEventArgs parArgs)
