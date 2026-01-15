@@ -33,7 +33,7 @@ public sealed class App : Application
     if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
     {
       var navigationStore = new NavigationStore();
-      var mainWindow = new MainWindow();
+      var mainWindow = new MainWindow(navigationStore);
       var gameRuntime = new GameRuntime();
       var recordsRepository = new RecordsRepository(AppDataPaths.GetRecordsFilePath());
 
@@ -78,7 +78,6 @@ public sealed class App : Application
       }
 
       navigationStore.CurrentViewModel = CreateMainMenuViewModel();
-      mainWindow.DataContext = new MainWindowViewModel(navigationStore);
       desktop.MainWindow = mainWindow;
     }
 

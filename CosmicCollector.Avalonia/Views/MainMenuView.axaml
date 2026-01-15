@@ -21,20 +21,16 @@
                    TextAlignment="Center" />
         <Button x:Name="StartGameButton"
                 Content="_Играть"
-                Classes="focus-target"
-                Command="{Binding StartGameCommand}" />
+                Classes="focus-target" />
         <Button x:Name="RulesButton"
                 Content="_Правила"
-                Classes="focus-target"
-                Command="{Binding ShowRulesCommand}" />
+                Classes="focus-target" />
         <Button x:Name="RecordsButton"
                 Content="_Рекорды"
-                Classes="focus-target"
-                Command="{Binding ShowRecordsCommand}" />
+                Classes="focus-target" />
         <Button x:Name="ExitButton"
                 Content="_Выход"
-                Classes="focus-target"
-                Command="{Binding ExitCommand}" />
+                Classes="focus-target" />
       </StackPanel>
     </Border>
   </Grid>

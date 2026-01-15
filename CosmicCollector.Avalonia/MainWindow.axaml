@@ -4,5 +4,5 @@
         Width="750"
         Height="750"
         Title="Cosmic Collector">
-  <ContentControl Content="{Binding CurrentViewModel}" />
+  <ContentControl x:Name="ContentHost" />
 </Window>

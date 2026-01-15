@@ -5,6 +5,7 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
 using CosmicCollector.Avalonia.ViewModels;
+using CosmicCollector.Avalonia.Views.Controls;
 
 namespace CosmicCollector.Avalonia.Views;
 
@@ -26,6 +27,25 @@ public sealed partial class GameView : UserControl
     AddHandler(KeyUpEvent, OnKeyUp, RoutingStrategies.Tunnel);
     AttachedToVisualTree += OnAttachedToVisualTree;
     DetachedFromVisualTree += OnDetachedFromVisualTree;
+    DataContextChanged += OnDataContextChanged;
+  }
+
+  private void OnDataContextChanged(object? parSender, EventArgs parArgs)
+  {
+    if (_viewModel is not null)
+    {
+      _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
+    }
+
+    _viewModel = DataContext as GameViewModel;
+    if (_viewModel is null)
+    {
+      return;
+    }
+
+    _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+    ApplyViewModelState();
+    ApplyCommands();
   }
 
   private void OnAttachedToVisualTree(object? parSender, VisualTreeAttachmentEventArgs parArgs)
@@ -34,7 +54,10 @@ public sealed partial class GameView : UserControl
     if (DataContext is GameViewModel viewModel)
     {
       _viewModel = viewModel;
+      _viewModel.PropertyChanged -= OnViewModelPropertyChanged;
       _viewModel.PropertyChanged += OnViewModelPropertyChanged;
+      ApplyViewModelState();
+      ApplyCommands();
       viewModel.Activate();
     }
   }
@@ -51,28 +74,12 @@ public sealed partial class GameView : UserControl
 
   private void OnViewModelPropertyChanged(object? parSender, PropertyChangedEventArgs parArgs)
   {
-    if (parArgs.PropertyName != nameof(GameViewModel.IsPauseOverlayVisible))
+    if (_viewModel is null)
     {
       return;
     }
 
-    if (_viewModel?.IsPauseOverlayVisible != true)
-    {
-      Focus();
-      return;
-    }
-
-    var resumeButton = this.FindControl<Button>("ResumeButton");
-    if (resumeButton is null)
-    {
-      return;
-    }
-
-    Dispatcher.UIThread.Post(() =>
-    {
-      resumeButton.BringIntoView();
-      resumeButton.Focus();
-    }, DispatcherPriority.Loaded);
+    ApplyViewModelState(parArgs.PropertyName);
   }
 
   private void OnKeyDown(object? parSender, KeyEventArgs parArgs)
@@ -126,5 +133,102 @@ public sealed partial class GameView : UserControl
 
     parArgs.Handled = true;
     return true;
+  }
+
+  private void ApplyCommands()
+  {
+    if (_viewModel is null)
+    {
+      return;
+    }
+
+    var resumeButton = this.FindControl<Button>("ResumeButton");
+    if (resumeButton is not null)
+    {
+      resumeButton.Command = _viewModel.ResumeCommand;
+    }
+
+    var exitButton = this.FindControl<Button>("ExitToMenuButton");
+    if (exitButton is not null)
+    {
+      exitButton.Command = _viewModel.ExitToMenuCommand;
+    }
+  }
+
+  private void ApplyViewModelState(string? parPropertyName = null)
+  {
+    if (_viewModel is null)
+    {
+      return;
+    }
+
+    if (parPropertyName is null || parPropertyName == nameof(GameViewModel.LatestSnapshot))
+    {
+      var fieldControl = this.FindControl<GameFieldControl>("GameFieldControl");
+      if (fieldControl is not null)
+      {
+        fieldControl.Snapshot = _viewModel.LatestSnapshot;
+      }
+    }
+
+    if (parPropertyName is null || parPropertyName == nameof(GameViewModel.IsPauseOverlayVisible))
+    {
+      var overlay = this.FindControl<Grid>("PauseOverlay");
+      if (overlay is not null)
+      {
+        overlay.IsVisible = _viewModel.IsPauseOverlayVisible;
+      }
+
+      if (_viewModel.IsPauseOverlayVisible)
+      {
+        FocusPauseButton();
+      }
+      else
+      {
+        Focus();
+      }
+    }
+
+    if (parPropertyName is null || parPropertyName == nameof(GameViewModel.IsCountdownVisible))
+    {
+      var overlay = this.FindControl<Grid>("CountdownOverlay");
+      if (overlay is not null)
+      {
+        overlay.IsVisible = _viewModel.IsCountdownVisible;
+      }
+    }
+
+    if (parPropertyName is null || parPropertyName == nameof(GameViewModel.CountdownValue))
+    {
+      var countdownText = this.FindControl<TextBlock>("CountdownValueText");
+      if (countdownText is not null)
+      {
+        countdownText.Text = _viewModel.CountdownValue.ToString();
+      }
+    }
+
+    if (parPropertyName is null || parPropertyName == nameof(GameViewModel.TimerText))
+    {
+      var hudView = this.FindControl<HudView>("HudView");
+      if (hudView is not null)
+      {
+        hudView.SetViewModel(_viewModel);
+      }
+    }
+  }
+
+  private void FocusPauseButton()
+  {
+    var resumeButton = this.FindControl<Button>("ResumeButton");
+    if (resumeButton is null)
+    {
+      return;
+    }
+
+    Dispatcher.UIThread.Post(() =>
+    {
+      resumeButton.BringIntoView();
+      resumeButton.Focus();
+    }, DispatcherPriority.Loaded);
   }
 }
