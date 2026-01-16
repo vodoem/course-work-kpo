@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CosmicCollector.Avalonia")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+6a4c1d897716bb2238b1790a692c0eb715a2b3f9")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+74c10f067b55bec24ee8a039027b6677e6260744")]
 [assembly: System.Reflection.AssemblyProductAttribute("CosmicCollector.Avalonia")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CosmicCollector.Avalonia")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
