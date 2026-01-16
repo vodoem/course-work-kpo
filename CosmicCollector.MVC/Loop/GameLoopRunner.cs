@@ -87,21 +87,29 @@ public sealed class GameLoopRunner : IGameLoopRunner
   private void RunLoop()
   {
     var stopwatch = Stopwatch.StartNew();
+    var stepDuration = TimeSpan.FromSeconds(StepSeconds);
+    var lastTimestamp = stopwatch.Elapsed;
+    var accumulated = TimeSpan.Zero;
 
     while (IsRunning())
     {
-      var tickStart = stopwatch.Elapsed;
+      var currentTimestamp = stopwatch.Elapsed;
+      accumulated += currentTimestamp - lastTimestamp;
+      lastTimestamp = currentTimestamp;
 
-      ProcessCommands();
+      while (accumulated >= stepDuration)
+      {
+        ProcessCommands();
 
-      _updateCallback?.Invoke(StepSeconds);
+        _updateCallback?.Invoke(StepSeconds);
 
-      var tickNo = _gameState.AdvanceTick();
-      _eventBus.Publish(new GameTick(StepSeconds, tickNo));
+        var tickNo = _gameState.AdvanceTick();
+        _eventBus.Publish(new GameTick(StepSeconds, tickNo));
 
-      var target = tickStart + TimeSpan.FromSeconds(StepSeconds);
-      var remaining = target - stopwatch.Elapsed;
+        accumulated -= stepDuration;
+      }
 
+      var remaining = stepDuration - accumulated;
       if (remaining > TimeSpan.Zero)
       {
         Thread.Sleep(remaining);
