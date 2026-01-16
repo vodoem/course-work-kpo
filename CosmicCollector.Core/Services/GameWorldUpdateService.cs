@@ -248,8 +248,17 @@ public sealed class GameWorldUpdateService
         continue;
       }
 
-      var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
-      parObject.Velocity = parObject.Velocity.Add(acceleration.Multiply(parDt));
+      var normalized = direction.Normalize();
+      var radialSpeed = (parObject.Velocity.X * normalized.X) + (parObject.Velocity.Y * normalized.Y);
+
+      if (radialSpeed < 0)
+      {
+        radialSpeed = 0;
+      }
+
+      var radialVelocity = normalized.Multiply(radialSpeed);
+      var acceleration = normalized.Multiply(BlackHoleAcceleration);
+      parObject.Velocity = radialVelocity.Add(acceleration.Multiply(parDt));
     }
   }
 
