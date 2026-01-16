@@ -27,6 +27,8 @@ public sealed class PauseMenuView : IPauseMenuView
     int fieldHeight = Math.Max(6, height - fieldOffsetY);
     int centerY = fieldOffsetY + (fieldHeight / 2);
 
+    ClearMenuArea(parOptions, centerY, width, height);
+
     if (parMode == PauseMenuMode.ConfirmExit)
     {
       RenderConfirm(width, centerY);
@@ -34,6 +36,27 @@ public sealed class PauseMenuView : IPauseMenuView
     }
 
     RenderMenu(parOptions, parSelectedIndex, width, centerY);
+  }
+
+  /// <summary>
+  /// Выполняет ClearMenuArea.
+  /// </summary>
+  private void ClearMenuArea(PauseMenuOption[] parOptions, int parCenterY, int parWidth, int parHeight)
+  {
+    int startRow = parCenterY - 2;
+    int linesCount = Math.Max(3, parOptions.Length + 2);
+
+    for (int i = 0; i < linesCount; i++)
+    {
+      int row = startRow + i;
+      if (row < 0 || row >= parHeight)
+      {
+        continue;
+      }
+
+      _renderer.SetCursorPosition(0, row);
+      _renderer.Write(new string(' ', parWidth));
+    }
   }
 
   /// <summary>

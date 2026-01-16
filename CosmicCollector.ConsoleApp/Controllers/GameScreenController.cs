@@ -249,9 +249,16 @@ public sealed class GameScreenController
       return;
     }
 
-    _view.Render(snapshot, _level, _isPaused, _countdownValue);
+    bool pauseMenuVisible = _isPaused
+      && Volatile.Read(ref _isPauseMenuVisibleFlag) == 1
+      && _countdownValue <= 0;
 
-    if (_isPaused && Volatile.Read(ref _isPauseMenuVisibleFlag) == 1 && _countdownValue <= 0)
+    if (!pauseMenuVisible)
+    {
+      _view.Render(snapshot, _level, _isPaused, _countdownValue);
+    }
+
+    if (pauseMenuVisible)
     {
       _pauseMenuController.Render();
     }
