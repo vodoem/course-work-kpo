@@ -53,6 +53,7 @@ public sealed class GameEndController
     bool isSaved = false;
     IReadOnlyList<RecordEntry> topRecords = Array.Empty<RecordEntry>();
 
+    _inputReader.ClearBuffer();
     Render(parReason, parSnapshot, parLevel, isHighScore, playerName, isSaved, topRecords);
 
     while (true)
