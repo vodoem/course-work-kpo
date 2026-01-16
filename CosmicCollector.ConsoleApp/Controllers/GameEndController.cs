@@ -67,6 +67,11 @@ public sealed class GameEndController
 
       if (keyInfo.Key == ConsoleKey.R)
       {
+        if (isHighScore && !isSaved)
+        {
+          continue;
+        }
+
         return GameEndAction.RestartGame;
       }
 
