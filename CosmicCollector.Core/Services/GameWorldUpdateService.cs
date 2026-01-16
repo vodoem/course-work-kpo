@@ -26,6 +26,10 @@ public sealed class GameWorldUpdateService
   private const double TimeStabilizerBonusSeconds = 5.0;
   private const double TimeStabilizerBaseSeconds = 60.0;
   private const double DisorientationDurationSec = 3.0;
+  private const double MinDistanceEps = 1e-3;
+  private const double InnerBoostK = 6.0;
+  private const double TangentialDampingK = 12.0;
+  private const double RadialDampingK = 1.5;
 
   private readonly IRandomProvider _randomProvider;
   private readonly SpawnSystem _spawnSystem;
@@ -238,18 +242,41 @@ public sealed class GameWorldUpdateService
   {
     foreach (var blackHole in parBlackHoles)
     {
-      var direction = new Vector2(
+      var toCenter = new Vector2(
         blackHole.Position.X - parObject.Position.X,
         blackHole.Position.Y - parObject.Position.Y);
-      var distance = direction.Length();
 
+      var distance = toCenter.Length();
       if (distance <= 0 || distance > blackHole.Radius)
-      {
         continue;
-      }
 
-      var acceleration = direction.Normalize().Multiply(BlackHoleAcceleration);
-      parObject.Velocity = parObject.Velocity.Add(acceleration.Multiply(parDt));
+      var invDist = 1.0 / Math.Max(distance, MinDistanceEps);
+      var n = toCenter.Multiply(invDist);
+
+      var t = 1.0 - (distance / blackHole.Radius);
+      var boost = 1.0 + InnerBoostK * t * t;
+
+      var accel = n.Multiply(BlackHoleAcceleration * boost);
+      parObject.Velocity = parObject.Velocity.Add(accel.Multiply(parDt));
+
+      var relV = new Vector2(
+        parObject.Velocity.X - blackHole.Velocity.X,
+        parObject.Velocity.Y - blackHole.Velocity.Y);
+
+      var radialSpeed = (relV.X * n.X) + (relV.Y * n.Y);
+      var relVRad = n.Multiply(radialSpeed);
+      var relVTan = new Vector2(relV.X - relVRad.X, relV.Y - relVRad.Y);
+
+      var tanFactor = Math.Max(0.0, 1.0 - TangentialDampingK * t * parDt);
+      var radFactor = Math.Max(0.0, 1.0 - RadialDampingK * t * parDt);
+
+      var newRelV = new Vector2(
+        relVRad.X * radFactor + relVTan.X * tanFactor,
+        relVRad.Y * radFactor + relVTan.Y * tanFactor);
+
+      parObject.Velocity = new Vector2(
+        blackHole.Velocity.X + newRelV.X,
+        blackHole.Velocity.Y + newRelV.Y);
     }
   }
 
