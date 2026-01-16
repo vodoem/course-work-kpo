@@ -65,16 +65,6 @@ public sealed class GameEndController
         return GameEndAction.ReturnToMenu;
       }
 
-      if (keyInfo.Key == ConsoleKey.R)
-      {
-        if (isHighScore && !isSaved)
-        {
-          continue;
-        }
-
-        return GameEndAction.RestartGame;
-      }
-
       if (keyInfo.Key == ConsoleKey.Enter)
       {
         if (isHighScore && !isSaved)
@@ -119,6 +109,11 @@ public sealed class GameEndController
           playerName += keyChar;
           Render(parReason, parSnapshot, parLevel, isHighScore, playerName, isSaved, topRecords);
         }
+      }
+
+      if (keyInfo.Key == ConsoleKey.R && !(isHighScore && !isSaved))
+      {
+        return GameEndAction.RestartGame;
       }
     }
   }
