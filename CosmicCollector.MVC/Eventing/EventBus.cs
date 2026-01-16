@@ -1,3 +1,4 @@
+using System;
 using CosmicCollector.Core.Events;
 
 namespace CosmicCollector.MVC.Eventing;
@@ -37,6 +38,23 @@ public sealed class EventBus : IEventBus
     }
 
     return new Subscription<TEvent>(this, parHandler);
+  }
+
+  /// <inheritdoc />
+  public IDisposable Subscribe<TEvent>(IObserver<TEvent> parObserver) where TEvent : IGameEvent
+  {
+    if (parObserver is null)
+    {
+      throw new ArgumentNullException(nameof(parObserver));
+    }
+
+    return Subscribe<TEvent>(parObserver.OnNext);
+  }
+
+  /// <inheritdoc />
+  public IObservable<TEvent> Observe<TEvent>() where TEvent : IGameEvent
+  {
+    return new EventObservable<TEvent>(this);
   }
 
   /// <summary>
