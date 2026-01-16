@@ -59,6 +59,9 @@ public sealed class GameScreenController
   private bool _menuYesHeld;
   private bool _menuNoHeld;
   private bool _menuPauseHeld;
+  private bool _pauseMenuRendered;
+  private PauseMenuMode _lastPauseMenuMode;
+  private int _lastPauseMenuIndex;
 
   /// <summary>
   /// Создаёт контроллер игрового экрана.
@@ -180,6 +183,7 @@ public sealed class GameScreenController
     {
       SetMoveDirection(0);
       Volatile.Write(ref _isPauseMenuVisibleFlag, 1);
+      _pauseMenuRendered = false;
       _menuPauseHeld = true;
       _menuUpHeld = false;
       _menuDownHeld = false;
@@ -193,6 +197,7 @@ public sealed class GameScreenController
     else
     {
       Volatile.Write(ref _isPauseMenuVisibleFlag, 0);
+      _pauseMenuRendered = false;
     }
   }
 
@@ -253,14 +258,22 @@ public sealed class GameScreenController
       && Volatile.Read(ref _isPauseMenuVisibleFlag) == 1
       && _countdownValue <= 0;
 
-    if (!pauseMenuVisible)
-    {
-      _view.Render(snapshot, _level, _isPaused, _countdownValue);
-    }
-
     if (pauseMenuVisible)
     {
-      _pauseMenuController.Render();
+      PauseMenuMode mode = _pauseMenuController.Mode;
+      int selectedIndex = _pauseMenuController.SelectedIndex;
+      if (!_pauseMenuRendered || mode != _lastPauseMenuMode || selectedIndex != _lastPauseMenuIndex)
+      {
+        _pauseMenuController.Render();
+        _pauseMenuRendered = true;
+        _lastPauseMenuMode = mode;
+        _lastPauseMenuIndex = selectedIndex;
+      }
+    }
+    else
+    {
+      _view.Render(snapshot, _level, _isPaused, _countdownValue);
+      _pauseMenuRendered = false;
     }
 
     if (!_isPaused && _countdownValue > 0)
