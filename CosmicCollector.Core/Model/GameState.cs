@@ -43,7 +43,7 @@ public sealed class GameState
   /// </summary>
   public GameState()
     : this(
-      new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(32, 32), 100),
+      new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(80, 80), 100),
       new WorldBounds(0, 0, 800, 600))
   {
   }

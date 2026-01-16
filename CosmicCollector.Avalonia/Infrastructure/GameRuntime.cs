@@ -115,7 +115,7 @@ public sealed class GameRuntime
       0,
       GameLayoutConstants.WorldWidth,
       GameLayoutConstants.WorldHeight);
-    var droneBounds = new Aabb(32, 32);
+    var droneBounds = new Aabb(80, 80);
     var drone = new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, droneBounds, 100);
     InitializeDrone(drone, bounds);
     return new GameState(drone, bounds);
