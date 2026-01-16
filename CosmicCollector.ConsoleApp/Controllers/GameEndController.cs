@@ -53,6 +53,7 @@ public sealed class GameEndController
     bool isSaved = false;
     IReadOnlyList<RecordEntry> topRecords = Array.Empty<RecordEntry>();
 
+    _inputReader.ClearBuffer();
     Render(parReason, parSnapshot, parLevel, isHighScore, playerName, isSaved, topRecords);
 
     while (true)
@@ -62,11 +63,6 @@ public sealed class GameEndController
       if (keyInfo.Key == ConsoleKey.Escape)
       {
         return GameEndAction.ReturnToMenu;
-      }
-
-      if (keyInfo.Key == ConsoleKey.R)
-      {
-        return GameEndAction.RestartGame;
       }
 
       if (keyInfo.Key == ConsoleKey.Enter)
@@ -113,6 +109,11 @@ public sealed class GameEndController
           playerName += keyChar;
           Render(parReason, parSnapshot, parLevel, isHighScore, playerName, isSaved, topRecords);
         }
+      }
+
+      if (keyInfo.Key == ConsoleKey.R && !(isHighScore && !isSaved))
+      {
+        return GameEndAction.RestartGame;
       }
     }
   }
