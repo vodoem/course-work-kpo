@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CosmicCollector.Avalonia.Views.RecordsView">
+  <Grid RowDefinitions="Auto,*,Auto"
+        Margin="24">
+    <TextBlock Text="Рекорды"
+               FontSize="24"
+               FontWeight="Bold"
+               HorizontalAlignment="Left" />
+    <Border Grid.Row="1"
+            Width="640"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Stretch"
+            Background="#E6E6E6"
+            CornerRadius="16"
+            Padding="16"
+            Margin="0,16,0,0">
+      <Border.Styles>
+        <Style Selector="TextBlock">
+          <Setter Property="Foreground" Value="Black" />
+        </Style>
+      </Border.Styles>
+      <Grid>
+        <TextBlock x:Name="NoRecordsText"
+                   Text="Нет записей"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="16" />
+        <ScrollViewer x:Name="RecordsScroll"
+                      VerticalScrollBarVisibility="Visible"
+                      HorizontalScrollBarVisibility="Disabled">
+          <StackPanel x:Name="RecordsPanel"
+                      Spacing="6" />
+        </ScrollViewer>
+      </Grid>
+    </Border>
+    <Button x:Name="BackButton"
+            Grid.Row="2"
+            Content="Главное меню"
+            HorizontalAlignment="Center"
+            Margin="0,16,0,0" />
+  </Grid>
+</UserControl>

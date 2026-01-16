@@ -11,6 +11,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.7" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\CosmicCollector.Avalonia\CosmicCollector.Avalonia.csproj" />
     <ProjectReference Include="..\CosmicCollector.Core\CosmicCollector.Core.csproj" />
     <ProjectReference Include="..\CosmicCollector.MVC\CosmicCollector.MVC.csproj" />
     <ProjectReference Include="..\CosmicCollector.Persistence\CosmicCollector.Persistence.csproj" />

@@ -1,0 +1,81 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:CosmicCollector.Avalonia.Views.Controls"
+             x:Class="CosmicCollector.Avalonia.Views.GameView">
+  <UserControl.Styles>
+    <Style Selector="Button.focus-target:focus">
+      <Setter Property="Background" Value="#3A3A3A" />
+      <Setter Property="BorderBrush" Value="#FFFFFF" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </UserControl.Styles>
+  <Grid RowDefinitions="Auto,*">
+    <controls:HudView x:Name="HudView"
+                      Margin="24,16,24,12"
+                      HorizontalAlignment="Stretch" />
+    <Border Grid.Row="1"
+            Margin="24,0,24,24"
+            Background="#0F0F0F"
+            BorderBrush="#2E2E2E"
+            BorderThickness="2"
+            CornerRadius="12"
+            ClipToBounds="True">
+      <controls:GameFieldControl x:Name="GameFieldControl"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch"
+                                 ClipToBounds="True" />
+    </Border>
+    <Grid Grid.RowSpan="2"
+          x:Name="PauseOverlay"
+          Background="#80000000">
+      <Border Width="360"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="#2A2A2A"
+              CornerRadius="16"
+              Padding="24">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+          </Style>
+        </Border.Styles>
+        <StackPanel Spacing="16"
+                    HorizontalAlignment="Center">
+          <TextBlock Text="Пауза"
+                     FontSize="20"
+                     FontWeight="Bold"
+                     HorizontalAlignment="Center" />
+          <Button x:Name="ResumeButton"
+                  Content="_Продолжить"
+                  Classes="focus-target"
+                  />
+          <Button x:Name="ExitToMenuButton"
+                  Content="_Главное меню"
+                  Classes="focus-target"
+                  />
+        </StackPanel>
+      </Border>
+    </Grid>
+    <Grid Grid.RowSpan="2"
+          x:Name="CountdownOverlay"
+          Background="#80000000">
+      <Border Width="240"
+              Height="200"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center"
+              Background="#2A2A2A"
+              CornerRadius="16">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="White" />
+          </Style>
+        </Border.Styles>
+        <TextBlock x:Name="CountdownValueText"
+                   FontSize="72"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center" />
+      </Border>
+    </Grid>
+  </Grid>
+</UserControl>
