@@ -71,7 +71,18 @@ public sealed class RecordsRepository : IRecordsRepository
   public void Add(RecordEntry parRecord)
   {
     var records = LoadAll().ToList();
-    records.Add(parRecord);
+    var existingIndex = records.FindIndex(record =>
+      string.Equals(record.parPlayerName, parRecord.parPlayerName, StringComparison.Ordinal));
+
+    if (existingIndex >= 0)
+    {
+      records[existingIndex] = parRecord;
+    }
+    else
+    {
+      records.Add(parRecord);
+    }
+
     SaveAll(records);
   }
 }
