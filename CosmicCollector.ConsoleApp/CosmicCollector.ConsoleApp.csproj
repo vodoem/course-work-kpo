@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="..\rules\rules-text.md">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>rules\rules-text.md</TargetPath>
+    </Content>
+    <Content Include="..\records.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <TargetPath>records.json</TargetPath>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CosmicCollector.Persistence\CosmicCollector.Persistence.csproj" />
+    <ProjectReference Include="..\CosmicCollector.Core\CosmicCollector.Core.csproj" />
+    <ProjectReference Include="..\CosmicCollector.MVC\CosmicCollector.MVC.csproj" />
+  </ItemGroup>
+</Project>
