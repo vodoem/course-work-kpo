@@ -14,6 +14,7 @@ using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Snapshots;
 using CosmicCollector.MVC.Commands;
+using CosmicCollector.MVC.Eventing;
 
 namespace CosmicCollector.Avalonia.ViewModels;
 
@@ -514,11 +515,16 @@ public sealed class GameViewModel : ViewModelBase
 
   private void SubscribeToEvents()
   {
-    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<GameTick>(OnGameTick));
-    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<GameOver>(OnGameOver));
-    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<LevelCompleted>(OnLevelCompleted));
-    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<PauseToggled>(OnPauseToggled));
-    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<CountdownTick>(OnCountdownTick));
+    _subscriptions.Add(_gameRuntime.EventBus.Observe<GameTick>()
+      .Subscribe(new EventObserver<GameTick>(OnGameTick)));
+    _subscriptions.Add(_gameRuntime.EventBus.Observe<GameOver>()
+      .Subscribe(new EventObserver<GameOver>(OnGameOver)));
+    _subscriptions.Add(_gameRuntime.EventBus.Observe<LevelCompleted>()
+      .Subscribe(new EventObserver<LevelCompleted>(OnLevelCompleted)));
+    _subscriptions.Add(_gameRuntime.EventBus.Observe<PauseToggled>()
+      .Subscribe(new EventObserver<PauseToggled>(OnPauseToggled)));
+    _subscriptions.Add(_gameRuntime.EventBus.Observe<CountdownTick>()
+      .Subscribe(new EventObserver<CountdownTick>(OnCountdownTick)));
   }
 
   private void UnsubscribeFromEvents()
