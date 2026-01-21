@@ -82,6 +82,32 @@ public sealed class RecordsRepositoryTests
   }
 
   /// <summary>
+  /// Проверяет, что запись обновляется при совпадении имени игрока.
+  /// </summary>
+  [Xunit.Fact]
+  public void Add_DuplicatePlayerName_ReplacesRecord()
+  {
+    var directory = CreateTempDirectory();
+    var filePath = Path.Combine(directory, "records.json");
+    var repository = new RecordsRepository(filePath);
+
+    try
+    {
+      repository.Add(new RecordEntry("Ada", 120, 2, "2025-01-01T00:00:00Z"));
+      repository.Add(new RecordEntry("Ada", 240, 4, "2025-02-01T00:00:00Z"));
+
+      var loaded = repository.LoadAll();
+
+      Xunit.Assert.Single(loaded);
+      Xunit.Assert.Equal(new RecordEntry("Ada", 240, 4, "2025-02-01T00:00:00Z"), loaded[0]);
+    }
+    finally
+    {
+      Directory.Delete(directory, true);
+    }
+  }
+
+  /// <summary>
   /// Проверяет сценарий CreateTempDirectory.
   /// </summary>
   private static string CreateTempDirectory()
