@@ -16,6 +16,7 @@ using Xunit;
 
 namespace CosmicCollector.Tests;
 
+[Xunit.Collection("GameRuntime")]
 public sealed class GameViewModelTests
 {
   // Batch 3: клавиатура + очередь команд + активность/неактивность + HUD-инварианты.
@@ -177,7 +178,7 @@ public sealed class GameViewModelTests
   public void Activate_CallsRuntimeStart_AndInitializesFieldBoundsFromWorldBounds()
   {
     // Arrange
-    var runtime = new GameRuntime();
+    var runtime = GameRuntime.CreateNew();
     var viewModel = CreateViewModel(runtime);
 
     try
@@ -201,7 +202,7 @@ public sealed class GameViewModelTests
   public void Activate_SecondCall_IsIdempotent_DoesNotStartTwice()
   {
     // Arrange
-    var runtime = new GameRuntime();
+    var runtime = GameRuntime.CreateNew();
     var viewModel = CreateViewModel(runtime);
 
     try
@@ -630,7 +631,7 @@ public sealed class GameViewModelTests
   }
 
   [Fact]
-  public void ExitToMenuCommand_DeactivatesAndNavigatesToMainMenu()
+  public void ExitToMenuCommand_RequestsMenuAndNavigatesAfterEvent()
   {
     // Arrange
     var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
@@ -640,9 +641,13 @@ public sealed class GameViewModelTests
 
     // Act
     viewModel.ExitToMenuCommand.Execute(null);
+    var commands = runtime.CommandQueue.DrainAll();
+    runtime.EventBus.Publish(new MenuNavigationRequested(false));
+    DrainUiThread();
     var stopped = WaitForRuntimeStop(runtime);
 
     // Assert
+    Assert.Single(commands, command => command is RequestBackToMenuCommand);
     Assert.Equal(1, navigation.MainMenu.NavigateCount);
     Assert.True(stopped);
   }
@@ -671,7 +676,7 @@ public sealed class GameViewModelTests
 
   private static GameRuntime CreateInitializedRuntime(WorldBounds parBounds)
   {
-    var runtime = new GameRuntime();
+    var runtime = GameRuntime.CreateNew();
     var drone = new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(32, 32), 100);
     var gameState = new GameState(drone, parBounds);
     var eventBus = new EventBus();

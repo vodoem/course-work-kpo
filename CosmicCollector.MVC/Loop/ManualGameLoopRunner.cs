@@ -1,8 +1,6 @@
 using CosmicCollector.Core.Events;
-using CosmicCollector.Core.Model;
-using CosmicCollector.Core.Services;
-using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
+using CosmicCollector.MVC.Flow;
 
 namespace CosmicCollector.MVC.Loop;
 
@@ -12,7 +10,7 @@ namespace CosmicCollector.MVC.Loop;
 public sealed class ManualGameLoopRunner
 {
   private const double StepSeconds = 1.0 / 60.0;
-  private readonly GameState _gameState;
+  private readonly IGameFlowController _flowController;
   private readonly CommandQueue _commandQueue;
   private readonly IEventBus _eventBus;
   private readonly Action<double>? _updateCallback;
@@ -20,17 +18,17 @@ public sealed class ManualGameLoopRunner
   /// <summary>
   /// Инициализирует управляемый игровой цикл.
   /// </summary>
-  /// <param name="parGameState">Состояние игры.</param>
+  /// <param name="parFlowController">Контроллер игрового процесса.</param>
   /// <param name="parCommandQueue">Очередь команд.</param>
   /// <param name="parEventBus">Шина событий.</param>
   /// <param name="parUpdateCallback">Колбэк обновления мира.</param>
   public ManualGameLoopRunner(
-    GameState parGameState,
+    IGameFlowController parFlowController,
     CommandQueue parCommandQueue,
     IEventBus parEventBus,
     Action<double>? parUpdateCallback)
   {
-    _gameState = parGameState;
+    _flowController = parFlowController;
     _commandQueue = parCommandQueue;
     _eventBus = parEventBus;
     _updateCallback = parUpdateCallback;
@@ -43,9 +41,12 @@ public sealed class ManualGameLoopRunner
   {
     ProcessCommands();
 
-    _updateCallback?.Invoke(StepSeconds);
+    if (_flowController.AllowsWorldTick)
+    {
+      _updateCallback?.Invoke(StepSeconds);
+    }
 
-    var tickNo = _gameState.AdvanceTick();
+    var tickNo = _flowController.GameState.AdvanceTick();
     _eventBus.Publish(new GameTick(StepSeconds, tickNo));
   }
 
@@ -58,37 +59,7 @@ public sealed class ManualGameLoopRunner
 
     foreach (var command in commands)
     {
-      if (command is TogglePauseCommand)
-      {
-        var isPaused = _gameState.TogglePause();
-        _eventBus.Publish(new PauseToggled(isPaused));
-        continue;
-      }
-
-      if (command is SetMoveDirectionCommand setMoveDirectionCommand)
-      {
-        ApplyMoveCommand(setMoveDirectionCommand.DirectionX);
-        continue;
-      }
-
-      if (command is MoveLeftCommand)
-      {
-        ApplyMoveCommand(-1);
-        continue;
-      }
-
-      if (command is MoveRightCommand)
-      {
-        ApplyMoveCommand(1);
-      }
+      _flowController.HandleCommand(command);
     }
-  }
-
-  /// <summary>
-  /// Выполняет ApplyMoveCommand.
-  /// </summary>
-  private void ApplyMoveCommand(int parDirection)
-  {
-    _gameState.SetDroneMoveDirection(parDirection);
   }
 }
