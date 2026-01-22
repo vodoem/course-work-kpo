@@ -6,6 +6,7 @@ using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
+using CosmicCollector.MVC.Flow;
 using CosmicCollector.MVC.Loop;
 
 namespace CosmicCollector.Tests;
@@ -25,10 +26,11 @@ public sealed class GameLoopTests
     var queue = new CommandQueue();
     var bus = new EventBus();
     var ticks = 0;
+    var flowController = new GameFlowController(state, bus, new PlayingState());
 
     bus.Subscribe<GameTick>(_ => ticks++);
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+    var runner = new ManualGameLoopRunner(flowController, queue, bus, _ => { });
 
     runner.TickOnce();
     runner.TickOnce();
@@ -46,7 +48,8 @@ public sealed class GameLoopTests
     var state = new GameState();
     var queue = new CommandQueue();
     var bus = new EventBus();
-    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+    var flowController = new GameFlowController(state, bus, new PlayingState());
+    var runner = new ManualGameLoopRunner(flowController, queue, bus, _ => { });
 
     var updateTask = Task.Run(() =>
     {
@@ -75,10 +78,11 @@ public sealed class GameLoopTests
     var queue = new CommandQueue();
     var bus = new EventBus();
     var toggledValues = new List<bool>();
+    var flowController = new GameFlowController(state, bus, new PlayingState());
 
     bus.Subscribe<PauseToggled>(evt => toggledValues.Add(evt.parIsPaused));
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+    var runner = new ManualGameLoopRunner(flowController, queue, bus, _ => { });
 
     queue.Enqueue(new TogglePauseCommand());
     runner.TickOnce();
@@ -101,6 +105,7 @@ public sealed class GameLoopTests
       new WorldBounds(0, 0, 800, 600));
     var queue = new CommandQueue();
     var bus = new EventBus();
+    var flowController = new GameFlowController(state, bus, new PlayingState());
     state.Drone.Position = new Vector2(10, 0);
     state.AddBlackHole(new BlackHole(
       Guid.NewGuid(),
@@ -112,7 +117,7 @@ public sealed class GameLoopTests
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var runner = new ManualGameLoopRunner(flowController, queue, bus, dt => service.Update(state, dt, 1, bus));
     var startX = state.Drone.Position.X;
 
     queue.Enqueue(new SetMoveDirectionCommand(-1));

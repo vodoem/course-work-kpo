@@ -34,7 +34,7 @@ public sealed class App : Application
     {
       var navigationStore = new NavigationStore();
       var mainWindow = new MainWindow(navigationStore);
-      var gameRuntime = new GameRuntime();
+      var gameRuntime = GameRuntime.Instance;
       var recordsRepository = new RecordsRepository(AppDataPaths.GetRecordsFilePath());
 
       NavigationService CreateNavigationService(Func<ViewModelBase> parViewModelFactory)

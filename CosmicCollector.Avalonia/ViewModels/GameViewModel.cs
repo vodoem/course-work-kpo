@@ -89,6 +89,7 @@ public sealed class GameViewModel : ViewModelBase
   /// </summary>
   public ICommand ExitToMenuCommand { get; }
 
+
   /// <summary>
   /// Последний снимок рендера.
   /// </summary>
@@ -519,6 +520,7 @@ public sealed class GameViewModel : ViewModelBase
     _subscriptions.Add(_gameRuntime.EventBus.Subscribe<LevelCompleted>(OnLevelCompleted));
     _subscriptions.Add(_gameRuntime.EventBus.Subscribe<PauseToggled>(OnPauseToggled));
     _subscriptions.Add(_gameRuntime.EventBus.Subscribe<CountdownTick>(OnCountdownTick));
+    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<MenuNavigationRequested>(OnMenuNavigationRequested));
   }
 
   private void UnsubscribeFromEvents()
@@ -589,6 +591,20 @@ public sealed class GameViewModel : ViewModelBase
   private void OnCountdownTick(CountdownTick parEvent)
   {
     Dispatcher.UIThread.Post(() => CountdownValue = parEvent.parValue);
+  }
+
+  private void OnMenuNavigationRequested(MenuNavigationRequested parEvent)
+  {
+    Dispatcher.UIThread.Post(() =>
+    {
+      if (!_isActive)
+      {
+        return;
+      }
+
+      Deactivate();
+      _mainMenuNavigation.Navigate();
+    });
   }
 
   private void UpdateFromSnapshot(GameSnapshot parSnapshot)
@@ -752,7 +768,12 @@ public sealed class GameViewModel : ViewModelBase
 
   private void HandleBackToMenu()
   {
-    Deactivate();
-    _mainMenuNavigation.Navigate();
+    if (!_isActive)
+    {
+      return;
+    }
+
+    _gameRuntime.CommandQueue.Enqueue(new RequestBackToMenuCommand());
   }
+
 }

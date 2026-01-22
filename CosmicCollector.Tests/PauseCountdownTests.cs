@@ -8,6 +8,7 @@ using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
+using CosmicCollector.MVC.Flow;
 using CosmicCollector.MVC.Loop;
 
 namespace CosmicCollector.Tests;
@@ -29,11 +30,12 @@ public sealed class PauseCountdownTests
     var queue = new CommandQueue();
     var toggles = new List<bool>();
     var countdownValues = new List<int>();
+    var flowController = new GameFlowController(state, bus, new PlayingState());
 
     bus.Subscribe<PauseToggled>(evt => toggles.Add(evt.parIsPaused));
     bus.Subscribe<CountdownTick>(evt => countdownValues.Add(evt.parValue));
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var runner = new ManualGameLoopRunner(flowController, queue, bus, dt => service.Update(state, dt, 1, bus));
 
     queue.Enqueue(new TogglePauseCommand());
     runner.TickOnce();
@@ -62,7 +64,8 @@ public sealed class PauseCountdownTests
     var service = CreateService();
     var bus = new EventBus();
     var queue = new CommandQueue();
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var flowController = new GameFlowController(state, bus, new PlayingState());
+    var runner = new ManualGameLoopRunner(flowController, queue, bus, dt => service.Update(state, dt, 1, bus));
 
     state.LevelTimeRemainingSec = 10;
     queue.Enqueue(new TogglePauseCommand());
@@ -86,7 +89,8 @@ public sealed class PauseCountdownTests
     var service = CreateService();
     var bus = new EventBus();
     var queue = new CommandQueue();
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var flowController = new GameFlowController(state, bus, new PlayingState());
+    var runner = new ManualGameLoopRunner(flowController, queue, bus, dt => service.Update(state, dt, 1, bus));
 
     state.LevelTimeRemainingSec = 10;
     queue.Enqueue(new TogglePauseCommand());

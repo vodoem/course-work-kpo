@@ -23,8 +23,6 @@ public sealed class GameWorldUpdateService
   private const double AcceleratorScoreMultiplier = 2.0;
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
-  private const double TimeStabilizerBonusSeconds = 5.0;
-  private const double TimeStabilizerBaseSeconds = 60.0;
   private const double DisorientationDurationSec = 3.0;
   private const double MinDistanceEps = 1e-3;
   private const double InnerBoostK = 6.0;
@@ -34,13 +32,18 @@ public sealed class GameWorldUpdateService
   private readonly IRandomProvider _randomProvider;
   private readonly SpawnSystem _spawnSystem;
   private readonly LevelService _levelService;
+  private readonly IBonusEffectApplier _bonusEffectApplier;
 
   /// <summary>
   /// Инициализирует сервис обновления мира.
   /// </summary>
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   public GameWorldUpdateService(IRandomProvider parRandomProvider)
-    : this(parRandomProvider, SpawnConfig.Disabled, new LevelService(new LevelConfigProvider()))
+    : this(
+      parRandomProvider,
+      SpawnConfig.Disabled,
+      new LevelService(new LevelConfigProvider()),
+      new BonusEffectApplier())
   {
   }
 
@@ -50,7 +53,11 @@ public sealed class GameWorldUpdateService
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   /// <param name="parSpawnConfig">Конфигурация спавна.</param>
   public GameWorldUpdateService(IRandomProvider parRandomProvider, SpawnConfig parSpawnConfig)
-    : this(parRandomProvider, parSpawnConfig, new LevelService(new LevelConfigProvider()))
+    : this(
+      parRandomProvider,
+      parSpawnConfig,
+      new LevelService(new LevelConfigProvider()),
+      new BonusEffectApplier())
   {
   }
 
@@ -60,14 +67,17 @@ public sealed class GameWorldUpdateService
   /// <param name="parRandomProvider">Провайдер случайных значений.</param>
   /// <param name="parSpawnConfig">Конфигурация спавна.</param>
   /// <param name="parLevelService">Сервис уровней.</param>
+  /// <param name="parBonusEffectApplier">Аплайер бонусов.</param>
   public GameWorldUpdateService(
     IRandomProvider parRandomProvider,
     SpawnConfig parSpawnConfig,
-    LevelService parLevelService)
+    LevelService parLevelService,
+    IBonusEffectApplier parBonusEffectApplier)
   {
     _randomProvider = parRandomProvider;
     _spawnSystem = new SpawnSystem(parRandomProvider, parSpawnConfig);
     _levelService = parLevelService;
+    _bonusEffectApplier = parBonusEffectApplier;
   }
 
   /// <summary>
@@ -672,29 +682,10 @@ public sealed class GameWorldUpdateService
     Bonus parBonus,
     ref bool refTimeStabilizerCollected)
   {
-    switch (parBonus.Type)
+    var blocksTimerDecrease = _bonusEffectApplier.Apply(parGameState, parBonus);
+    if (blocksTimerDecrease)
     {
-      case BonusType.Accelerator:
-        parGameState.AcceleratorRemainingSec = Math.Max(
-          parGameState.AcceleratorRemainingSec,
-          parBonus.DurationSec);
-        break;
-      case BonusType.TimeStabilizer:
-        parGameState.TimeStabilizerRemainingSec = Math.Max(
-          parGameState.TimeStabilizerRemainingSec,
-          parBonus.DurationSec);
-        if (!parGameState.HasLevelTimer)
-        {
-          parGameState.LevelTimeRemainingSec = TimeStabilizerBaseSeconds;
-        }
-        parGameState.LevelTimeRemainingSec += TimeStabilizerBonusSeconds;
-        refTimeStabilizerCollected = true;
-        break;
-      case BonusType.Magnet:
-        parGameState.MagnetRemainingSec = Math.Max(
-          parGameState.MagnetRemainingSec,
-          parBonus.DurationSec);
-        break;
+      refTimeStabilizerCollected = true;
     }
   }
 

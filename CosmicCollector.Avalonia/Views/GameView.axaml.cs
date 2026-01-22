@@ -153,6 +153,7 @@ public sealed partial class GameView : UserControl
     {
       exitButton.Command = _viewModel.ExitToMenuCommand;
     }
+
   }
 
   private void ApplyViewModelState(string? parPropertyName = null)
@@ -231,4 +232,5 @@ public sealed partial class GameView : UserControl
       resumeButton.Focus();
     }, DispatcherPriority.Loaded);
   }
+
 }

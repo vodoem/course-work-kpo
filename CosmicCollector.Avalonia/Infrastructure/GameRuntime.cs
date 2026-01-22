@@ -7,6 +7,7 @@ using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
+using CosmicCollector.MVC.Flow;
 using CosmicCollector.MVC.Loop;
 
 namespace CosmicCollector.Avalonia.Infrastructure;
@@ -16,13 +17,35 @@ namespace CosmicCollector.Avalonia.Infrastructure;
 /// </summary>
 public sealed class GameRuntime
 {
+  private static readonly object InstanceLock = new();
+  private static GameRuntime? _instance;
   private readonly object _lockObject = new();
   private GameState? _gameState;
   private EventBus? _eventBus;
   private CommandQueue? _commandQueue;
   private GameLoopRunner? _gameLoopRunner;
   private GameWorldUpdateService? _updateService;
+  private GameFlowController? _flowController;
   private bool _isRunning;
+
+  private GameRuntime()
+  {
+  }
+
+  /// <summary>
+  /// Возвращает активный экземпляр runtime.
+  /// </summary>
+  public static GameRuntime Instance
+  {
+    get
+    {
+      lock (InstanceLock)
+      {
+        _instance ??= new GameRuntime();
+        return _instance;
+      }
+    }
+  }
 
   /// <summary>
   /// Возвращает шину событий текущей сессии.
@@ -38,6 +61,12 @@ public sealed class GameRuntime
   /// Возвращает состояние игры текущей сессии.
   /// </summary>
   public GameState GameState => _gameState ?? throw new InvalidOperationException("Сессия не запущена.");
+
+  /// <summary>
+  /// Возвращает текущее состояние игрового процесса.
+  /// </summary>
+  public IGameFlowState CurrentState => _flowController?.CurrentState
+                                        ?? throw new InvalidOperationException("Сессия не запущена.");
 
   /// <summary>
   /// Запускает игровую сессию.
@@ -56,7 +85,8 @@ public sealed class GameRuntime
       _eventBus = new EventBus();
       _commandQueue = new CommandQueue();
       _updateService = new GameWorldUpdateService(new DefaultRandomProvider(), SpawnConfig.Default);
-      _gameLoopRunner = new GameLoopRunner(_gameState, _commandQueue, _eventBus, UpdateWorld);
+      _flowController = new GameFlowController(_gameState, _eventBus, new PlayingState());
+      _gameLoopRunner = new GameLoopRunner(_flowController, _commandQueue, _eventBus, UpdateWorld);
 
       _eventBus.Publish(new GameStarted(_gameState.CurrentLevel));
       _gameLoopRunner.Start();
@@ -82,6 +112,8 @@ public sealed class GameRuntime
       _gameState = null;
       _eventBus = null;
       _commandQueue = null;
+      _flowController?.Dispose();
+      _flowController = null;
     }
   }
 
@@ -92,6 +124,20 @@ public sealed class GameRuntime
   public Core.Snapshots.GameSnapshot GetSnapshot()
   {
     return GameState.GetSnapshot();
+  }
+
+  /// <summary>
+  /// Выполняет переход между состояниями игрового процесса.
+  /// </summary>
+  /// <param name="parNextState">Следующее состояние.</param>
+  public void TransitionTo(IGameFlowState parNextState)
+  {
+    if (_flowController is null)
+    {
+      throw new InvalidOperationException("Сессия не запущена.");
+    }
+
+    _flowController.TransitionTo(parNextState);
   }
 
   private void UpdateWorld(double parDt)
