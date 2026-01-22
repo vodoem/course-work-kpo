@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using CosmicCollector.Core.Events;
+using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Flow;
 

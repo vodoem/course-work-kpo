@@ -178,7 +178,7 @@ public sealed class GameViewModelTests
   public void Activate_CallsRuntimeStart_AndInitializesFieldBoundsFromWorldBounds()
   {
     // Arrange
-    var runtime = GameRuntime.CreateNew();
+    var runtime = GameRuntime.Instance;
     var viewModel = CreateViewModel(runtime);
 
     try
@@ -202,7 +202,7 @@ public sealed class GameViewModelTests
   public void Activate_SecondCall_IsIdempotent_DoesNotStartTwice()
   {
     // Arrange
-    var runtime = GameRuntime.CreateNew();
+    var runtime = GameRuntime.Instance;
     var viewModel = CreateViewModel(runtime);
 
     try
@@ -676,7 +676,7 @@ public sealed class GameViewModelTests
 
   private static GameRuntime CreateInitializedRuntime(WorldBounds parBounds)
   {
-    var runtime = GameRuntime.CreateNew();
+    var runtime = GameRuntime.Instance;
     var drone = new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(32, 32), 100);
     var gameState = new GameState(drone, parBounds);
     var eventBus = new EventBus();

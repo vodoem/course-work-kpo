@@ -5,6 +5,7 @@ using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
+using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Flow;
 using CosmicCollector.MVC.Loop;
@@ -43,32 +44,6 @@ public sealed class GameRuntime
         _instance ??= new GameRuntime();
         return _instance;
       }
-    }
-  }
-
-  /// <summary>
-  /// Создаёт новый runtime и останавливает предыдущий.
-  /// </summary>
-  /// <returns>Новый runtime.</returns>
-  public static GameRuntime CreateNew()
-  {
-    lock (InstanceLock)
-    {
-      _instance?.Stop();
-      _instance = new GameRuntime();
-      return _instance;
-    }
-  }
-
-  /// <summary>
-  /// Сбрасывает runtime для тестов.
-  /// </summary>
-  internal static void ResetForTests()
-  {
-    lock (InstanceLock)
-    {
-      _instance?.Stop();
-      _instance = null;
     }
   }
 
