@@ -24,7 +24,6 @@ public sealed class PausedState : IGameFlowState
   {
   }
 
-  /// <inheritdoc />
   public void HandleCommand(IGameFlowContext parContext, IGameCommand parCommand)
   {
     if (parCommand is TogglePauseCommand)
@@ -35,9 +34,32 @@ public sealed class PausedState : IGameFlowState
       return;
     }
 
+    if (parCommand is SetMoveDirectionCommand setMoveDirectionCommand)
+    {
+      ApplyMoveCommand(parContext, setMoveDirectionCommand.DirectionX);
+      return;
+    }
+
+    if (parCommand is MoveLeftCommand)
+    {
+      ApplyMoveCommand(parContext, -1);
+      return;
+    }
+
+    if (parCommand is MoveRightCommand)
+    {
+      ApplyMoveCommand(parContext, 1);
+      return;
+    }
+
     if (parCommand is RequestBackToMenuCommand)
     {
       parContext.TransitionTo(new MenuState());
     }
+  }
+
+  private static void ApplyMoveCommand(IGameFlowContext parContext, int parDirection)
+  {
+    parContext.GameState.SetDroneMoveDirection(parDirection);
   }
 }
