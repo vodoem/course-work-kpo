@@ -6,6 +6,7 @@ using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
+using CosmicCollector.MVC.Flow;
 using CosmicCollector.MVC.Loop;
 
 namespace CosmicCollector.Tests;
@@ -28,7 +29,7 @@ public sealed class GameLoopTests
 
     bus.Subscribe<GameTick>(_ => ticks++);
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { }, new StubCommandHandler());
 
     runner.TickOnce();
     runner.TickOnce();
@@ -46,7 +47,7 @@ public sealed class GameLoopTests
     var state = new GameState();
     var queue = new CommandQueue();
     var bus = new EventBus();
-    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { }, new StubCommandHandler());
 
     var updateTask = Task.Run(() =>
     {
@@ -75,10 +76,12 @@ public sealed class GameLoopTests
     var queue = new CommandQueue();
     var bus = new EventBus();
     var toggledValues = new List<bool>();
+    var service = new GameWorldUpdateService(new FakeRandomProvider(1));
+    var runtime = new TestGameFlowRuntime(state, bus, service, new ResumeCountdownService(), new PlayingState());
 
     bus.Subscribe<PauseToggled>(evt => toggledValues.Add(evt.parIsPaused));
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, _ => { });
+    var runner = new ManualGameLoopRunner(state, queue, bus, runtime.Tick, runtime);
 
     queue.Enqueue(new TogglePauseCommand());
     runner.TickOnce();
@@ -112,12 +115,20 @@ public sealed class GameLoopTests
 
     service.Update(state, 1.0 / 60.0, 1, bus);
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var runtime = new TestGameFlowRuntime(state, bus, service, new ResumeCountdownService(), new PlayingState());
+    var runner = new ManualGameLoopRunner(state, queue, bus, runtime.Tick, runtime);
     var startX = state.Drone.Position.X;
 
     queue.Enqueue(new SetMoveDirectionCommand(-1));
     runner.TickOnce();
 
     Xunit.Assert.True(state.Drone.Position.X > startX);
+  }
+
+  private sealed class StubCommandHandler : IGameCommandHandler
+  {
+    public void HandleCommand(IGameCommand parCommand)
+    {
+    }
   }
 }

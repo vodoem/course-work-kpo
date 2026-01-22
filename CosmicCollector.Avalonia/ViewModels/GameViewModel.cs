@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Avalonia.Input;
 using Avalonia.Threading;
 using CosmicCollector.Avalonia.Commands;
-using CosmicCollector.Avalonia.Infrastructure;
 using CosmicCollector.Avalonia.Navigation;
 using CosmicCollector.Avalonia.Rendering;
 using CosmicCollector.Core.Entities;
@@ -14,6 +13,7 @@ using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Snapshots;
 using CosmicCollector.MVC.Commands;
+using CosmicCollector.MVC.Runtime;
 
 namespace CosmicCollector.Avalonia.ViewModels;
 
@@ -43,6 +43,7 @@ public sealed class GameViewModel : ViewModelBase
   private string _redProgressText = "R: 0/0";
   private string _timerText = "—";
   private bool _isPaused;
+  private bool _isConfirmSaveVisible;
   private int _countdownValue;
   private string _hudTargetScoreText = "Цель очков: 0";
   private string _hudTimerValueText = "—";
@@ -72,6 +73,9 @@ public sealed class GameViewModel : ViewModelBase
     BackToMenuCommand = new DelegateCommand(HandleBackToMenu);
     ResumeCommand = new DelegateCommand(HandleResume);
     ExitToMenuCommand = new DelegateCommand(HandleBackToMenu);
+    ConfirmSaveYesCommand = new DelegateCommand(HandleConfirmSaveYes);
+    ConfirmSaveNoCommand = new DelegateCommand(HandleConfirmSaveNo);
+    ConfirmSaveCancelCommand = new DelegateCommand(HandleConfirmSaveCancel);
   }
 
   /// <summary>
@@ -88,6 +92,21 @@ public sealed class GameViewModel : ViewModelBase
   /// Команда выхода в главное меню.
   /// </summary>
   public ICommand ExitToMenuCommand { get; }
+
+  /// <summary>
+  /// Команда подтверждения сохранения и выхода в меню.
+  /// </summary>
+  public ICommand ConfirmSaveYesCommand { get; }
+
+  /// <summary>
+  /// Команда выхода в меню без сохранения.
+  /// </summary>
+  public ICommand ConfirmSaveNoCommand { get; }
+
+  /// <summary>
+  /// Команда отмены выхода в меню.
+  /// </summary>
+  public ICommand ConfirmSaveCancelCommand { get; }
 
   /// <summary>
   /// Последний снимок рендера.
@@ -248,6 +267,21 @@ public sealed class GameViewModel : ViewModelBase
   }
 
   /// <summary>
+  /// Признак отображения подтверждения сохранения.
+  /// </summary>
+  public bool IsConfirmSaveVisible
+  {
+    get => _isConfirmSaveVisible;
+    private set
+    {
+      _isConfirmSaveVisible = value;
+      OnPropertyChanged();
+      OnPropertyChanged(nameof(IsPauseOverlayVisible));
+      OnPropertyChanged(nameof(IsCountdownVisible));
+    }
+  }
+
+  /// <summary>
   /// Значение обратного отсчёта.
   /// </summary>
   public int CountdownValue
@@ -265,12 +299,12 @@ public sealed class GameViewModel : ViewModelBase
   /// <summary>
   /// Признак видимости оверлея паузы.
   /// </summary>
-  public bool IsPauseOverlayVisible => IsPaused && CountdownValue <= 0;
+  public bool IsPauseOverlayVisible => IsPaused && CountdownValue <= 0 && !IsConfirmSaveVisible;
 
   /// <summary>
   /// Признак видимости оверлея отсчёта.
   /// </summary>
-  public bool IsCountdownVisible => IsPaused && CountdownValue > 0;
+  public bool IsCountdownVisible => IsPaused && CountdownValue > 0 && !IsConfirmSaveVisible;
 
   /// <summary>
   /// Текст цели очков для HUD.
@@ -519,6 +553,9 @@ public sealed class GameViewModel : ViewModelBase
     _subscriptions.Add(_gameRuntime.EventBus.Subscribe<LevelCompleted>(OnLevelCompleted));
     _subscriptions.Add(_gameRuntime.EventBus.Subscribe<PauseToggled>(OnPauseToggled));
     _subscriptions.Add(_gameRuntime.EventBus.Subscribe<CountdownTick>(OnCountdownTick));
+    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<ConfirmSaveDialogOpened>(OnConfirmSaveDialogOpened));
+    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<ConfirmSaveDialogClosed>(OnConfirmSaveDialogClosed));
+    _subscriptions.Add(_gameRuntime.EventBus.Subscribe<MenuExitRequested>(OnMenuExitRequested));
   }
 
   private void UnsubscribeFromEvents()
@@ -579,10 +616,35 @@ public sealed class GameViewModel : ViewModelBase
       if (!parEvent.parIsPaused)
       {
         CountdownValue = 0;
+        IsConfirmSaveVisible = false;
         return;
       }
 
       ResetMoveState();
+    });
+  }
+
+  private void OnConfirmSaveDialogOpened(ConfirmSaveDialogOpened parEvent)
+  {
+    Dispatcher.UIThread.Post(() => IsConfirmSaveVisible = true);
+  }
+
+  private void OnConfirmSaveDialogClosed(ConfirmSaveDialogClosed parEvent)
+  {
+    Dispatcher.UIThread.Post(() => IsConfirmSaveVisible = false);
+  }
+
+  private void OnMenuExitRequested(MenuExitRequested parEvent)
+  {
+    Dispatcher.UIThread.Post(() =>
+    {
+      if (!_isActive)
+      {
+        return;
+      }
+
+      Deactivate();
+      _mainMenuNavigation.Navigate();
     });
   }
 
@@ -752,7 +814,26 @@ public sealed class GameViewModel : ViewModelBase
 
   private void HandleBackToMenu()
   {
-    Deactivate();
-    _mainMenuNavigation.Navigate();
+    if (!_isActive)
+    {
+      return;
+    }
+
+    _gameRuntime.CommandQueue.Enqueue(new BackToMenuCommand());
+  }
+
+  private void HandleConfirmSaveYes()
+  {
+    _gameRuntime.CommandQueue.Enqueue(new ConfirmSaveYesCommand());
+  }
+
+  private void HandleConfirmSaveNo()
+  {
+    _gameRuntime.CommandQueue.Enqueue(new ConfirmSaveNoCommand());
+  }
+
+  private void HandleConfirmSaveCancel()
+  {
+    _gameRuntime.CommandQueue.Enqueue(new ConfirmSaveCancelCommand());
   }
 }

@@ -3,6 +3,7 @@ using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.Core.Randomization;
+using CosmicCollector.Core.Services.Bonuses;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,8 +24,6 @@ public sealed class GameWorldUpdateService
   private const double AcceleratorScoreMultiplier = 2.0;
   private const double TimeStabilizerMultiplier = 0.65;
   private const double DroneAcceleratorMultiplier = 1.6;
-  private const double TimeStabilizerBonusSeconds = 5.0;
-  private const double TimeStabilizerBaseSeconds = 60.0;
   private const double DisorientationDurationSec = 3.0;
   private const double MinDistanceEps = 1e-3;
   private const double InnerBoostK = 6.0;
@@ -34,6 +33,8 @@ public sealed class GameWorldUpdateService
   private readonly IRandomProvider _randomProvider;
   private readonly SpawnSystem _spawnSystem;
   private readonly LevelService _levelService;
+  private readonly ResumeCountdownService _resumeCountdownService;
+  private readonly IBonusEffectApplier _bonusEffectApplier;
 
   /// <summary>
   /// Инициализирует сервис обновления мира.
@@ -68,6 +69,13 @@ public sealed class GameWorldUpdateService
     _randomProvider = parRandomProvider;
     _spawnSystem = new SpawnSystem(parRandomProvider, parSpawnConfig);
     _levelService = parLevelService;
+    _resumeCountdownService = new ResumeCountdownService();
+    _bonusEffectApplier = new BonusEffectApplier(new IBonusEffectStrategy[]
+    {
+      new AcceleratorBonusEffectStrategy(),
+      new TimeStabilizerBonusEffectStrategy(),
+      new MagnetBonusEffectStrategy()
+    });
   }
 
   /// <summary>
@@ -97,9 +105,9 @@ public sealed class GameWorldUpdateService
 
       _levelService.InitLevel(parGameState);
 
-      if (parGameState.IsPaused)
+      if (parGameState.IsPaused || parGameState.IsResumeCountdownActive)
       {
-        ProcessResumeCountdown(parGameState, parDt, parEventPublisher);
+        _resumeCountdownService.Process(parGameState, parDt, parEventPublisher);
         return;
       }
 
@@ -129,8 +137,6 @@ public sealed class GameWorldUpdateService
 
       if (parGameState.HasLevelTimer &&
           !timeStabilizerCollected &&
-          !parGameState.IsPaused &&
-          !parGameState.IsResumeCountdownActive &&
           !parGameState.IsGameOver)
       {
         parGameState.LevelTimeRemainingSec = Math.Max(0, parGameState.LevelTimeRemainingSec - parDt);
@@ -533,46 +539,6 @@ public sealed class GameWorldUpdateService
   }
 
   /// <summary>
-  /// Выполняет ProcessResumeCountdown.
-  /// </summary>
-  private void ProcessResumeCountdown(
-    GameState parGameState,
-    double parDt,
-    IEventPublisher parEventPublisher)
-  {
-    if (!parGameState.IsResumeCountdownActive)
-    {
-      return;
-    }
-
-    if (parGameState.IsResumeCountdownJustStarted)
-    {
-      var startValue = parGameState.ResumeCountdownValue;
-      parEventPublisher.Publish(new CountdownTick(startValue));
-      parGameState.IsResumeCountdownJustStarted = false;
-    }
-
-    parGameState.ResumeCountdownAccumulatedSec += parDt;
-
-    while (parGameState.ResumeCountdownAccumulatedSec >= 1.0 && parGameState.IsResumeCountdownActive)
-    {
-      parGameState.ResumeCountdownAccumulatedSec -= 1.0;
-      var value = parGameState.ResumeCountdownValue - 1;
-      parGameState.ResumeCountdownValue = value;
-
-      if (value <= 0)
-      {
-        parGameState.StopResumeCountdown();
-        parGameState.SetPaused(false);
-        parEventPublisher.Publish(new PauseToggled(false));
-        break;
-      }
-
-      parEventPublisher.Publish(new CountdownTick(value));
-    }
-  }
-
-  /// <summary>
   /// Выполняет RemoveOutOfBoundsObjects.
   /// </summary>
   private void RemoveOutOfBoundsObjects(GameState parGameState, IEventPublisher parEventPublisher)
@@ -672,29 +638,9 @@ public sealed class GameWorldUpdateService
     Bonus parBonus,
     ref bool refTimeStabilizerCollected)
   {
-    switch (parBonus.Type)
+    if (_bonusEffectApplier.Apply(parGameState, parBonus))
     {
-      case BonusType.Accelerator:
-        parGameState.AcceleratorRemainingSec = Math.Max(
-          parGameState.AcceleratorRemainingSec,
-          parBonus.DurationSec);
-        break;
-      case BonusType.TimeStabilizer:
-        parGameState.TimeStabilizerRemainingSec = Math.Max(
-          parGameState.TimeStabilizerRemainingSec,
-          parBonus.DurationSec);
-        if (!parGameState.HasLevelTimer)
-        {
-          parGameState.LevelTimeRemainingSec = TimeStabilizerBaseSeconds;
-        }
-        parGameState.LevelTimeRemainingSec += TimeStabilizerBonusSeconds;
-        refTimeStabilizerCollected = true;
-        break;
-      case BonusType.Magnet:
-        parGameState.MagnetRemainingSec = Math.Max(
-          parGameState.MagnetRemainingSec,
-          parBonus.DurationSec);
-        break;
+      refTimeStabilizerCollected = true;
     }
   }
 

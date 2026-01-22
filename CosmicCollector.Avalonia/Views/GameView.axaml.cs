@@ -84,6 +84,11 @@ public sealed partial class GameView : UserControl
 
   private void OnKeyDown(object? parSender, KeyEventArgs parArgs)
   {
+    if (HandleConfirmSaveNavigation(parArgs))
+    {
+      return;
+    }
+
     if (HandlePauseOverlayNavigation(parArgs))
     {
       return;
@@ -101,6 +106,47 @@ public sealed partial class GameView : UserControl
     {
       viewModel.HandleKeyUp(parArgs.Key);
     }
+  }
+
+  private bool HandleConfirmSaveNavigation(KeyEventArgs parArgs)
+  {
+    if (_viewModel?.IsConfirmSaveVisible != true)
+    {
+      return false;
+    }
+
+    if (parArgs.Key != Key.Down && parArgs.Key != Key.Up)
+    {
+      return false;
+    }
+
+    var yesButton = this.FindControl<Button>("ConfirmSaveYesButton");
+    var noButton = this.FindControl<Button>("ConfirmSaveNoButton");
+    var cancelButton = this.FindControl<Button>("ConfirmSaveCancelButton");
+    if (yesButton is null || noButton is null || cancelButton is null)
+    {
+      return false;
+    }
+
+    if (yesButton.IsFocused)
+    {
+      noButton.Focus();
+    }
+    else if (noButton.IsFocused)
+    {
+      cancelButton.Focus();
+    }
+    else if (cancelButton.IsFocused)
+    {
+      yesButton.Focus();
+    }
+    else
+    {
+      yesButton.Focus();
+    }
+
+    parArgs.Handled = true;
+    return true;
   }
 
   private bool HandlePauseOverlayNavigation(KeyEventArgs parArgs)
@@ -153,6 +199,24 @@ public sealed partial class GameView : UserControl
     {
       exitButton.Command = _viewModel.ExitToMenuCommand;
     }
+
+    var confirmYesButton = this.FindControl<Button>("ConfirmSaveYesButton");
+    if (confirmYesButton is not null)
+    {
+      confirmYesButton.Command = _viewModel.ConfirmSaveYesCommand;
+    }
+
+    var confirmNoButton = this.FindControl<Button>("ConfirmSaveNoButton");
+    if (confirmNoButton is not null)
+    {
+      confirmNoButton.Command = _viewModel.ConfirmSaveNoCommand;
+    }
+
+    var confirmCancelButton = this.FindControl<Button>("ConfirmSaveCancelButton");
+    if (confirmCancelButton is not null)
+    {
+      confirmCancelButton.Command = _viewModel.ConfirmSaveCancelCommand;
+    }
   }
 
   private void ApplyViewModelState(string? parPropertyName = null)
@@ -186,6 +250,20 @@ public sealed partial class GameView : UserControl
       else
       {
         Focus();
+      }
+    }
+
+    if (parPropertyName is null || parPropertyName == nameof(GameViewModel.IsConfirmSaveVisible))
+    {
+      var overlay = this.FindControl<Grid>("ConfirmSaveOverlay");
+      if (overlay is not null)
+      {
+        overlay.IsVisible = _viewModel.IsConfirmSaveVisible;
+      }
+
+      if (_viewModel.IsConfirmSaveVisible)
+      {
+        FocusConfirmSaveButton();
       }
     }
 
@@ -229,6 +307,21 @@ public sealed partial class GameView : UserControl
     {
       resumeButton.BringIntoView();
       resumeButton.Focus();
+    }, DispatcherPriority.Loaded);
+  }
+
+  private void FocusConfirmSaveButton()
+  {
+    var confirmButton = this.FindControl<Button>("ConfirmSaveYesButton");
+    if (confirmButton is null)
+    {
+      return;
+    }
+
+    Dispatcher.UIThread.Post(() =>
+    {
+      confirmButton.BringIntoView();
+      confirmButton.Focus();
     }, DispatcherPriority.Loaded);
   }
 }

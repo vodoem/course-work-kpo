@@ -2,9 +2,9 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using CosmicCollector.Avalonia.Infrastructure;
 using CosmicCollector.Avalonia.Navigation;
 using CosmicCollector.Avalonia.ViewModels;
+using CosmicCollector.MVC.Runtime;
 using CosmicCollector.Persistence.Records;
 
 namespace CosmicCollector.Avalonia;
@@ -34,7 +34,6 @@ public sealed class App : Application
     {
       var navigationStore = new NavigationStore();
       var mainWindow = new MainWindow(navigationStore);
-      var gameRuntime = new GameRuntime();
       var recordsRepository = new RecordsRepository(AppDataPaths.GetRecordsFilePath());
 
       NavigationService CreateNavigationService(Func<ViewModelBase> parViewModelFactory)
@@ -63,6 +62,7 @@ public sealed class App : Application
 
       GameViewModel CreateGameViewModel()
       {
+        var gameRuntime = GameRuntime.CreateNew();
         return new GameViewModel(
           gameRuntime,
           CreateNavigationService(CreateMainMenuViewModel),
