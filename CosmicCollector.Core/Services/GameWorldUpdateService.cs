@@ -33,6 +33,7 @@ public sealed class GameWorldUpdateService
   private readonly IRandomProvider _randomProvider;
   private readonly SpawnSystem _spawnSystem;
   private readonly LevelService _levelService;
+  private readonly ResumeCountdownService _resumeCountdownService;
   private readonly IBonusEffectApplier _bonusEffectApplier;
 
   /// <summary>
@@ -68,6 +69,7 @@ public sealed class GameWorldUpdateService
     _randomProvider = parRandomProvider;
     _spawnSystem = new SpawnSystem(parRandomProvider, parSpawnConfig);
     _levelService = parLevelService;
+    _resumeCountdownService = new ResumeCountdownService();
     _bonusEffectApplier = new BonusEffectApplier(new IBonusEffectStrategy[]
     {
       new AcceleratorBonusEffectStrategy(),
@@ -102,6 +104,12 @@ public sealed class GameWorldUpdateService
       }
 
       _levelService.InitLevel(parGameState);
+
+      if (parGameState.IsPaused || parGameState.IsResumeCountdownActive)
+      {
+        _resumeCountdownService.Process(parGameState, parDt, parEventPublisher);
+        return;
+      }
 
       var tickCount = parGameState.AdvanceTickCount();
       UpdateBonusTimers(parGameState, parDt);
