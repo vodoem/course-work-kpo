@@ -11,11 +11,12 @@ public sealed class LevelCompletedState : IGameFlowState
   public string Name => "LevelCompleted";
 
   /// <inheritdoc />
-  public bool AllowsWorldTick => false;
+  public bool AllowsWorldTick => true;
 
   /// <inheritdoc />
   public void OnEnter(IGameFlowContext parContext)
   {
+    parContext.TransitionTo(new PlayingState());
   }
 
   /// <inheritdoc />

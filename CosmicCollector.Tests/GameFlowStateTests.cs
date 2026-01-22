@@ -49,4 +49,16 @@ public sealed class GameFlowStateTests
 
     Xunit.Assert.IsType<MenuState>(controller.CurrentState);
   }
+
+  [Xunit.Fact]
+  public void LevelCompleted_TransitionsToPlaying()
+  {
+    var state = new GameState();
+    var bus = new EventBus();
+    var controller = new GameFlowController(state, bus, new NullGameSaveService(), new PlayingState());
+
+    bus.Publish(new LevelCompleted("GoalsAndScore"));
+
+    Xunit.Assert.IsType<PlayingState>(controller.CurrentState);
+  }
 }
