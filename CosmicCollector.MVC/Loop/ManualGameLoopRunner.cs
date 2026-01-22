@@ -1,7 +1,5 @@
 using CosmicCollector.Core.Events;
 using CosmicCollector.Core.Model;
-using CosmicCollector.Core.Services;
-using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
 
 namespace CosmicCollector.MVC.Loop;
@@ -16,6 +14,7 @@ public sealed class ManualGameLoopRunner
   private readonly CommandQueue _commandQueue;
   private readonly IEventBus _eventBus;
   private readonly Action<double>? _updateCallback;
+  private readonly IGameCommandHandler _commandHandler;
 
   /// <summary>
   /// Инициализирует управляемый игровой цикл.
@@ -24,16 +23,19 @@ public sealed class ManualGameLoopRunner
   /// <param name="parCommandQueue">Очередь команд.</param>
   /// <param name="parEventBus">Шина событий.</param>
   /// <param name="parUpdateCallback">Колбэк обновления мира.</param>
+  /// <param name="parCommandHandler">Обработчик команд.</param>
   public ManualGameLoopRunner(
     GameState parGameState,
     CommandQueue parCommandQueue,
     IEventBus parEventBus,
-    Action<double>? parUpdateCallback)
+    Action<double>? parUpdateCallback,
+    IGameCommandHandler parCommandHandler)
   {
     _gameState = parGameState;
     _commandQueue = parCommandQueue;
     _eventBus = parEventBus;
     _updateCallback = parUpdateCallback;
+    _commandHandler = parCommandHandler;
   }
 
   /// <summary>
@@ -58,37 +60,7 @@ public sealed class ManualGameLoopRunner
 
     foreach (var command in commands)
     {
-      if (command is TogglePauseCommand)
-      {
-        var isPaused = _gameState.TogglePause();
-        _eventBus.Publish(new PauseToggled(isPaused));
-        continue;
-      }
-
-      if (command is SetMoveDirectionCommand setMoveDirectionCommand)
-      {
-        ApplyMoveCommand(setMoveDirectionCommand.DirectionX);
-        continue;
-      }
-
-      if (command is MoveLeftCommand)
-      {
-        ApplyMoveCommand(-1);
-        continue;
-      }
-
-      if (command is MoveRightCommand)
-      {
-        ApplyMoveCommand(1);
-      }
+      _commandHandler.HandleCommand(command);
     }
-  }
-
-  /// <summary>
-  /// Выполняет ApplyMoveCommand.
-  /// </summary>
-  private void ApplyMoveCommand(int parDirection)
-  {
-    _gameState.SetDroneMoveDirection(parDirection);
   }
 }

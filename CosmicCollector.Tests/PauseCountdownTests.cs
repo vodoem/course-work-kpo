@@ -8,6 +8,7 @@ using CosmicCollector.Core.Randomization;
 using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
+using CosmicCollector.MVC.Flow;
 using CosmicCollector.MVC.Loop;
 
 namespace CosmicCollector.Tests;
@@ -33,7 +34,8 @@ public sealed class PauseCountdownTests
     bus.Subscribe<PauseToggled>(evt => toggles.Add(evt.parIsPaused));
     bus.Subscribe<CountdownTick>(evt => countdownValues.Add(evt.parValue));
 
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var runtime = new TestGameFlowRuntime(state, bus, service, new ResumeCountdownService(), new PlayingState());
+    var runner = new ManualGameLoopRunner(state, queue, bus, runtime.Tick, runtime);
 
     queue.Enqueue(new TogglePauseCommand());
     runner.TickOnce();
@@ -62,7 +64,8 @@ public sealed class PauseCountdownTests
     var service = CreateService();
     var bus = new EventBus();
     var queue = new CommandQueue();
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var runtime = new TestGameFlowRuntime(state, bus, service, new ResumeCountdownService(), new PlayingState());
+    var runner = new ManualGameLoopRunner(state, queue, bus, runtime.Tick, runtime);
 
     state.LevelTimeRemainingSec = 10;
     queue.Enqueue(new TogglePauseCommand());
@@ -86,7 +89,8 @@ public sealed class PauseCountdownTests
     var service = CreateService();
     var bus = new EventBus();
     var queue = new CommandQueue();
-    var runner = new ManualGameLoopRunner(state, queue, bus, dt => service.Update(state, dt, 1, bus));
+    var runtime = new TestGameFlowRuntime(state, bus, service, new ResumeCountdownService(), new PlayingState());
+    var runner = new ManualGameLoopRunner(state, queue, bus, runtime.Tick, runtime);
 
     state.LevelTimeRemainingSec = 10;
     queue.Enqueue(new TogglePauseCommand());

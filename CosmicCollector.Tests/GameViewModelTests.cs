@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Reflection;
 using Avalonia.Input;
 using Avalonia.Threading;
-using CosmicCollector.Avalonia.Infrastructure;
 using CosmicCollector.Avalonia.Navigation;
 using CosmicCollector.Avalonia.ViewModels;
 using CosmicCollector.Core.Entities;
@@ -12,6 +11,7 @@ using CosmicCollector.Core.Geometry;
 using CosmicCollector.Core.Model;
 using CosmicCollector.MVC.Commands;
 using CosmicCollector.MVC.Eventing;
+using CosmicCollector.MVC.Runtime;
 using Xunit;
 
 namespace CosmicCollector.Tests;
@@ -177,7 +177,7 @@ public sealed class GameViewModelTests
   public void Activate_CallsRuntimeStart_AndInitializesFieldBoundsFromWorldBounds()
   {
     // Arrange
-    var runtime = new GameRuntime();
+    var runtime = GameRuntime.CreateNew();
     var viewModel = CreateViewModel(runtime);
 
     try
@@ -201,7 +201,7 @@ public sealed class GameViewModelTests
   public void Activate_SecondCall_IsIdempotent_DoesNotStartTwice()
   {
     // Arrange
-    var runtime = new GameRuntime();
+    var runtime = GameRuntime.CreateNew();
     var viewModel = CreateViewModel(runtime);
 
     try
@@ -630,7 +630,32 @@ public sealed class GameViewModelTests
   }
 
   [Fact]
-  public void ExitToMenuCommand_DeactivatesAndNavigatesToMainMenu()
+  public void ExitToMenuCommand_EnqueuesBackToMenuCommand()
+  {
+    // Arrange
+    var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
+    var navigation = CreateNavigationProbes();
+    var viewModel = new GameViewModel(runtime, navigation.MainMenu.Service, navigation.GameOver.Service);
+    viewModel.Activate();
+
+    try
+    {
+      // Act
+      viewModel.ExitToMenuCommand.Execute(null);
+      var commands = runtime.CommandQueue.DrainAll();
+
+      // Assert
+      Assert.Single(commands, command => command is BackToMenuCommand);
+      Assert.Equal(0, navigation.MainMenu.NavigateCount);
+    }
+    finally
+    {
+      viewModel.Deactivate();
+    }
+  }
+
+  [Fact]
+  public void OnMenuExitRequested_NavigatesToMainMenuAndStopsRuntime()
   {
     // Arrange
     var runtime = CreateInitializedRuntime(new WorldBounds(0, 0, 800, 600));
@@ -639,7 +664,8 @@ public sealed class GameViewModelTests
     viewModel.Activate();
 
     // Act
-    viewModel.ExitToMenuCommand.Execute(null);
+    InvokeMenuExitRequested(viewModel, false);
+    DrainUiThread();
     var stopped = WaitForRuntimeStop(runtime);
 
     // Assert
@@ -671,7 +697,7 @@ public sealed class GameViewModelTests
 
   private static GameRuntime CreateInitializedRuntime(WorldBounds parBounds)
   {
-    var runtime = new GameRuntime();
+    var runtime = GameRuntime.CreateNew();
     var drone = new Drone(Guid.NewGuid(), Vector2.Zero, Vector2.Zero, new Aabb(32, 32), 100);
     var gameState = new GameState(drone, parBounds);
     var eventBus = new EventBus();
@@ -705,6 +731,11 @@ public sealed class GameViewModelTests
   private static void InvokeCountdownTick(GameViewModel parViewModel, int parValue)
   {
     InvokePrivateMethod(parViewModel, "OnCountdownTick", new CountdownTick(parValue));
+  }
+
+  private static void InvokeMenuExitRequested(GameViewModel parViewModel, bool parShouldSave)
+  {
+    InvokePrivateMethod(parViewModel, "OnMenuExitRequested", new MenuExitRequested(parShouldSave));
   }
 
   private static void DrainUiThread()
