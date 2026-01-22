@@ -8,7 +8,6 @@ using CosmicCollector.Core.Services;
 using CosmicCollector.MVC.Eventing;
 using CosmicCollector.MVC.Flow;
 using CosmicCollector.MVC.Loop;
-using CosmicCollector.MVC.Services;
 
 namespace CosmicCollector.Avalonia.Infrastructure;
 
@@ -26,7 +25,6 @@ public sealed class GameRuntime
   private GameLoopRunner? _gameLoopRunner;
   private GameWorldUpdateService? _updateService;
   private GameFlowController? _flowController;
-  private IGameSaveService? _saveService;
   private bool _isRunning;
 
   private GameRuntime()
@@ -112,8 +110,7 @@ public sealed class GameRuntime
       _eventBus = new EventBus();
       _commandQueue = new CommandQueue();
       _updateService = new GameWorldUpdateService(new DefaultRandomProvider(), SpawnConfig.Default);
-      _saveService = new NullGameSaveService();
-      _flowController = new GameFlowController(_gameState, _eventBus, _saveService, new PlayingState());
+      _flowController = new GameFlowController(_gameState, _eventBus, new PlayingState());
       _gameLoopRunner = new GameLoopRunner(_flowController, _commandQueue, _eventBus, UpdateWorld);
 
       _eventBus.Publish(new GameStarted(_gameState.CurrentLevel));
@@ -142,7 +139,6 @@ public sealed class GameRuntime
       _commandQueue = null;
       _flowController?.Dispose();
       _flowController = null;
-      _saveService = null;
     }
   }
 

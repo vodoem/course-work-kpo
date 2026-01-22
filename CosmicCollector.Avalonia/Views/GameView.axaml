@@ -57,41 +57,6 @@
       </Border>
     </Grid>
     <Grid Grid.RowSpan="2"
-          x:Name="ConfirmSaveOverlay"
-          Background="#80000000">
-      <Border Width="420"
-              HorizontalAlignment="Center"
-              VerticalAlignment="Center"
-              Background="#2A2A2A"
-              CornerRadius="16"
-              Padding="24">
-        <Border.Styles>
-          <Style Selector="TextBlock">
-            <Setter Property="Foreground" Value="White" />
-          </Style>
-        </Border.Styles>
-        <StackPanel Spacing="16"
-                    HorizontalAlignment="Center">
-          <TextBlock Text="Сохранить перед выходом?"
-                     FontSize="20"
-                     FontWeight="Bold"
-                     HorizontalAlignment="Center" />
-          <Button x:Name="ConfirmSaveButton"
-                  Content="_Сохранить и выйти"
-                  Classes="focus-target"
-                  />
-          <Button x:Name="ExitWithoutSaveButton"
-                  Content="_Выйти без сохранения"
-                  Classes="focus-target"
-                  />
-          <Button x:Name="CancelExitButton"
-                  Content="_Отмена"
-                  Classes="focus-target"
-                  />
-        </StackPanel>
-      </Border>
-    </Grid>
-    <Grid Grid.RowSpan="2"
           x:Name="CountdownOverlay"
           Background="#80000000">
       <Border Width="240"

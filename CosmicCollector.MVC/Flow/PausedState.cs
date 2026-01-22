@@ -37,7 +37,7 @@ public sealed class PausedState : IGameFlowState
 
     if (parCommand is RequestBackToMenuCommand)
     {
-      parContext.TransitionTo(new ConfirmSaveBeforeMenuState());
+      parContext.TransitionTo(new MenuState());
     }
   }
 }

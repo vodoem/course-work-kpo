@@ -1,4 +1,5 @@
 using CosmicCollector.Core.Events;
+
 namespace CosmicCollector.MVC.Flow;
 
 /// <summary>
@@ -6,17 +7,6 @@ namespace CosmicCollector.MVC.Flow;
 /// </summary>
 public sealed class MenuState : IGameFlowState
 {
-  private readonly bool _wasSaved;
-
-  /// <summary>
-  /// Инициализирует состояние меню.
-  /// </summary>
-  /// <param name="parWasSaved">Признак сохранения перед выходом.</param>
-  public MenuState(bool parWasSaved)
-  {
-    _wasSaved = parWasSaved;
-  }
-
   /// <inheritdoc />
   public string Name => "Menu";
 
@@ -26,7 +16,7 @@ public sealed class MenuState : IGameFlowState
   /// <inheritdoc />
   public void OnEnter(IGameFlowContext parContext)
   {
-    parContext.EventBus.Publish(new MenuNavigationRequested(_wasSaved));
+    parContext.EventBus.Publish(new MenuNavigationRequested());
   }
 
   /// <inheritdoc />

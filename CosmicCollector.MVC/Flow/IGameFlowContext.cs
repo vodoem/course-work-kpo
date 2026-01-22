@@ -1,6 +1,5 @@
 using CosmicCollector.Core.Model;
 using CosmicCollector.MVC.Eventing;
-using CosmicCollector.MVC.Services;
 
 namespace CosmicCollector.MVC.Flow;
 
@@ -18,11 +17,6 @@ public interface IGameFlowContext
   /// Шина событий.
   /// </summary>
   IEventBus EventBus { get; }
-
-  /// <summary>
-  /// Сервис сохранения.
-  /// </summary>
-  IGameSaveService SaveService { get; }
 
   /// <summary>
   /// Выполняет переход в новое состояние.

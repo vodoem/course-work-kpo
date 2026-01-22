@@ -154,23 +154,6 @@ public sealed partial class GameView : UserControl
       exitButton.Command = _viewModel.ExitToMenuCommand;
     }
 
-    var confirmSaveButton = this.FindControl<Button>("ConfirmSaveButton");
-    if (confirmSaveButton is not null)
-    {
-      confirmSaveButton.Command = _viewModel.ConfirmSaveAndExitCommand;
-    }
-
-    var exitWithoutSaveButton = this.FindControl<Button>("ExitWithoutSaveButton");
-    if (exitWithoutSaveButton is not null)
-    {
-      exitWithoutSaveButton.Command = _viewModel.ConfirmExitWithoutSaveCommand;
-    }
-
-    var cancelExitButton = this.FindControl<Button>("CancelExitButton");
-    if (cancelExitButton is not null)
-    {
-      cancelExitButton.Command = _viewModel.CancelExitCommand;
-    }
   }
 
   private void ApplyViewModelState(string? parPropertyName = null)
@@ -200,24 +183,6 @@ public sealed partial class GameView : UserControl
       if (_viewModel.IsPauseOverlayVisible)
       {
         FocusPauseButton();
-      }
-      else
-      {
-        Focus();
-      }
-    }
-
-    if (parPropertyName is null || parPropertyName == nameof(GameViewModel.IsConfirmSaveVisible))
-    {
-      var overlay = this.FindControl<Grid>("ConfirmSaveOverlay");
-      if (overlay is not null)
-      {
-        overlay.IsVisible = _viewModel.IsConfirmSaveVisible;
-      }
-
-      if (_viewModel.IsConfirmSaveVisible)
-      {
-        FocusConfirmSaveButton();
       }
       else
       {
@@ -268,18 +233,4 @@ public sealed partial class GameView : UserControl
     }, DispatcherPriority.Loaded);
   }
 
-  private void FocusConfirmSaveButton()
-  {
-    var confirmButton = this.FindControl<Button>("ConfirmSaveButton");
-    if (confirmButton is null)
-    {
-      return;
-    }
-
-    Dispatcher.UIThread.Post(() =>
-    {
-      confirmButton.BringIntoView();
-      confirmButton.Focus();
-    }, DispatcherPriority.Loaded);
-  }
 }

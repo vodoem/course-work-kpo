@@ -642,7 +642,7 @@ public sealed class GameViewModelTests
     // Act
     viewModel.ExitToMenuCommand.Execute(null);
     var commands = runtime.CommandQueue.DrainAll();
-    runtime.EventBus.Publish(new MenuNavigationRequested(false));
+    runtime.EventBus.Publish(new MenuNavigationRequested());
     DrainUiThread();
     var stopped = WaitForRuntimeStop(runtime);
 

@@ -29,7 +29,7 @@ public sealed class LevelCompletedState : IGameFlowState
   {
     if (parCommand is RequestBackToMenuCommand)
     {
-      parContext.TransitionTo(new MenuState(false));
+      parContext.TransitionTo(new MenuState());
     }
   }
 }
