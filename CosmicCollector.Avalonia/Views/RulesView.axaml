@@ -1,0 +1,74 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CosmicCollector.Avalonia.Views.RulesView">
+  <Grid RowDefinitions="Auto,*,Auto"
+        Margin="24">
+    <TextBlock Text="Правила"
+               FontSize="24"
+               FontWeight="Bold"
+               HorizontalAlignment="Left" />
+    <Grid Grid.Row="1"
+          ColumnDefinitions="*,*"
+          Margin="0,16,0,0">
+      <Border Background="#E6E6E6"
+              CornerRadius="16"
+              Padding="16"
+              Margin="0,0,24,0">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="Black" />
+          </Style>
+        </Border.Styles>
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="Описание игры и правила"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Margin="0,0,0,12" />
+          <ScrollViewer Grid.Row="1"
+                        VerticalScrollBarVisibility="Visible"
+                        HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="DescriptionItems">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="4" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+      <Border Grid.Column="1"
+              Background="#E6E6E6"
+              CornerRadius="16"
+              Padding="16">
+        <Border.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="Foreground" Value="Black" />
+          </Style>
+        </Border.Styles>
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="Клавиши управления"
+                     FontSize="18"
+                     FontWeight="Bold"
+                     Margin="0,0,0,12" />
+          <ScrollViewer Grid.Row="1"
+                        VerticalScrollBarVisibility="Visible"
+                        HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="ControlsItems">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Spacing="4" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+          </ScrollViewer>
+        </Grid>
+      </Border>
+    </Grid>
+    <Button x:Name="BackButton"
+            Grid.Row="2"
+            Content="Главное меню"
+            HorizontalAlignment="Center"
+            Margin="0,16,0,0" />
+  </Grid>
+</UserControl>

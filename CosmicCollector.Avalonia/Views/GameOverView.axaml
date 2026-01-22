@@ -1,0 +1,116 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="CosmicCollector.Avalonia.Views.GameOverView">
+  <UserControl.Styles>
+    <Style Selector="TextBlock">
+      <Setter Property="Foreground" Value="White" />
+    </Style>
+    <Style Selector="TextBox">
+      <Setter Property="Foreground" Value="White" />
+      <Setter Property="Background" Value="#2A2A2A" />
+      <Setter Property="BorderBrush" Value="#4A4A4A" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+  </UserControl.Styles>
+  <Grid Background="#0F0F0F"
+        RowDefinitions="Auto,Auto,*">
+    <StackPanel Margin="24,16,24,0"
+                Spacing="4">
+      <TextBlock Text="РЕКОРДЫ"
+                 FontSize="26"
+                 FontWeight="Bold" />
+      <TextBlock Text="Поражение."
+                 FontSize="14"
+                 Opacity="0.8" />
+    </StackPanel>
+    <Border Grid.Row="1"
+            Margin="24,12,24,0"
+            Background="#1C1C1C"
+            CornerRadius="16"
+            Padding="16">
+      <Grid ColumnDefinitions="*,*,*,*">
+        <StackPanel>
+          <TextBlock Text="Уровень" FontWeight="Bold" />
+          <TextBlock x:Name="LevelValueText" />
+        </StackPanel>
+        <StackPanel Grid.Column="1">
+          <TextBlock Text="Очки" FontWeight="Bold" />
+          <TextBlock x:Name="ScoreValueText" />
+        </StackPanel>
+        <StackPanel Grid.Column="2">
+          <TextBlock Text="Энергия" FontWeight="Bold" />
+          <TextBlock x:Name="EnergyValueText" />
+        </StackPanel>
+        <StackPanel Grid.Column="3">
+          <TextBlock Text="Время" FontWeight="Bold" />
+          <TextBlock x:Name="TimerValueText" />
+        </StackPanel>
+      </Grid>
+    </Border>
+    <Grid Grid.Row="2"
+          Margin="24"
+          RowDefinitions="Auto,Auto,*,Auto"
+          Background="#0F0F0F">
+      <Border Background="#1C1C1C"
+              CornerRadius="16"
+              Padding="24"
+              Margin="0,0,0,16">
+        <StackPanel Spacing="12">
+          <TextBlock Text="Ваш рекорд"
+                     FontSize="18"
+                     FontWeight="Bold" />
+          <TextBlock x:Name="FinalScoreText"
+                     FontSize="32"
+                     FontWeight="Bold" />
+          <StackPanel x:Name="InputPanel"
+                      Spacing="8">
+            <TextBlock Text="Новый рекорд!" />
+            <TextBlock Text="Введите имя (1–16):" />
+            <TextBox x:Name="PlayerNameTextBox"
+                     MaxLength="16"
+                     FontSize="16" />
+            <TextBlock x:Name="NameErrorText"
+                       Foreground="#FF6B6B"
+                       FontSize="12" />
+            <Button Content="Сохранить"
+                    x:Name="SaveRecordButton" />
+          </StackPanel>
+        </StackPanel>
+      </Border>
+      <Border Grid.Row="2"
+              Background="#1C1C1C"
+              CornerRadius="16"
+              Padding="16"
+              x:Name="TablePanel">
+        <Grid RowDefinitions="Auto,*">
+          <TextBlock Text="Топ-10"
+                     FontSize="16"
+                     FontWeight="Bold"
+                     Margin="0,0,0,8" />
+          <Grid Grid.Row="1">
+            <TextBlock x:Name="NoRecordsText"
+                       Text="Записей нет."
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+            <ScrollViewer x:Name="RecordsScroll"
+                          VerticalScrollBarVisibility="Visible"
+                          HorizontalScrollBarVisibility="Disabled">
+              <StackPanel x:Name="RecordsPanel"
+                          Spacing="6" />
+            </ScrollViewer>
+          </Grid>
+        </Grid>
+      </Border>
+      <StackPanel Grid.Row="3"
+                  Orientation="Horizontal"
+                  HorizontalAlignment="Center"
+                  Spacing="16"
+                  Margin="0,8,0,0">
+        <Button x:Name="BackToMenuButton"
+                Content="Главное меню" />
+        <Button x:Name="RestartButton"
+                Content="Заново" />
+      </StackPanel>
+    </Grid>
+  </Grid>
+</UserControl>

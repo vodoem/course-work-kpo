@@ -13,6 +13,7 @@
 6) `docs/ui/avalonia/ui-requirements.md` (требования к UI Avalonia)
 7) `docs/spec/csharp_style_summary.md`
 8) `docs/codex/prompt_cookbook.md`
+9) `docs/ui/avalonia/handoff-console-integration.md`
 
 Если есть конфликт — решаем в пользу пунктов 1–2.
 
